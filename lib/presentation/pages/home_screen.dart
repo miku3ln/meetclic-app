@@ -5,7 +5,8 @@ import 'package:meetclic/presentation/widgets/header_widget.dart';
 import 'package:meetclic/presentation/widgets/module_selector_widget.dart';
 import 'package:meetclic/presentation/widgets/start_button_widget.dart';
 import 'full_screen_page.dart';
-import 'full_screen_page_business.dart';
+import 'business_map_page.dart';
+
 class HomeScreen extends StatefulWidget {
   final List<ModuleModel> modules;
 
@@ -58,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Widget screen;
 
     if (screenName == 'Language') {
-      screen = const FullScreenPageBusiness(); // asegúrate de importar esta clase
+      screen = const BusinessMapPage(); // asegúrate de importar esta clase
     } else {
       screen = FullScreenPage(title: screenName);
     }
