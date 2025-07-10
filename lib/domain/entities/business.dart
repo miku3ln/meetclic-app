@@ -20,3 +20,10 @@ class Business {
 
   });
 }
+class BusinessData {
+  final Business business ;
+  BusinessData({
+    required this.business,
+
+  });
+}
