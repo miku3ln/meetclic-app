@@ -18,13 +18,19 @@ class ActivityItemBusiness extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: color.withOpacity(0.2),
         child: Icon(icon, color: color),
       ),
-      title: Text(title),
-      subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
+      title: Text(title,style: theme.textTheme.titleMedium?.copyWith(
+        color: theme.colorScheme.primary, // se puede personalizar desde el Theme
+      )),
+      subtitle: Text(subtitle,style: theme.textTheme.titleSmall?.copyWith(
+        color: Colors.grey, // se puede personalizar desde el Theme
+      )),
       trailing: Text(time, style: const TextStyle(color: Colors.grey)),
     );
   }

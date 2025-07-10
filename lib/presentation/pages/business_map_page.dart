@@ -26,7 +26,7 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
       points: 15,
       imageBackground:  "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
       imageLogo:  "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
-
+starCount: 2.5,
     ),
     Business(
       id: 2,
@@ -39,6 +39,7 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
           "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
       imageLogo:
       "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
+      starCount: 3,
     ),
   ];
 

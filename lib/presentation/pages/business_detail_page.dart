@@ -4,6 +4,7 @@ import '../widgets/home-business/home_business_section.dart';
 import '../widgets/home-business/shop_business_section.dart';
 import '../widgets/home-business/news_business_section.dart';
 import '../widgets/home-business/gamification_business_section.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class BusinessDetailPage extends StatefulWidget {
   final Business business;
@@ -77,7 +78,14 @@ class _BusinessDetailPageState extends State<BusinessDetailPage> {
         backgroundColor: theme.colorScheme.primary,
         child: const Icon(Icons.add_business),
         onPressed: () {
-          // Lógica para agregar empresa como parte mía
+          Fluttertoast.showToast(
+            msg: "Empresa agregada a tu lista 💼",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.black87,
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
         },
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

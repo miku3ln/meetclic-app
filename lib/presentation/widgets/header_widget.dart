@@ -17,11 +17,11 @@ class HeaderWidget extends StatelessWidget {
             children: [
               const Icon(Icons.local_fire_department, color: Colors.orange),
               const SizedBox(width: 4),
-              Text('5', style: theme.textTheme.bodyMedium),
+              Text('5', style: TextStyle(fontSize: 12,color: theme.colorScheme.secondary)),
               const SizedBox(width: 16),
               const Icon(Icons.diamond, color: Colors.cyan),
               const SizedBox(width: 4),
-              Text('2480', style: theme.textTheme.bodyMedium),
+              Text('2480', style: TextStyle(fontSize: 12,color: theme.colorScheme.secondary)),
               const SizedBox(width: 16),
               Icon(Icons.emoji_events, color: theme.colorScheme.surface),
             ],

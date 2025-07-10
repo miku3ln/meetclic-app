@@ -7,6 +7,7 @@ class Business {
   final int points;
   final String imageLogo;
   final String imageBackground;
+  final double starCount;
 
   Business({
     required this.id,
@@ -17,6 +18,7 @@ class Business {
     required this.points,
     required this.imageLogo,
     required this.imageBackground,
+    required this.starCount,
 
   });
 }

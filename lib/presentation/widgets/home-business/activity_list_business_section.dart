@@ -4,40 +4,56 @@ import '../../../domain/entities/business.dart';
 
 class ActivityListBusiness extends StatelessWidget {
   final BusinessData businessData;
-  const ActivityListBusiness({super.key,required this.businessData});
+  const ActivityListBusiness({super.key, required this.businessData});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       children: const [
         ActivityItemBusiness(
-          icon: Icons.local_laundry_service,
-          title: 'Wash yesterday\'s clothes',
-          subtitle: 'The whole life should wash',
+          icon: Icons.new_releases,
+          title: 'Lanzamiento de nuevo producto',
+          subtitle: 'Ahora disponible: Pack ahorro de limpieza ecológica',
           color: Colors.orangeAccent,
-          time: 'Just now',
+          time: 'Hace 10 min',
         ),
         ActivityItemBusiness(
-          icon: Icons.book,
-          title: 'Read a design journal',
-          subtitle: 'Be the best designer',
-          color: Colors.blueAccent,
-          time: '3 h later',
-        ),
-        ActivityItemBusiness(
-          icon: Icons.attach_money,
-          title: 'Go to the bank',
-          subtitle: 'Take out the design fee',
+          icon: Icons.thumb_up,
+          title: 'Mejoramos atención al cliente',
+          subtitle: 'Nuevo sistema de respuesta en menos de 2 horas',
           color: Colors.green,
-          time: '6 h later',
+          time: 'Hace 1 hora',
         ),
         ActivityItemBusiness(
-          icon: Icons.palette,
-          title: 'Post a work on dribbble',
-          subtitle: 'Hope to be recognized',
-          color: Colors.pinkAccent,
-          time: '7 h later',
+          icon: Icons.campaign,
+          title: 'Campaña de descuentos activos',
+          subtitle: 'Descuento del 20% en servicios por tiempo limitado',
+          color: Colors.purpleAccent,
+          time: 'Hace 2 horas',
+        ),
+        ActivityItemBusiness(
+          icon: Icons.star,
+          title: 'Opiniones de clientes analizadas',
+          subtitle: 'Mejoras aplicadas según sugerencias recientes',
+          color: Colors.teal,
+          time: 'Hace 3 horas',
+        ),
+        ActivityItemBusiness(
+          icon: Icons.shopping_cart,
+          title: 'Nueva categoría en la tienda',
+          subtitle: 'Ahora también vendemos productos orgánicos',
+          color: Colors.blueAccent,
+          time: 'Hoy',
+        ),
+        ActivityItemBusiness(
+          icon: Icons.support_agent,
+          title: 'Ticket de queja resuelto',
+          subtitle: 'Cliente satisfecho con atención brindada',
+          color: Colors.redAccent,
+          time: 'Ayer',
         ),
       ],
     );

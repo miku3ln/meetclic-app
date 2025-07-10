@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'home_screen.dart';
+import 'index.dart';
 import 'package:meetclic/data/data-sources/module_api_fake.dart';
 
 class SplashScreen extends StatefulWidget {
