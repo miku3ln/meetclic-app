@@ -1,3 +1,4 @@
+// Archivo: home_business_section.dart
 import 'package:flutter/material.dart';
 import 'header_business_section.dart';
 import 'task_list_business_section.dart';
@@ -12,36 +13,36 @@ class HomeBusinessSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final businessDataCurrent = businessData;
 
     return Stack(
       children: [
-        // Fondo con header ampliado
-        Container(
-          height: MediaQuery.of(context).size.height * 0.32,
-          decoration: BoxDecoration(
-            color: theme.colorScheme.primary,
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(30),
-              bottomRight: Radius.circular(30),
-            ),
-          ),
-          padding: const EdgeInsets.fromLTRB(20, 60, 20, 100),
-          width: double.infinity,
-          child: HeaderBusinessSection(businessData: businessData),
-        ),
+        // HEADER + espacio extra para overlap visual
+        //ROW HEADER
 
-        // Contenido principal desplazado hacia abajo
+        //ROW TASK
         Padding(
-          padding: const EdgeInsets.only(top: 180), // Para que flote sobre el header
+          padding: const EdgeInsets.only(top: 160),
+          child: Column(
+            children: [     SizedBox(
+              height: MediaQuery.of(context).size.height * 0.32,
+              child: HeaderBusinessSection(businessData: businessDataCurrent),
+            ),
+              TaskListBusinessSection(businessData: businessDataCurrent),
+              const SizedBox(height: 20),
+            ],
+          ),
+        )
+        , //DATA CHANGE
+        Padding(
+          padding: const EdgeInsets.only(top: 160),
           child: Column(
             children: [
-               TaskListBusinessSection(businessData:businessData),
-              const SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Row(
                   children: [
-                    Text('Today\'s plan', style: theme.textTheme.titleMedium),
+                    Text("Today's plan", style: theme.textTheme.titleMedium),
                     const Spacer(),
                     const CircleAvatar(
                       radius: 14,
@@ -52,11 +53,11 @@ class HomeBusinessSection extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-               Expanded(child: ActivityListBusiness(businessData:businessData)),
+              Expanded(child: ActivityListBusiness(businessData: businessDataCurrent)),
             ],
           ),
-        ),
+        )
       ],
     );
   }
-}
+} 
