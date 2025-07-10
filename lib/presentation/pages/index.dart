@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meetclic/domain/entities/module_model.dart';
 import 'package:meetclic/presentation/widgets/home_drawer_widget.dart';
-import 'package:meetclic/presentation/widgets/header_widget.dart';
+import 'package:meetclic/presentation/widgets/home/header_widget.dart';
 import 'package:meetclic/presentation/widgets/module_selector_widget.dart';
 import 'package:meetclic/presentation/widgets/start_button_widget.dart';
 import 'full_screen_page.dart';
@@ -43,7 +43,10 @@ class _HomeScreenState extends State<HomeScreen> {
               title: Text('View Details', style: theme.textTheme.bodyMedium),
             ),
             ListTile(
-              leading: Icon(Icons.lock_open, color: theme.colorScheme.onBackground),
+              leading: Icon(
+                Icons.lock_open,
+                color: theme.colorScheme.onBackground,
+              ),
               title: Text('Unlock Unit', style: theme.textTheme.bodyMedium),
             ),
           ],
@@ -61,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const FullScreenPage(title: 'More'),
   ];
 
-  Widget _buildHomeContent() {
+  SafeArea _get() {
     final theme = Theme.of(context);
     return SafeArea(
       child: SingleChildScrollView(
@@ -91,6 +94,66 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildHomeContent() {
+    final theme = Theme.of(context);
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: const Text('Inicio'),
+        backgroundColor: theme.appBarTheme.backgroundColor,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12.0),
+            child: Row(
+              children: [
+                const Icon(Icons.local_fire_department, color: Colors.orange, size: 20),
+                const SizedBox(width: 4),
+                Text('5', style: TextStyle(fontSize: 13, color: theme.colorScheme.secondary)),
+
+                const SizedBox(width: 12),
+                const Icon(Icons.diamond, color: Colors.cyan, size: 20),
+                const SizedBox(width: 4),
+                Text('2480', style: TextStyle(fontSize: 13, color: theme.colorScheme.secondary)),
+                const SizedBox(width: 4),
+                Icon(Icons.emoji_events, color: Colors.orange, size: 20),
+                Text('2', style: TextStyle(fontSize: 13, color: theme.colorScheme.secondary)),
+              ],
+            ),
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              const SizedBox(height: 10),
+              const HeaderWidget(),
+              const SizedBox(height: 10),
+              _buildUnitBanner(theme),
+              const SizedBox(height: 10),
+              const StartButtonWidget(),
+              const SizedBox(height: 20),
+              if (widget.modules.isNotEmpty)
+                ModuleSelectorWidget(
+                  modules: widget.modules,
+                  selectedModule: _selectedModule,
+                  onModuleChanged: (value) =>
+                      setState(() => _selectedModule = value),
+                ),
+              Text(
+                'More content below...',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: Colors.white38,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    ;
   }
 
   Widget _buildUnitBanner(ThemeData theme) {
