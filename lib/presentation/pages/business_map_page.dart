@@ -24,6 +24,9 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
       lat: -0.3000,
       lng: -78.6000,
       points: 15,
+      imageBackground:  "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
+      imageLogo:  "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
+
     ),
     Business(
       id: 2,
@@ -32,6 +35,10 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
       lat: -0.3100,
       lng: -78.6050,
       points: 20,
+      imageBackground:
+          "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
+      imageLogo:
+      "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
     ),
   ];
 
@@ -56,7 +63,11 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
                 width: 40,
                 height: 40,
                 alignment: Alignment.topCenter,
-                child: const Icon(Icons.location_on, color: Colors.red, size: 40),
+                child: const Icon(
+                  Icons.location_on,
+                  color: Colors.red,
+                  size: 40,
+                ),
               ),
             ]);
           },
@@ -94,7 +105,9 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
               popupDisplayOptions: PopupDisplayOptions(
                 builder: (context, marker) {
                   final business = businesses.firstWhere(
-                        (b) => b.lat == marker.point.latitude && b.lng == marker.point.longitude,
+                    (b) =>
+                        b.lat == marker.point.latitude &&
+                        b.lng == marker.point.longitude,
                     orElse: () => businesses[0],
                   );
                   return _buildPopupCard(context, business);
@@ -123,7 +136,9 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
         child: Card(
           elevation: 6,
           margin: const EdgeInsets.all(8),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           color: theme.colorScheme.surface,
           child: Padding(
             padding: const EdgeInsets.all(12),
@@ -133,17 +148,20 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
               children: [
                 Text(
                   business.name,
-                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 5),
-                Text(
-                  business.description,
-                  style: theme.textTheme.bodyMedium,
-                ),
+                Text(business.description, style: theme.textTheme.bodyMedium),
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Icon(Icons.star, color: theme.colorScheme.secondary, size: 20),
+                    Icon(
+                      Icons.star,
+                      color: theme.colorScheme.secondary,
+                      size: 20,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       '+${business.points} puntos',

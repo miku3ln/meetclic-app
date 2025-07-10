@@ -5,6 +5,8 @@ class Business {
   final double lat;
   final double lng;
   final int points;
+  final String imageLogo;
+  final String imageBackground;
 
   Business({
     required this.id,
@@ -13,5 +15,8 @@ class Business {
     required this.lat,
     required this.lng,
     required this.points,
+    required this.imageLogo,
+    required this.imageBackground,
+
   });
 }
