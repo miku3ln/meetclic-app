@@ -19,15 +19,15 @@ class HomeBusinessSection extends StatelessWidget {
       children: [
         // HEADER + espacio extra para overlap visual
         //ROW HEADER
-
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.32,
+          child: HeaderBusinessSection(businessData: businessDataCurrent),
+        ),
         //ROW TASK
         Padding(
           padding: const EdgeInsets.only(top: 160),
           child: Column(
-            children: [     SizedBox(
-              height: MediaQuery.of(context).size.height * 0.32,
-              child: HeaderBusinessSection(businessData: businessDataCurrent),
-            ),
+            children: [
               TaskListBusinessSection(businessData: businessDataCurrent),
               const SizedBox(height: 20),
             ],
