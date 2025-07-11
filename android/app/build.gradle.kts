@@ -7,6 +7,7 @@ plugins {
 
 android {
     namespace = "com.meetclic.meetclic"
+    testNamespace = "com.meetclic.meetclic"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
