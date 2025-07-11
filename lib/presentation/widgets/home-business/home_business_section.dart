@@ -1,8 +1,6 @@
 // Archivo: home_business_section.dart
 import 'package:flutter/material.dart';
 import 'header_business_section.dart';
-import 'task_list_business_section.dart';
-import 'activity_list_business_section.dart';
 import '../../../domain/entities/business.dart';
 import '../../../shared/utils/util_common.dart'; // ajusta el import según tu estructura
 
@@ -30,13 +28,10 @@ class _InfoTile extends StatelessWidget {
     );
   }
 }
-
 class _SocialIcon extends StatelessWidget {
   final IconData icon;
   final String url;
-
   const _SocialIcon({required this.icon,required this.url});
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -99,11 +94,12 @@ class HomeBusinessSection extends StatelessWidget {
     final theme = Theme.of(context);
     final businessDataCurrent = businessData;
     final paddingContainer = MediaQuery.of(context).size.height * 0.38;
+   final double heightCurrent=280;// MediaQuery.of(context).size.height * 0.32;
     return Column(
       children: [
         SizedBox(
-          height: MediaQuery.of(context).size.height * 0.32,
-          child: HeaderBusinessSection(businessData: businessDataCurrent),
+          height: heightCurrent,
+          child: HeaderBusinessSection(businessData: businessDataCurrent,heightTotal: heightCurrent),
         ),
         // 🔵 Section Header (estático)
         Container(), // Header

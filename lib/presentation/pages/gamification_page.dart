@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../domain/entities/status_item.dart';
-import '../../../presentation/widgets/template/custom_app_bar.dart';
-import 'package:rive/rive.dart';
-class FullScreenPage extends StatelessWidget {
+
+class GamificationScreenPage extends StatelessWidget {
   final String title;
-  final List<StatusItem> itemsStatus;
-  const FullScreenPage({super.key, required this.title,required this.itemsStatus});
+
+  const GamificationScreenPage({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +11,10 @@ class FullScreenPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor, // usa el color global
-      appBar: CustomAppBar(title: 'Inicio', items: itemsStatus),
+      appBar: AppBar(
+        title: Text(title),
+        backgroundColor: theme.appBarTheme.backgroundColor, // color global AppBar
+      ),
       body: Center(
         child: Text(
           '$title Screen',

@@ -2,16 +2,35 @@ import 'package:flutter/material.dart';
 import '../../../domain/entities/business.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart'; // 👈 Importa esto
 import 'package:share_plus/share_plus.dart';
+import 'package:http/http.dart' as http;
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 class HeaderBusinessSection extends StatelessWidget {
   final BusinessData businessData;
-  const HeaderBusinessSection({super.key,required this.businessData});
+  final double heightTotal ;
+  const HeaderBusinessSection({super.key,required this.businessData,required this.heightTotal});
 
-  void shareData() {
-    final data = businessData;
-    Share.share(
-      'Mira esta empresa en MeetClic: https://meetclic.com ${data.business.name}',
-      subject: 'Descubre esta empresa en MeetClic',
-    );
+  Future<void> shareData() async {
+    try {
+      final imageUrl="https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png";
+      final response = await http.get(Uri.parse(imageUrl));
+      if (response.statusCode == 200) {
+        final tempDir = await getTemporaryDirectory();
+        final filePath = '${tempDir.path}/shared_image.png';
+        // 3. Guardar archivo local
+        final file = File(filePath);
+        await file.writeAsBytes(response.bodyBytes);
+        final data = businessData;
+        await Share.shareXFiles(
+          [XFile(filePath)],
+          text: 'Mira esta empresa en MeetClic: https://meetclic.com/${data.business.name.replaceAll(" ", "").toLowerCase()} Descubre esta empresa en MeetClic',
+          subject: '',
+        );
+      }
+
+    } catch (e) {
+      print('Error al compartir: $e');
+    }
   }
 
   @override
@@ -34,7 +53,7 @@ class HeaderBusinessSection extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: MediaQuery.of(context).size.height * 0.05), // 👈 aquí el 2%
+
               Row(
                 children: List.generate(5, (index) {
                   return Icon(
@@ -60,11 +79,11 @@ class HeaderBusinessSection extends StatelessWidget {
           ),
         ),
         Positioned(
-          top: 20,
-          right: 20,
+          top: 0,
+          right: 0,
           child: Container(
-            width: 80, // 🔍 aumenta el tamaño aquí
-            height: 80,
+            width: 100, // 🔍 aumenta el tamaño aquí
+            height: 100,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.white,
@@ -83,7 +102,7 @@ class HeaderBusinessSection extends StatelessWidget {
           ),
         ),
         Positioned(
-          top: 90, // 📌 Ajusta esta posición para que quede justo debajo del logo
+          top: 100, // 📌 Ajusta esta posición para que quede justo debajo del logo
           right: 26,
           child: GestureDetector(
             onTap: () {
@@ -111,7 +130,7 @@ class HeaderBusinessSection extends StatelessWidget {
         const SizedBox(height: 20),
 
         Positioned(
-          top: 150, // Ajusta esta altura según tu diseño
+          top: 120, // Ajusta esta altura según tu diseño
           left: 0,
           right: 0,
           child: Padding(

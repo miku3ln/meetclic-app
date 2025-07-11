@@ -5,6 +5,7 @@ import '../widgets/home-business/shop_business_section.dart';
 import '../widgets/home-business/news_business_section.dart';
 import '../widgets/home-business/gamification_business_section.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import '../../../presentation/widgets/template/custom_app_bar.dart';
 
 class BusinessDetailPage extends StatefulWidget {
   final Business business;
@@ -40,20 +41,12 @@ class _BusinessDetailPageState extends State<BusinessDetailPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
+      appBar: CustomAppBar(title: '', items: []),
       backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Stack(
           children: [
             _pages[_selectedIndex],
-            Positioned(
-              top: 12,
-              left: 12,
-              child: IconButton(
-                icon: const Icon(Icons.close),
-                color: theme.colorScheme.onPrimary,
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ),
           ],
         ),
       ),

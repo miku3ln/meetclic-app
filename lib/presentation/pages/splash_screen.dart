@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'index.dart';
 import 'package:meetclic/data/data-sources/module_api_fake.dart';
+import '../../../domain/entities/status_item.dart';
+import 'deep_link_page.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:app_links/app_links.dart'; // ✅ reemplaza uni_links
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -11,27 +15,35 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   final ModuleApiFake api = ModuleApiFake();
+  late final AppLinks _appLinks;
 
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addPostFrameCallback((_) => loadResources());
   }
 
+
+
   Future<void> loadResources() async {
     try {
-      // Precarga imagen para que no falle en HomeScreen
       await precacheImage(const AssetImage('assets/images/splash_bg.png'), context);
 
-      // Llamada real (simulada desde fake API, pero sin delay artificial tuyo)
       final modules = await api.getModules();
+      final itemsStatus = [
+        StatusItem(icon: Icons.local_fire_department, color: Colors.orange, value: '5'),
+        StatusItem(icon: Icons.diamond, color: Colors.cyan, value: '2480'),
+        StatusItem(icon: Icons.emoji_events, color: Colors.orange, value: '2'),
+      ];
 
       if (!mounted) return;
 
-      // Solo navegamos cuando TODO está cargado
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => HomeScreen(modules: modules)),
+        MaterialPageRoute(
+          builder: (_) => HomeScreen(modules: modules, itemsStatus: itemsStatus),
+        ),
       );
     } catch (e) {
       debugPrint('Error cargando datos: $e');
@@ -46,10 +58,7 @@ class _SplashScreenState extends State<SplashScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset(
-            'assets/images/splash_bg.png',
-            fit: BoxFit.contain,
-          ),
+          Image.asset('assets/images/splash_bg.png', fit: BoxFit.contain),
           Container(
             color: colorScheme.background.withOpacity(0.4),
             child: Center(

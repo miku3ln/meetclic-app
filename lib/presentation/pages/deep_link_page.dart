@@ -6,33 +6,20 @@ import '../../domain/entities/business.dart';
 import 'business_detail_page.dart';
 import '../../../shared/utils/deep_link_type.dart';
 
-class BusinessMapPage extends StatefulWidget {
-  final DeepLinkInfo? info;
+class DeepLinkPage extends StatefulWidget {
 
-  const BusinessMapPage({super.key, this.info});
+  final DeepLinkInfo info;
+  const DeepLinkPage({super.key,required this.info});
 
   @override
-  State<BusinessMapPage> createState() => _BusinessMapPageState();
+  State<DeepLinkPage> createState() => _DeepLinkPageState();
 }
 
-class _BusinessMapPageState extends State<BusinessMapPage> {
+class _DeepLinkPageState extends State<DeepLinkPage> {
   final PopupController _popupController = PopupController();
   final MapController _mapController = MapController();
-  late final Business? _currentSelect;
+
   final List<Business> businesses = [
-    Business(
-      id: 1,
-      name: 'Meetclic',
-      description: 'Pan artesanal y repostería desde 1990.',
-      lat: -0.3000,
-      lng: -78.6000,
-      points: 15,
-      imageBackground:
-          "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
-      imageLogo:
-          "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
-      starCount: 2.5,
-    ),
     Business(
       id: 1,
       name: 'Muelle Catalina',
@@ -40,11 +27,9 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
       lat: -0.3000,
       lng: -78.6000,
       points: 15,
-      imageBackground:
-          "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
-      imageLogo:
-          "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
-      starCount: 2.5,
+      imageBackground:  "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
+      imageLogo:  "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
+starCount: 2.5,
     ),
     Business(
       id: 2,
@@ -56,7 +41,7 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
       imageBackground:
           "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
       imageLogo:
-          "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
+      "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
       starCount: 3,
     ),
   ];
@@ -66,32 +51,6 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
   @override
   void initState() {
     super.initState();
-    if (widget.info?.id != null) {
-      final int? idBuscado = int.tryParse(widget.info!.id!);
-      _currentSelect = businesses[0];
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-
-        final point = LatLng(_currentSelect!.lat, _currentSelect!.lng);
-        _mapController.move(point, 15);
-        _popupController.showPopupsOnlyFor([
-          Marker(
-            point: point,
-            width: 40,
-            height: 40,
-            alignment: Alignment.topCenter,
-            child: const Icon(Icons.location_on, color: Colors.red, size: 40),
-          ),
-        ]);
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => BusinessDetailPage(business: _currentSelect!),
-          ),
-        );
-      });
-    } else {
-      _currentSelect = null;
-    }
     markers = businesses.map((business) {
       final markerPoint = LatLng(business.lat, business.lng);
       return Marker(

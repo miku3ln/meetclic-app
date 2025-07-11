@@ -1,21 +1,16 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:app_links/app_links.dart';
-
 import 'package:meetclic/domain/entities/module_model.dart';
-import 'package:meetclic/domain/entities/status_item.dart';
-import 'package:meetclic/presentation/pages/rive-example/vehicles_page.dart';
 import 'package:meetclic/presentation/widgets/home_drawer_widget.dart';
 import 'package:meetclic/presentation/widgets/home/header_widget.dart';
 import 'package:meetclic/presentation/widgets/module_selector_widget.dart';
 import 'package:meetclic/presentation/widgets/start_button_widget.dart';
-import '../../../presentation/widgets/template/custom_app_bar.dart';
-
 import 'full_screen_page.dart';
 import 'business_map_page.dart';
-import '../../../shared/utils/deep_link_type.dart';
-
+import '../../../presentation/widgets/template/custom_app_bar.dart';
+import '../../../domain/entities/status_item.dart';
+import '../../../presentation/pages/rive-example/vehicles_page.dart';
+import 'deep_link_page.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 class HomeScreen extends StatefulWidget {
   final List<ModuleModel> modules;
   final List<StatusItem> itemsStatus;
@@ -32,79 +27,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final AppLinks _appLinks = AppLinks();
-
-
-  StreamSubscription<Uri>? _linkSubscription;
   int _currentIndex = 0;
   ModuleModel? _selectedModule;
-
-  DeepLinkInfo? _pendingDeepLink;
-
-  @override
-  void initState() {
-    super.initState();
-    _initDeepLinkListener();
-  }
-
-  Future<void> _initDeepLinkListener() async {
-    try {
-      final Uri? initialUri = await _appLinks.getInitialAppLink();
-      if (initialUri != null) _handleDeepLink(initialUri);
-    } catch (e) {
-      debugPrint('❌ Error obteniendo link inicial: $e');
-    }
-
-    _linkSubscription = _appLinks.uriLinkStream.listen(
-          (Uri uri) => _handleDeepLink(uri),
-      onError: (err) => debugPrint('❌ Error en uriLinkStream: $err'),
-    );
-  }
-
-  void _handleDeepLink(Uri uri) {
-    debugPrint("🔗 Link recibido: $uri");
-
-    final deepLinkInfo = DeepLinkUtils.fromUri(uri);
-
-    if (deepLinkInfo != null) {
-      Fluttertoast.showToast(
-        msg: "Redirigido desde: ${uri.toString()}",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.black87,
-        textColor: Colors.white,
-      );
-
-      if (deepLinkInfo.type == DeepLinkType.businessDetails) {
-        setState(() {
-          _pendingDeepLink = deepLinkInfo;
-          _currentIndex = 1;
-        });
-      }
-    } else {
-      debugPrint("⚠️ DeepLink no reconocido: $uri");
-      Fluttertoast.showToast(
-        msg: "Enlace no válido o no soportado.",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.redAccent,
-        textColor: Colors.white,
-      );
-    }
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-
-  }
-
-  @override
-  void dispose() {
-    _linkSubscription?.cancel();
-    super.dispose();
-  }
 
   void _openDrawer() => _scaffoldKey.currentState?.openDrawer();
 
@@ -128,7 +52,10 @@ class _HomeScreenState extends State<HomeScreen> {
               title: Text('View Details', style: theme.textTheme.bodyMedium),
             ),
             ListTile(
-              leading: Icon(Icons.lock_open, color: theme.colorScheme.onBackground),
+              leading: Icon(
+                Icons.lock_open,
+                color: theme.colorScheme.onBackground,
+              ),
               title: Text('Unlock Unit', style: theme.textTheme.bodyMedium),
             ),
           ],
@@ -139,12 +66,44 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<Widget> get _screens => [
     _buildHomeContent(),
-    BusinessMapPage(info: _pendingDeepLink),
+    BusinessMapPage(),
     FullScreenPage(title: 'Exercise', itemsStatus: widget.itemsStatus),
     FullScreenPage(title: 'Store', itemsStatus: widget.itemsStatus),
     FullScreenPage(title: 'Profile', itemsStatus: widget.itemsStatus),
     VehiclesScreenPage(title: 'More', itemsStatus: widget.itemsStatus),
   ];
+
+  SafeArea _get() {
+    final theme = Theme.of(context);
+    return SafeArea(
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            const SizedBox(height: 10),
+            const HeaderWidget(),
+            const SizedBox(height: 10),
+            _buildUnitBanner(theme),
+            const SizedBox(height: 10),
+            StartButtonWidget(),
+            const SizedBox(height: 20),
+            if (widget.modules.isNotEmpty)
+              ModuleSelectorWidget(
+                modules: widget.modules,
+                selectedModule: _selectedModule,
+                onModuleChanged: (value) =>
+                    setState(() => _selectedModule = value),
+              ),
+            Text(
+              'More content below...',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.white38,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   Widget _buildHomeContent() {
     final theme = Theme.of(context);
@@ -225,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
         unselectedItemColor: Colors.white,
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
-        items: const [
+        items:  [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.language), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.fitness_center), label: ''),
