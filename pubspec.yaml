@@ -38,10 +38,14 @@ dependencies:
   fluttertoast: ^8.2.1
   flutter_speed_dial: ^7.0.0
   carousel_slider: ^4.2.1
-
+  rive: ^0.12.3
+  flutter_svg: ^2.0.7
+  http: ^1.2.1
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  path_provider: ^2.1.2
+  app_links: ^3.4.2
 
 dev_dependencies:
   flutter_test:
@@ -61,6 +65,19 @@ dev_dependencies:
 flutter:
   assets:
     - assets/images/splash_bg.png
+    - assets/vehicles.riv
+    - assets/lip-sync.riv
+    - assets/skills.riv
+    - assets/acqua_text_out_of_band.riv
+    - assets/coyote.riv
+    - assets/liquid_download.riv
+    - assets/little_machine.riv
+    - assets/off_road_car.riv
+    - assets/ping_pong_audio_demo.riv
+    - assets/rewards.riv
+    - assets/rocket.riv
+    - assets/skins_demo.riv
+
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
