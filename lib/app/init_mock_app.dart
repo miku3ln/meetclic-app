@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
-import '../shared/models/app_config.dart';
-import '../shared/location/app_localizations.dart';
-import '../shared/themes/app_theme.dart';
 import '../presentation/pages/splash_screen.dart';
+import '../shared/models/app_config.dart';
+import '../shared/themes/app_theme.dart';
+import '../shared/localization/app_localizations.dart';
 
 class InitMockApp extends StatelessWidget {
   const InitMockApp({super.key});
@@ -20,19 +20,21 @@ class InitMockApp extends StatelessWidget {
             title: 'Meetclic',
             theme: AppTheme.darkTheme,
             locale: config.locale,
+            // 🌍 Este bloque es CLAVE:
             supportedLocales: const [
               Locale('es'), // Español
               Locale('en'), // Inglés
-              Locale('ki'), // Kichwa si agregas un JSON: ki.json
+              Locale('ki'), // Kichwa
             ],
             localizationsDelegates: const [
-              AppLocalizations.delegate, // 🧠 Tu clase de traducción personalizada
+              AppLocalizations.delegate, // 👈 Agregado
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            home: const SplashScreen(),
+
             debugShowCheckedModeBanner: false,
+            home: const SplashScreen(),
           );
         },
       ),

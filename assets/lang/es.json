@@ -8,5 +8,15 @@
   "app": {
     "title": "Mi Aplicación es",
     "language": "Idioma es "
+  },
+  "loading": "Cargando",
+  "pages": {
+    "home": "Inicio",
+    "business": "Empresas",
+    "aboutUs": "Quienes Somos",
+    "shop": "Tienda",
+    "gaming": "Juegos",
+    "profile": "Perfil",
+    "projects": "Proyectos"
   }
 }

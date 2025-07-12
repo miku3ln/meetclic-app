@@ -15,6 +15,7 @@ import '../../../presentation/widgets/template/custom_app_bar.dart';
 import 'full_screen_page.dart';
 import 'business_map_page.dart';
 import '../../../shared/utils/deep_link_type.dart';
+import '../../shared/localization/app_localizations.dart';
 
 class HomeScreen extends StatefulWidget {
   final List<ModuleModel> modules;
@@ -33,7 +34,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final AppLinks _appLinks = AppLinks();
-
 
   StreamSubscription<Uri>? _linkSubscription;
   int _currentIndex = 0;
@@ -56,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     _linkSubscription = _appLinks.uriLinkStream.listen(
-          (Uri uri) => _handleDeepLink(uri),
+      (Uri uri) => _handleDeepLink(uri),
       onError: (err) => debugPrint('❌ Error en uriLinkStream: $err'),
     );
   }
@@ -96,8 +96,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
-
   }
 
   @override
@@ -128,7 +126,10 @@ class _HomeScreenState extends State<HomeScreen> {
               title: Text('View Details', style: theme.textTheme.bodyMedium),
             ),
             ListTile(
-              leading: Icon(Icons.lock_open, color: theme.colorScheme.onBackground),
+              leading: Icon(
+                Icons.lock_open,
+                color: theme.colorScheme.onBackground,
+              ),
               title: Text('Unlock Unit', style: theme.textTheme.bodyMedium),
             ),
           ],
@@ -140,7 +141,10 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Widget> get _screens => [
     _buildHomeContent(),
     BusinessMapPage(info: _pendingDeepLink),
-    FullScreenPage(title: 'Exercise', itemsStatus: widget.itemsStatus),
+    FullScreenPage(
+      title: AppLocalizations.of(context).translate('pages.shop'),
+      itemsStatus: widget.itemsStatus,
+    ),
     FullScreenPage(title: 'Store', itemsStatus: widget.itemsStatus),
     FullScreenPage(title: 'Profile', itemsStatus: widget.itemsStatus),
     VehiclesScreenPage(title: 'More', itemsStatus: widget.itemsStatus),

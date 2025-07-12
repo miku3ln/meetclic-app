@@ -1,10 +1,10 @@
+
 import 'package:flutter/material.dart';
 import 'index.dart';
 import 'package:meetclic/data/data-sources/module_api_fake.dart';
 import '../../../domain/entities/status_item.dart';
-import 'deep_link_page.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:app_links/app_links.dart'; // ✅ reemplaza uni_links
+import '../../shared/localization/app_localizations.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -70,7 +70,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    'Cargando...',
+                    AppLocalizations.of(context).translate('loading')+'...',
                     style: TextStyle(
                       color: colorScheme.onBackground,
                       fontSize: 18,

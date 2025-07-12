@@ -1,4 +1,5 @@
 {
+
   "login": {
     "welcome": "Welcome to Meetclic",
     "buttonRegister": "Register",
@@ -8,5 +9,15 @@
   "app": {
     "title": "Mi Aplicación ",
     "language": "Idioma"
+  },
+  "loading": "Loading",
+  "pages": {
+    "home": "Home",
+    "business": "Business",
+    "aboutUs": "About Us",
+    "shop": "Shop",
+    "gaming": "Gaming",
+    "profile": "Profile",
+    "projects": "Projects"
   }
 }

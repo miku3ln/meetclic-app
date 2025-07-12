@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
 import '../../../domain/entities/status_item.dart';
+import '../../../shared/models/app_config.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -17,9 +20,18 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final appConfig = Provider.of<AppConfig>(context);
+
     return AppBar(
-      title: Text(title),
       backgroundColor: theme.primaryColor,
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 8.0),
+        child: LanguageFlagDropdown(
+          currentLocale: appConfig.locale.languageCode,
+          onChanged: (String code) => appConfig.setLocale(Locale(code)),
+        ),
+      ),
+      title: Text(title),
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: 12.0),
@@ -47,6 +59,45 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class LanguageFlagDropdown extends StatelessWidget {
+  final String currentLocale;
+  final Function(String) onChanged;
+
+  const LanguageFlagDropdown({
+    super.key,
+    required this.currentLocale,
+    required this.onChanged,
+  });
+
+  static const Map<String, String> flagPaths = {
+    'es': 'assets/flags/es.png',
+    'en': 'assets/flags/en.png',
+    'ki': 'assets/flags/ki.png',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButtonHideUnderline(
+      child: DropdownButton<String>(
+        value: currentLocale,
+        onChanged: (String? newValue) {
+          if (newValue != null) {
+            onChanged(newValue);
+          }
+        },
+        items: flagPaths.entries.map((entry) {
+          return DropdownMenuItem<String>(
+            value: entry.key,
+            child: Image.asset(entry.value, width: 30, height: 20),
+          );
+        }).toList(),
+        icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
+        dropdownColor: Colors.white,
+      ),
     );
   }
 }

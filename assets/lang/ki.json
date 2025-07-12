@@ -8,5 +8,15 @@
   "app": {
     "title": "Mi Aplicaciónki",
     "language": "Idioma ki"
+  },
+  "loading": "ñitishka",
+  "pages": {
+    "home": "Wasi",
+    "business": "Kamay",
+    "aboutUs": "Ñukunchikpi rikcharishka",
+    "shop": "Ranti wasi",
+    "gaming": "Pukllay",
+    "profile": "Rikchaykuna",
+    "projects": "Ruraykuna"
   }
 }
