@@ -46,7 +46,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   path_provider: ^2.1.2
   app_links: ^3.4.2
-
+  font_awesome_flutter: ^10.6.0
+  easy_localization: ^3.0.3
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -77,7 +78,8 @@ flutter:
     - assets/rewards.riv
     - assets/rocket.riv
     - assets/skins_demo.riv
-
+    - assets/login/init-login-register.png
+    - assets/lang/
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
