@@ -43,6 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
+
     super.initState();
     _initDeepLinkListener();
   }
@@ -108,6 +109,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _showModuleOptions() {
     final theme = Theme.of(context);
+
+
     showModalBottomSheet(
       context: context,
       backgroundColor: theme.colorScheme.background,
@@ -140,21 +143,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<Widget> get _screens => [
     _buildHomeContent(),
-    BusinessMapPage(info: _pendingDeepLink),
+    BusinessMapPage(info: _pendingDeepLink, itemsStatus: widget.itemsStatus),
+    FullScreenPage(title: AppLocalizations.of(context).translate('pages.shop'), itemsStatus: widget.itemsStatus),
     FullScreenPage(
-      title: AppLocalizations.of(context).translate('pages.shop'),
+      title:  AppLocalizations.of(context).translate('pages.aboutUs'),
       itemsStatus: widget.itemsStatus,
     ),
-    FullScreenPage(title: 'Store', itemsStatus: widget.itemsStatus),
-    FullScreenPage(title: 'Profile', itemsStatus: widget.itemsStatus),
-    VehiclesScreenPage(title: 'More', itemsStatus: widget.itemsStatus),
+    FullScreenPage(title:  AppLocalizations.of(context).translate('pages.gaming'), itemsStatus: widget.itemsStatus),
+    VehiclesScreenPage(title:  AppLocalizations.of(context).translate('pages.projects'), itemsStatus: widget.itemsStatus),
   ];
 
   Widget _buildHomeContent() {
     final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: CustomAppBar(title: 'Inicio', items: widget.itemsStatus),
+      appBar: CustomAppBar(title:  AppLocalizations.of(context).translate('pages.home'), items: widget.itemsStatus),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -232,9 +235,9 @@ class _HomeScreenState extends State<HomeScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.language), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.fitness_center), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.shopping_bag), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.fitness_center), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: ''),
         ],
       ),

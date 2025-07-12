@@ -8,15 +8,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final List<StatusItem> items;
 
-  const CustomAppBar({
-    super.key,
-    required this.title,
-    required this.items,
-  });
+  const CustomAppBar({super.key, required this.title, required this.items});
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
+  @override
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -24,21 +21,21 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     return AppBar(
       backgroundColor: theme.primaryColor,
-      leading: Padding(
-        padding: const EdgeInsets.only(left: 8.0),
-        child: LanguageFlagDropdown(
-          currentLocale: appConfig.locale.languageCode,
-          onChanged: (String code) => appConfig.setLocale(Locale(code)),
-        ),
-      ),
       title: Text(title),
       actions: [
         Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: LanguageFlagDropdown(
+            currentLocale: appConfig.locale.languageCode,
+            onChanged: (String code) =>
+                appConfig.setLocale(Locale(code)),
+          ),
+        ),
+        Padding(
           padding: const EdgeInsets.only(right: 12.0),
           child: Row(
-            children: items
-                .map(
-                  (item) => Padding(
+            children: items.map((item) {
+              return Padding(
                 padding: const EdgeInsets.only(right: 12),
                 child: Row(
                   children: [
@@ -53,14 +50,14 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                     ),
                   ],
                 ),
-              ),
-            )
-                .toList(),
+              );
+            }).toList(),
           ),
         ),
       ],
     );
   }
+
 }
 
 class LanguageFlagDropdown extends StatelessWidget {
@@ -76,13 +73,15 @@ class LanguageFlagDropdown extends StatelessWidget {
   static const Map<String, String> flagPaths = {
     'es': 'assets/flags/es.png',
     'en': 'assets/flags/en.png',
-    'ki': 'assets/flags/ki.png',
+    'it': 'assets/flags/ki.png',
   };
 
   @override
   Widget build(BuildContext context) {
     return DropdownButtonHideUnderline(
       child: DropdownButton<String>(
+        isDense: true,
+        // ✅ Reduce altura y padding
         value: currentLocale,
         onChanged: (String? newValue) {
           if (newValue != null) {

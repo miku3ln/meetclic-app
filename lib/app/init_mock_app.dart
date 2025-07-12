@@ -20,19 +20,33 @@ class InitMockApp extends StatelessWidget {
             title: 'Meetclic',
             theme: AppTheme.darkTheme,
             locale: config.locale,
-            // 🌍 Este bloque es CLAVE:
             supportedLocales: const [
               Locale('es'), // Español
               Locale('en'), // Inglés
-              Locale('ki'), // Kichwa
+              Locale('it'), // Kichwa personalizado
             ],
             localizationsDelegates: const [
-              AppLocalizations.delegate, // 👈 Agregado
+              AppLocalizations.delegate, // Tu propio loader de JSONs
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
+            // 👇 Este bloque previene el crash para 'ki'
+            localeResolutionCallback: (locale, supportedLocales) {
+              if (locale != null) {
+                // Si es 'ki', retornamos 'es' para MaterialLocalizations
+                if (locale.languageCode == 'qu') {
+                  return const Locale('qu'); // ⚠️ aún cargamos tu JSON personalizado
+                }
 
+                for (final supported in supportedLocales) {
+                  if (supported.languageCode == locale.languageCode) {
+                    return supported;
+                  }
+                }
+              }
+              return supportedLocales.first; // fallback por defecto
+            },
             debugShowCheckedModeBanner: false,
             home: const SplashScreen(),
           );

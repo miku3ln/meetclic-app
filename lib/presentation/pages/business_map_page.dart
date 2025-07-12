@@ -5,11 +5,14 @@ import 'package:latlong2/latlong.dart';
 import '../../domain/entities/business.dart';
 import 'business_detail_page.dart';
 import '../../../shared/utils/deep_link_type.dart';
+import 'package:meetclic/shared/localization/app_localizations.dart';
+import '../../../domain/entities/status_item.dart';
+import 'package:meetclic/presentation/widgets/template/custom_app_bar.dart';
 
 class BusinessMapPage extends StatefulWidget {
   final DeepLinkInfo? info;
-
-  const BusinessMapPage({super.key, this.info});
+  final List<StatusItem> itemsStatus;
+  const BusinessMapPage({super.key, this.info ,required this.itemsStatus});
 
   @override
   State<BusinessMapPage> createState() => _BusinessMapPageState();
@@ -125,12 +128,9 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
+   final String title= AppLocalizations.of(context).translate('pages.business');
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Empresas'),
-        backgroundColor: theme.appBarTheme.backgroundColor,
-      ),
+      appBar: CustomAppBar(title: title, items: widget.itemsStatus),
       body: FlutterMap(
         mapController: _mapController,
         options: MapOptions(
@@ -209,7 +209,7 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      '+${business.points} puntos',
+                      '+${business.points} '+ AppLocalizations.of(context).translate('gamification.points'),
                       style: theme.textTheme.bodyMedium,
                     ),
                   ],

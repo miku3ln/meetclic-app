@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../domain/entities/status_item.dart';
 import '../../../presentation/widgets/template/custom_app_bar.dart';
-import 'package:rive/rive.dart';
+
 class FullScreenPage extends StatelessWidget {
   final String title;
   final List<StatusItem> itemsStatus;
@@ -13,7 +13,7 @@ class FullScreenPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor, // usa el color global
-      appBar: CustomAppBar(title: 'Inicio', items: itemsStatus),
+      appBar: CustomAppBar(title: title, items: itemsStatus),
       body: Center(
         child: Text(
           '$title Screen',

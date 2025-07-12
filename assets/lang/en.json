@@ -19,5 +19,9 @@
     "gaming": "Gaming",
     "profile": "Profile",
     "projects": "Projects"
+  },
+  "gamification": {
+    "points": "Points"
+
   }
 }

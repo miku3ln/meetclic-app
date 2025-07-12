@@ -21,7 +21,7 @@ class LanguageSelector extends StatelessWidget {
           child: Text('English'),
         ),
         PopupMenuItem(
-          value: const Locale('ki'),
+          value: const Locale('it'),
           child: Text('Kichwa'),
         ),
       ],

@@ -18,5 +18,9 @@
     "gaming": "Juegos",
     "profile": "Perfil",
     "projects": "Proyectos"
+  },
+  "gamification": {
+    "points": "Puntos"
+
   }
 }
