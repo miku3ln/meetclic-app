@@ -1,11 +1,11 @@
 
 import 'package:flutter/material.dart';
-import 'index.dart';
+import 'package:meetclic/presentation/pages/home/home_page.dart';
 import 'package:meetclic/data/data-sources/module_api_fake.dart';
 import '../../../domain/entities/status_item.dart';
 import 'package:app_links/app_links.dart'; // ✅ reemplaza uni_links
 import '../../shared/localization/app_localizations.dart';
-import '../../../domain/entities/menu_tab_up_item.dart';
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
