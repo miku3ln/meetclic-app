@@ -9,9 +9,10 @@ import 'package:meetclic/shared/localization/app_localizations.dart';
 import '../../../domain/entities/status_item.dart';
 import 'package:meetclic/presentation/widgets/template/custom_app_bar.dart';
 
+import 'package:meetclic/domain/entities/menu_tab_up_item.dart';
 class BusinessMapPage extends StatefulWidget {
   final DeepLinkInfo? info;
-  final List<StatusItem> itemsStatus;
+  final List<MenuTabUpItem> itemsStatus;
   const BusinessMapPage({super.key, this.info ,required this.itemsStatus});
 
   @override

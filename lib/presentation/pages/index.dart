@@ -16,16 +16,14 @@ import 'full_screen_page.dart';
 import 'business_map_page.dart';
 import '../../../shared/utils/deep_link_type.dart';
 import '../../shared/localization/app_localizations.dart';
+import 'package:meetclic/domain/entities/menu_tab_up_item.dart';
+import 'package:provider/provider.dart';
+import 'package:meetclic/shared/models/app_config.dart';
 
 class HomeScreen extends StatefulWidget {
   final List<ModuleModel> modules;
-  final List<StatusItem> itemsStatus;
 
-  const HomeScreen({
-    super.key,
-    required this.modules,
-    required this.itemsStatus,
-  });
+  const HomeScreen({super.key, required this.modules});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -40,11 +38,53 @@ class _HomeScreenState extends State<HomeScreen> {
   ModuleModel? _selectedModule;
 
   DeepLinkInfo? _pendingDeepLink;
+  List<MenuTabUpItem> menuTabUpItems = [];
 
   @override
   void initState() {
-
     super.initState();
+    final config = Provider.of<AppConfig>(context, listen: false);
+    // Post-frame callback
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        menuTabUpItems = [
+          MenuTabUpItem(
+            name: 'idioma',
+            asset: 'assets/flags/es.png',
+            number: 3,
+            onTap: () => showTopLanguageModal(
+              context,
+              (newLocale) => config.setLocale(Locale(newLocale)
+              ),
+            ),
+          ),
+          MenuTabUpItem(
+            name: 'fuego',
+            asset: 'assets/appbar/fire.jpg',
+            number: 5,
+            onTap: () => showTopModal(context, 'Fuego'),
+          ),
+          MenuTabUpItem(
+            name: 'diamante',
+            asset: 'assets/appbar/diamond.jpg',
+            number: 2480,
+            onTap: () => showTopModal(context, 'Diamantes'),
+          ),
+          MenuTabUpItem(
+            name: 'trofeo',
+            asset: 'assets/appbar/trophy.jpg',
+            number: 2,
+            onTap: () => showTopModal(context, 'Trofeos'),
+          ),
+          MenuTabUpItem(
+            name: 'cesta',
+            asset: 'assets/appbar/basket.jpg',
+            number: 4,
+            onTap: () => showTopModal(context, 'Cesta'),
+          ),
+        ];
+      });
+    });
     _initDeepLinkListener();
   }
 
@@ -107,9 +147,202 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _openDrawer() => _scaffoldKey.currentState?.openDrawer();
 
+  void showTopModal(BuildContext context, String title) {
+    final overlay = Overlay.of(context);
+    final screenSize = MediaQuery.of(context).size;
+    final modalHeight = screenSize.height * 0.3;
+
+    late OverlayEntry entry;
+
+    entry = OverlayEntry(
+      builder: (_) => Stack(
+        children: [
+          // Fondo oscuro semitransparente (opcional)
+          GestureDetector(
+            onTap: () => entry.remove(),
+            child: Container(
+              width: screenSize.width,
+              height: screenSize.height,
+              color: Colors.black.withOpacity(0.4),
+            ),
+          ),
+
+          // Modal en la parte superior
+          Positioned(
+            top: 73,
+            left: 0,
+            right: 0,
+            child: Material(
+              color: Colors.transparent,
+              child: Stack(
+                alignment: Alignment.topCenter,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 20),
+                    width: screenSize.width,
+                    height: modalHeight,
+                    padding: const EdgeInsets.all(16),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.vertical(
+                        bottom: Radius.circular(20),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text("Aquí iría el contenido del modal..."),
+                        const Spacer(),
+                        ElevatedButton(
+                          onPressed: () => entry.remove(),
+                          child: const Text("Cerrar"),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    overlay.insert(entry);
+  }
+
+  void showTopLanguageModal(BuildContext context, Function(String) onChanged) {
+    final overlay = Overlay.of(context);
+    final screenSize = MediaQuery.of(context).size;
+    final modalHeight = screenSize.height * 0.3;
+    final colorScheme = Theme.of(context).colorScheme;
+    final config = Provider.of<AppConfig>(context, listen: false);
+    final currentLocale = config.locale.languageCode;
+
+    final Map<String, String> languages = {
+      'es': 'Español',
+      'en': 'Ingles',
+      'it': 'Kichwa', // Ejemplo simbólico
+    };
+
+    final Map<String, String> flags = {
+      'es': 'assets/flags/es.png',
+      'en': 'assets/flags/en.png',
+      'it': 'assets/flags/ki.png',
+    };
+
+    late OverlayEntry entry;
+
+    entry = OverlayEntry(
+      builder: (_) => Stack(
+        children: [
+          GestureDetector(
+            onTap: () => entry.remove(),
+            child: Container(
+              width: screenSize.width,
+              height: screenSize.height,
+              color: Colors.black.withOpacity(0.4),
+            ),
+          ),
+          Positioned(
+            top: 73,
+            left: 0,
+            right: 0,
+            child: Material(
+              color: Colors.transparent,
+              child: Stack(
+                alignment: Alignment.topCenter,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 20),
+                    width: screenSize.width,
+                    height: modalHeight,
+                    padding: const EdgeInsets.all(16),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.vertical(
+                        bottom: Radius.circular(20),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Selecciona un idioma",
+                          style: TextStyle(
+                            color: colorScheme.primary,
+                            fontSize: 18,
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        Expanded(
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            children: languages.entries.map((entry) {
+                              final isSelected = entry.key == currentLocale;
+                              return GestureDetector(
+                                onTap: () {
+                                  onChanged(entry.key);
+                                },
+                                child: Container(
+                                  margin: const EdgeInsets.only(right: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    border: isSelected
+                                        ? Border.all(
+                                            color: Colors.lightBlueAccent,
+                                            width: 3,
+                                          )
+                                        : null,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Image.asset(
+                                        flags[entry.key]!,
+                                        width: 50,
+                                        height: 35,
+                                        fit: BoxFit.contain,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        entry.value,
+                                        style: const TextStyle(fontSize: 14),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    overlay.insert(entry);
+  }
+
   void _showModuleOptions() {
     final theme = Theme.of(context);
-
+    final colorScheme = Theme.of(context).colorScheme;
 
     showModalBottomSheet(
       context: context,
@@ -122,18 +355,24 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Module Options', style: theme.textTheme.titleLarge),
+            Text(
+              'Module Options',
+              style: TextStyle(color: colorScheme.primary, fontSize: 18),
+            ),
             const SizedBox(height: 12),
             ListTile(
-              leading: Icon(Icons.info, color: theme.colorScheme.onBackground),
-              title: Text('View Details', style: theme.textTheme.bodyMedium),
+              leading: Icon(Icons.info, color: colorScheme.secondary),
+              title: Text(
+                'View Details',
+                style: TextStyle(color: colorScheme.primary, fontSize: 18),
+              ),
             ),
             ListTile(
-              leading: Icon(
-                Icons.lock_open,
-                color: theme.colorScheme.onBackground,
+              leading: Icon(Icons.lock_open, color: colorScheme.secondary),
+              title: Text(
+                'Unlock Unit',
+                style: TextStyle(color: colorScheme.primary, fontSize: 18),
               ),
-              title: Text('Unlock Unit', style: theme.textTheme.bodyMedium),
             ),
           ],
         ),
@@ -143,21 +382,33 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<Widget> get _screens => [
     _buildHomeContent(),
-    BusinessMapPage(info: _pendingDeepLink, itemsStatus: widget.itemsStatus),
-    FullScreenPage(title: AppLocalizations.of(context).translate('pages.shop'), itemsStatus: widget.itemsStatus),
+    BusinessMapPage(info: _pendingDeepLink, itemsStatus: menuTabUpItems),
     FullScreenPage(
-      title:  AppLocalizations.of(context).translate('pages.aboutUs'),
-      itemsStatus: widget.itemsStatus,
+      title: AppLocalizations.of(context).translate('pages.shop'),
+      itemsStatus: menuTabUpItems,
     ),
-    FullScreenPage(title:  AppLocalizations.of(context).translate('pages.gaming'), itemsStatus: widget.itemsStatus),
-    VehiclesScreenPage(title:  AppLocalizations.of(context).translate('pages.projects'), itemsStatus: widget.itemsStatus),
+    FullScreenPage(
+      title: AppLocalizations.of(context).translate('pages.aboutUs'),
+      itemsStatus: menuTabUpItems,
+    ),
+    FullScreenPage(
+      title: AppLocalizations.of(context).translate('pages.gaming'),
+      itemsStatus: menuTabUpItems,
+    ),
+    VehiclesScreenPage(
+      title: AppLocalizations.of(context).translate('pages.projects'),
+      itemsStatus: menuTabUpItems,
+    ),
   ];
 
   Widget _buildHomeContent() {
     final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: CustomAppBar(title:  AppLocalizations.of(context).translate('pages.home'), items: widget.itemsStatus),
+      appBar: CustomAppBar(
+        title: AppLocalizations.of(context).translate('pages.home'),
+        items: menuTabUpItems,
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(

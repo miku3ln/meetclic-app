@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../domain/entities/status_item.dart';
 import '../../../presentation/widgets/template/custom_app_bar.dart';
-
+import 'package:meetclic/domain/entities/menu_tab_up_item.dart';
 class FullScreenPage extends StatelessWidget {
   final String title;
-  final List<StatusItem> itemsStatus;
+  final List<MenuTabUpItem> itemsStatus;
   const FullScreenPage({super.key, required this.title,required this.itemsStatus});
 
   @override

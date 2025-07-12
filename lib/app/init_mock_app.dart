@@ -20,6 +20,7 @@ class InitMockApp extends StatelessWidget {
             title: 'Meetclic',
             theme: AppTheme.darkTheme,
             locale: config.locale,
+
             supportedLocales: const [
               Locale('es'), // Español
               Locale('en'), // Inglés

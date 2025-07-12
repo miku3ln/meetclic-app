@@ -3,10 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:rive/rive.dart';
 import '../../../domain/entities/status_item.dart';
 import '../../../presentation/widgets/template/custom_app_bar.dart';
-
+import 'package:meetclic/domain/entities/menu_tab_up_item.dart';
+import 'package:meetclic/domain/entities/menu_tab_up_item.dart';
 class VehiclesScreenPage extends StatefulWidget {
   final String title;
-  final List<StatusItem> itemsStatus;
+  final List<MenuTabUpItem> itemsStatus;
 
   const VehiclesScreenPage({
     super.key,
