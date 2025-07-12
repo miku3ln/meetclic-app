@@ -22,6 +22,11 @@
   },
   "gamification": {
     "points": "Points"
-
+  },
+  "language": {
+    "select": "Select Language",
+    "spanish": "Spanish",
+    "english": "English",
+    "kichwa": "Kichwa"
   }
 }

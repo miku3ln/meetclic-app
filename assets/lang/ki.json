@@ -22,5 +22,11 @@
   "gamification": {
     "points": "Yapitas"
 
+  },
+  "language": {
+    "select": "Shimita chayarí",
+    "spanish": "Kastillanu",
+    "english": "Ingles",
+    "kichwa": "Kichwa"
   }
 }

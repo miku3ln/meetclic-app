@@ -3,7 +3,6 @@
     "welcome": "Welcome to Meetclic",
     "buttonRegister": "Register",
     "buttonLogin": "Login"
-
   },
   "app": {
     "title": "Mi Aplicación es",
@@ -21,6 +20,11 @@
   },
   "gamification": {
     "points": "Puntos"
-
+  },
+  "language": {
+    "select": "Seleccione el Idioma",
+    "spanish": "Español",
+    "english": "Ingles",
+    "kichwa": "Kichwa"
   }
 }

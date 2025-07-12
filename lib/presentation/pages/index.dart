@@ -45,38 +45,44 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     final config = Provider.of<AppConfig>(context, listen: false);
     // Post-frame callback
+    final currentLocale = config.locale.languageCode;
+    final itemLanguage = MenuTabUpItem(
+      id: 1,
+      name: 'idioma',
+      asset: 'assets/flags/$currentLocale.png',
+      number: 3,
+      onTap: () => showTopLanguageModal(
+        context,
+        (newLocale) => config.setLocale(Locale(newLocale)),
+      ),
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       setState(() {
         menuTabUpItems = [
+          itemLanguage,
           MenuTabUpItem(
-            name: 'idioma',
-            asset: 'assets/flags/es.png',
-            number: 3,
-            onTap: () => showTopLanguageModal(
-              context,
-              (newLocale) => config.setLocale(Locale(newLocale)
-              ),
-            ),
-          ),
-          MenuTabUpItem(
+            id: 2,
             name: 'fuego',
             asset: 'assets/appbar/fire.jpg',
             number: 5,
             onTap: () => showTopModal(context, 'Fuego'),
           ),
           MenuTabUpItem(
+            id: 3,
             name: 'diamante',
             asset: 'assets/appbar/diamond.jpg',
             number: 2480,
             onTap: () => showTopModal(context, 'Diamantes'),
           ),
           MenuTabUpItem(
+            id: 4,
             name: 'trofeo',
             asset: 'assets/appbar/trophy.jpg',
             number: 2,
             onTap: () => showTopModal(context, 'Trofeos'),
           ),
           MenuTabUpItem(
+            id: 5,
             name: 'cesta',
             asset: 'assets/appbar/basket.jpg',
             number: 4,
@@ -217,7 +223,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     overlay.insert(entry);
   }
-
   void showTopLanguageModal(BuildContext context, Function(String) onChanged) {
     final overlay = Overlay.of(context);
     final screenSize = MediaQuery.of(context).size;
@@ -227,9 +232,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final currentLocale = config.locale.languageCode;
 
     final Map<String, String> languages = {
-      'es': 'Español',
-      'en': 'Ingles',
-      'it': 'Kichwa', // Ejemplo simbólico
+      'es': AppLocalizations.of(context).translate('language.spanish'),
+      'en': AppLocalizations.of(context).translate('language.english'),
+      'it': AppLocalizations.of(context).translate('language.kichwa'),
     };
 
     final Map<String, String> flags = {
@@ -243,8 +248,11 @@ class _HomeScreenState extends State<HomeScreen> {
     entry = OverlayEntry(
       builder: (_) => Stack(
         children: [
+          // Fondo negro transparente para cerrar modal al tocar fuera
           GestureDetector(
-            onTap: () => entry.remove(),
+            onTap: () {
+              if (entry.mounted) entry.remove();
+            },
             child: Container(
               width: screenSize.width,
               height: screenSize.height,
@@ -275,51 +283,90 @@ class _HomeScreenState extends State<HomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Selecciona un idioma",
+                          AppLocalizations.of(context)
+                              .translate('language.select'),
                           style: TextStyle(
                             color: colorScheme.primary,
                             fontSize: 18,
                           ),
                         ),
-                        SizedBox(height: 12),
+                        const SizedBox(height: 12),
                         Expanded(
-                          child: ListView(
-                            scrollDirection: Axis.horizontal,
-                            children: languages.entries.map((entry) {
-                              final isSelected = entry.key == currentLocale;
-                              return GestureDetector(
-                                onTap: () {
-                                  onChanged(entry.key);
-                                },
-                                child: Container(
-                                  margin: const EdgeInsets.only(right: 12),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    border: isSelected
-                                        ? Border.all(
-                                            color: Colors.lightBlueAccent,
-                                            width: 3,
-                                          )
-                                        : null,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Image.asset(
-                                        flags[entry.key]!,
-                                        width: 50,
-                                        height: 35,
-                                        fit: BoxFit.contain,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: languages.entries.map((entryLang) {
+                              final isSelected =
+                                  entryLang.key == currentLocale;
+
+                              return Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    onChanged(entryLang.key);
+
+                                    final newFlag = flags[entryLang.key]!;
+
+                                    final menuItemIdiomaActualizado =
+                                    MenuTabUpItem(
+                                      id: 1,
+                                      name: 'idioma',
+                                      asset: newFlag,
+                                      number: 3,
+                                      onTap: () => showTopLanguageModal(
+                                        context,
+                                        onChanged,
                                       ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        entry.value,
-                                        style: const TextStyle(fontSize: 14),
-                                      ),
-                                    ],
+                                    );
+
+                                    WidgetsBinding.instance
+                                        .addPostFrameCallback((_) {
+                                      final state = context
+                                          .findAncestorStateOfType<State>();
+                                      if (state != null) {
+                                        state.setState(() {
+                                          menuTabUpItems[0] =
+                                              menuItemIdiomaActualizado;
+                                        });
+                                      }
+                                    });
+
+                                    if (entry.mounted) {
+                                      entry.remove();
+                                    }
+                                  },
+                                  child: Container(
+                                    margin:
+                                    const EdgeInsets.symmetric(horizontal: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      border: isSelected
+                                          ? Border.all(
+                                        color: colorScheme.primary,
+                                        width: 3,
+                                      )
+                                          : null,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Image.asset(
+                                          flags[entryLang.key]!,
+                                          width: 50,
+                                          height: 35,
+                                          fit: BoxFit.contain,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          entryLang.value,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: colorScheme.primary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               );
@@ -337,6 +384,167 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
 
+    overlay.insert(entry);
+  }
+
+  void showTopLanguageModal2(BuildContext context, Function(String) onChanged) {
+    final overlay = Overlay.of(context);
+    final screenSize = MediaQuery.of(context).size;
+    final modalHeight = screenSize.height * 0.3;
+    final colorScheme = Theme.of(context).colorScheme;
+    final config = Provider.of<AppConfig>(context, listen: false);
+    final currentLocale = config.locale.languageCode;
+
+    final Map<String, String> languages = {
+      'es': AppLocalizations.of(context).translate('language.spanish'),
+      'en': AppLocalizations.of(context).translate('language.english'),
+      'it': AppLocalizations.of(context).translate('language.kichwa'),
+    };
+
+    final Map<String, String> flags = {
+      'es': 'assets/flags/es.png',
+      'en': 'assets/flags/en.png',
+      'it': 'assets/flags/ki.png',
+    };
+
+    // 👇 aseguramos que entry esté accesible dentro del builder
+    late OverlayEntry entry;
+
+    entry = OverlayEntry(
+      builder: (_) {
+        return Stack(
+          children: [
+            GestureDetector(
+              onTap: () {
+                if (entry.mounted) entry.remove(); // ✅ más seguro aún
+              },
+              child: Container(
+                width: screenSize.width,
+                height: screenSize.height,
+                color: Colors.black.withOpacity(0.4),
+              ),
+            ),
+            Positioned(
+              top: 73,
+              left: 0,
+              right: 0,
+              child: Material(
+                color: Colors.transparent,
+                child: Stack(
+                  alignment: Alignment.topCenter,
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.only(top: 20),
+                      width: screenSize.width,
+                      height: modalHeight,
+                      padding: const EdgeInsets.all(16),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.vertical(
+                          bottom: Radius.circular(20),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            AppLocalizations.of(context).translate('language.select'),
+                            style: TextStyle(
+                              color: colorScheme.primary,
+                              fontSize: 18,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Expanded(
+                            child: ListView(
+                              scrollDirection: Axis.horizontal,
+                              children: languages.entries.map((entryLang) {
+                                final isSelected =
+                                    entryLang.key == currentLocale;
+                                return GestureDetector(
+                                  onTap: () {
+                                    // ✅ CAMBIA idioma
+                                    onChanged(entryLang.key);
+
+                                    // ✅ ACTUALIZA bandera en menú
+                                    final newFlag = flags[entryLang.key]!;
+
+                                    final menuItemIdiomaActualizado =
+                                        MenuTabUpItem(
+                                          id: 1,
+                                          name: 'idioma',
+                                          asset: newFlag,
+                                          number: 3,
+                                          onTap: () => showTopLanguageModal(
+                                            context,
+                                            onChanged,
+                                          ),
+                                        );
+
+                                    WidgetsBinding.instance
+                                        .addPostFrameCallback((_) {
+                                          final state = context
+                                              .findAncestorStateOfType<State>();
+                                          if (state != null) {
+                                            state.setState(() {
+                                              menuTabUpItems[0] =
+                                                  menuItemIdiomaActualizado;
+                                            });
+                                          }
+                                        });
+
+                                    // ✅ CERRAR MODAL
+                                    if (entry.mounted) {
+                                      entry.remove();
+                                    }
+                                  },
+                                  child: Container(
+                                    margin: const EdgeInsets.only(right: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      border: isSelected
+                                          ? Border.all(
+                                              color: Colors.lightBlueAccent,
+                                              width: 3,
+                                            )
+                                          : null,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Image.asset(
+                                          flags[entryLang.key]!,
+                                          width: 50,
+                                          height: 35,
+                                          fit: BoxFit.contain,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          entryLang.value,
+                                          style:  TextStyle(fontSize: 14,color:  colorScheme.primary),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
     overlay.insert(entry);
   }
 
