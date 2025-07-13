@@ -28,7 +28,7 @@ class _HomeScrollViewState extends State<HomeScrollView> {
 
   void _onScroll() {
     if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200 &&
+            _scrollController.position.maxScrollExtent - 200 &&
         !_isLoading) {
       _loadMoreContent();
     }
@@ -39,7 +39,7 @@ class _HomeScrollViewState extends State<HomeScrollView> {
       await _loadMoreContent();
       await Future.delayed(const Duration(milliseconds: 300));
     } while (_scrollController.position.maxScrollExtent <
-        MediaQuery.of(context).size.height &&
+            MediaQuery.of(context).size.height &&
         !_isLoading);
   }
 
@@ -66,7 +66,7 @@ class _HomeScrollViewState extends State<HomeScrollView> {
       return {
         'type': type,
         'title': '$type block #${(page - 1) * 10 + index + 1}',
-        'data': {'content': 'Contenido simulado de tipo $type'}
+        'data': {'content': 'Contenido simulado de tipo $type'},
       };
     });
   }
@@ -94,7 +94,17 @@ class _HomeScrollViewState extends State<HomeScrollView> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return RefreshIndicator(
+      color: Colors.yellow,
+      // Color del círculo (barra giratoria)
+      backgroundColor: theme.colorScheme.onSurface,
+      // Color del círculo interior (de fondo)
+      displacement: 50,
+      // Distancia desde la parte superior (opcional)
+      strokeWidth: 3.5,
+      // Grosor del círculo (opcional)
       onRefresh: _onRefresh,
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -102,16 +112,22 @@ class _HomeScrollViewState extends State<HomeScrollView> {
             controller: _scrollController,
             physics: const AlwaysScrollableScrollPhysics(),
             child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: constraints.maxHeight,
-              ),
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
               child: Column(
                 children: [
                   ..._widgets,
                   if (_isLoading)
                     const Padding(
                       padding: EdgeInsets.all(16),
-                      child: Center(child: CircularProgressIndicator()),
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.amber,
+                          ),
+                          backgroundColor: Colors.white,
+                          strokeWidth: 4,
+                        ),
+                      ),
                     ),
                 ],
               ),

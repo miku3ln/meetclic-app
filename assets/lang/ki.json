@@ -28,5 +28,14 @@
     "spanish": "Kastillanu",
     "english": "Ingles",
     "kichwa": "Kichwa"
+  },
+  "aboutUsDataTitle": {
+    "contact": "Kaykuna rikuchiy",
+    "socials": "Ñukanchik ñetwirkunapi"
+  },
+  "gamingDataTitle": {
+    "newsRegisterCount": "Willaykunata kuyaykuna",
+    "customerCount": "Kusikushka rantikuna",
+    "rewardsWonCount": "Apashka pampachikuna"
   }
 }

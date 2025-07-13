@@ -194,7 +194,7 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
               children: [
                 Text(
                   business.name,
-                  style: theme.textTheme.titleLarge?.copyWith(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                   ),
                 ),

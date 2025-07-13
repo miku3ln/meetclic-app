@@ -26,5 +26,15 @@
     "spanish": "Español",
     "english": "Ingles",
     "kichwa": "Kichwa"
+  },
+  "aboutUsDataTitle": {
+    "contact": "Contactanos",
+    "socials": "Redes Sociales"
+  },
+  "gamingDataTitle": {
+    "newsRegisterCount": "Nuevas Visitas",
+    "customerCount": "Clientes Satisfechos",
+    "rewardsWonCount": "Premios Ganados"
+
   }
 }

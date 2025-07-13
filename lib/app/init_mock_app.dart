@@ -18,7 +18,7 @@ class InitMockApp extends StatelessWidget {
         builder: (context, config, _) {
           return MaterialApp(
             title: 'Meetclic',
-            theme: AppTheme.darkTheme,
+            theme: AppTheme.lightTheme,
             locale: config.locale,
 
             supportedLocales: const [

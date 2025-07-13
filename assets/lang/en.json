@@ -1,10 +1,8 @@
 {
-
   "login": {
     "welcome": "Welcome to Meetclic",
     "buttonRegister": "Register",
     "buttonLogin": "Login"
-
   },
   "app": {
     "title": "Mi Aplicación ",
@@ -28,5 +26,15 @@
     "spanish": "Spanish",
     "english": "English",
     "kichwa": "Kichwa"
+  },
+  "aboutUsDataTitle": {
+    "contact": "Contact Us",
+    "socials": "Social Networks"
+  },
+  "gamingDataTitle": {
+    "newsRegisterCount": "New Visits",
+    "customerCount": "Satisfied Customers",
+    "rewardsWonCount": "Rewards Won"
   }
+
 }
