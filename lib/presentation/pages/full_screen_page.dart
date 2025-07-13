@@ -126,14 +126,14 @@ class _FullScreenPageState extends State<FullScreenPage> {
                 options: ['6 Months', '1 Year', '2 Years'],
                 selected: selectedWarranty,
                 onChanged: (val) => setState(() => selectedWarranty = val), label: '',
-              ),
+              )
 /*
               CustomCheckboxList(
                 options: ['6 Months', '1 Year', '2 Years'],
                 selected: selectedWarranty,
                 onChanged: (val) => setState(() => null), label: '',
-              ),
-              /*
+              ),*/
+
             ],
           ),
         ),
