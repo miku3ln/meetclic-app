@@ -22,6 +22,9 @@ import 'modals/top_modal.dart';
 import 'modals/language_modal.dart';
 import 'home_page.dart';
 
+
+import 'package:meetclic/presentation/pages/home/home_infinity.dart';
+
 class HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final AppLinks _appLinks = AppLinks();
@@ -212,40 +215,15 @@ class HomeScreenState extends State<HomeScreen> {
   ];
   Widget _buildHomeContent() {
     final theme = Theme.of(context);
+    final bodyCurrent2= const HomeScrollView(); // o crea aquí tu widget inicial
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: CustomAppBar(
         title: AppLocalizations.of(context).translate('pages.home'),
         items: menuTabUpItems,
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              const SizedBox(height: 10),
-              const HeaderWidget(),
-              const SizedBox(height: 10),
-              _buildUnitBanner(theme),
-              const SizedBox(height: 10),
-              const StartButtonWidget(),
-              const SizedBox(height: 20),
-              if (widget.modules.isNotEmpty)
-                ModuleSelectorWidget(
-                  modules: widget.modules,
-                  selectedModule: _selectedModule,
-                  onModuleChanged: (value) =>
-                      setState(() => _selectedModule = value),
-                ),
-              Text(
-                'More content below...',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: Colors.white38,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      body: bodyCurrent2,
     );
   }
 
