@@ -6,7 +6,7 @@ class AppTheme {
     return ThemeData(
       brightness: Brightness.dark,
       primaryColor: AppColors.azulClic,
-      scaffoldBackgroundColor: AppColors.grisOscuro,
+      scaffoldBackgroundColor: AppColors.blanco,
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.moradoSuave,
         foregroundColor: AppColors.blanco,
