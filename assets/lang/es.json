@@ -16,7 +16,14 @@
     "shop": "Tienda",
     "gaming": "Juegos",
     "profile": "Perfil",
-    "projects": "Proyectos"
+    "projects": "Proyectos",
+    "explore": "Explora",
+    "businessSection": {
+      "information": "Información",
+      "shop": "Tienda",
+      "news": "Noticias",
+      "gaming": "Juegos"
+    }
   },
   "gamification": {
     "points": "Puntos"
@@ -35,6 +42,5 @@
     "newsRegisterCount": "Nuevas Visitas",
     "customerCount": "Clientes Satisfechos",
     "rewardsWonCount": "Premios Ganados"
-
   }
 }

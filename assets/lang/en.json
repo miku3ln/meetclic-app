@@ -16,7 +16,14 @@
     "shop": "Shop",
     "gaming": "Gaming",
     "profile": "Profile",
-    "projects": "Projects"
+    "projects": "Projects",
+    "explore": "Explore",
+    "businessSection": {
+      "information": "Information",
+      "shop": "Shop",
+      "news": "News",
+      "gaming": "Gaming"
+    }
   },
   "gamification": {
     "points": "Points"

@@ -15,9 +15,16 @@
     "business": "Kamay",
     "aboutUs": "Ñukunchikpi rikcharishka",
     "shop": "Ranti wasi",
-    "gaming": "Pukllay",
-    "profile": "Rikchaykuna",
-    "projects": "Ruraykuna"
+    "gaming": "Pukllaykuna",
+    "profile": "Rikcharishka riksina",
+    "projects": "Ruraykuna",
+    "explore": "Maskapay",
+    "businessSection": {
+      "information": "Yachay rimay",
+      "shop": "Ranti wasi",
+      "news": "Willaykuna",
+      "gaming": "Pukllaykuna"
+    }
   },
   "gamification": {
     "points": "Yapitas"

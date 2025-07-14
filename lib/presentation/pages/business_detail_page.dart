@@ -6,6 +6,7 @@ import '../widgets/home-business/news_business_section.dart';
 import '../widgets/home-business/gamification_business_section.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../../../presentation/widgets/template/custom_app_bar.dart';
+import 'package:meetclic/shared/localization/app_localizations.dart';
 
 class BusinessDetailPage extends StatefulWidget {
   final Business business;
@@ -39,6 +40,7 @@ class _BusinessDetailPageState extends State<BusinessDetailPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final  appLocalizations= AppLocalizations.of(context);
 
     return Scaffold(
       appBar: CustomAppBar(title: '', items: []),
@@ -58,11 +60,11 @@ class _BusinessDetailPageState extends State<BusinessDetailPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavIcon(icon: Icons.home, index: 0),
-              _buildNavIcon(icon: Icons.shopping_bag, index: 1),
+              _buildNavIcon(icon: Icons.info_outline, index: 0,label:  appLocalizations .translate('pages.businessSection.information')),
+              _buildNavIcon(icon: Icons.shopping_bag, index: 1,label:  appLocalizations .translate('pages.businessSection.shop')),
               const SizedBox(width: 40), // espacio para botón central
-              _buildNavIcon(icon: Icons.newspaper, index: 2),
-              _buildNavIcon(icon: Icons.emoji_events, index: 3),
+              _buildNavIcon(icon: Icons.newspaper, index: 2,label:  appLocalizations .translate('pages.businessSection.news')),
+              _buildNavIcon(icon: Icons.emoji_events, index: 3,label:  appLocalizations .translate('pages.businessSection.gaming')),
             ],
           ),
         ),
@@ -85,17 +87,39 @@ class _BusinessDetailPageState extends State<BusinessDetailPage> {
     );
   }
 
-  Widget _buildNavIcon({required IconData icon, required int index}) {
+  Widget _buildNavIcon({
+    required IconData icon,
+    required int index,
+    required String label,  // Añadido: etiqueta del texto
+  }) {
     final theme = Theme.of(context);
     final isSelected = _selectedIndex == index;
-    return IconButton(
-      icon: Icon(
-        icon,
-        color: isSelected
-            ? theme.colorScheme.secondary
-            : theme.colorScheme.onPrimary,
+
+    return GestureDetector(
+      onTap: () => _onNavTap(index),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            color: isSelected
+                ? theme.colorScheme.secondary
+                : theme.colorScheme.onPrimary,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              color: isSelected
+                  ? theme.colorScheme.secondary
+                  : theme.colorScheme.onPrimary,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ],
       ),
-      onPressed: () => _onNavTap(index),
     );
   }
 }

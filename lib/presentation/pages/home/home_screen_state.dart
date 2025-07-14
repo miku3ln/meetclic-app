@@ -10,9 +10,6 @@ import 'package:meetclic/shared/models/app_config.dart';
 import 'package:meetclic/shared/utils/deep_link_type.dart';
 import 'package:meetclic/shared/localization/app_localizations.dart';
 
-import 'package:meetclic/presentation/widgets/home/header_widget.dart';
-import 'package:meetclic/presentation/widgets/module_selector_widget.dart';
-import 'package:meetclic/presentation/widgets/start_button_widget.dart';
 import 'package:meetclic/presentation/widgets/home_drawer_widget.dart';
 import 'package:meetclic/presentation/widgets/template/custom_app_bar.dart';
 import 'package:meetclic/presentation/pages/full_screen_page.dart';
@@ -258,6 +255,8 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final  appLocalizations= AppLocalizations.of(context);
+
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -270,13 +269,12 @@ class HomeScreenState extends State<HomeScreen> {
         unselectedItemColor: Colors.white,
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.language), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_bag), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.fitness_center), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: ''),
+        items:  [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label:     appLocalizations .translate('pages.home')),
+          BottomNavigationBarItem(icon: Icon(Icons.language), label: appLocalizations .translate('pages.explore')),
+          BottomNavigationBarItem(icon: Icon(Icons.shopping_bag), label: appLocalizations .translate('pages.shop')),
+          BottomNavigationBarItem(icon: Icon(Icons.emoji_events), label: appLocalizations .translate('pages.gaming')),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: appLocalizations .translate('pages.profile')),
         ],
       ),
     );
