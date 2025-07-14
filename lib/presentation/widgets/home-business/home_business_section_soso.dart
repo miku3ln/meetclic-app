@@ -98,7 +98,7 @@ class HomeBusinessSection extends StatelessWidget {
         //ROW HEADER
         SizedBox(
           height: MediaQuery.of(context).size.height * 0.32,
-          child: HeaderBusinessSection(businessData: businessDataCurrent),
+          child: HeaderBusinessSection(businessData: businessDataCurrent,heightTotal: 270),
         ),
         //ROW TASK
         Padding(
