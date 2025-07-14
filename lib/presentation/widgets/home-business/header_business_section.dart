@@ -5,6 +5,8 @@ import 'package:share_plus/share_plus.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import 'package:meetclic/shared/localization/app_localizations.dart';
+
 class HeaderBusinessSection extends StatelessWidget {
   final BusinessData businessData;
   final double heightTotal ;
@@ -36,6 +38,7 @@ class HeaderBusinessSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final appLocalizations = AppLocalizations.of(context);
 
     final business=businessData.business;
     return Stack(
@@ -64,9 +67,10 @@ class HeaderBusinessSection extends StatelessWidget {
                 }),
               ),
               Text(business.name,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  color: Colors.white,
+                style: TextStyle(
+                  color:  theme.colorScheme.secondary,
                   fontWeight: FontWeight.bold,
+                  fontSize: theme.textTheme.titleLarge?.fontSize
                 ),
               ),
               const SizedBox(height: 6),
@@ -137,10 +141,10 @@ class HeaderBusinessSection extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                _MetricItem(icon: Icons.person, label: "Nuevas Visitas", value: 10),
-                _MetricItem(icon: Icons.emoji_people, label: "Clientes satisfechos", value: 10),
-                _MetricItem(icon: Icons.emoji_events, label: "Premios Ganados", value: 2),
+              children:  [
+                _MetricItem(icon: Icons.person, label:       appLocalizations.translate('gamingDataTitle.newsRegisterCount'), value: 10),
+                _MetricItem(icon: Icons.emoji_people, label:appLocalizations.translate('gamingDataTitle.customerCount'), value: 10),
+                _MetricItem(icon: Icons.emoji_events, label: appLocalizations.translate('gamingDataTitle.rewardsWonCount'), value: 2),
               ],
             ),
           ),
@@ -162,6 +166,8 @@ class _MetricItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Expanded(
       child: Column(
         children: [

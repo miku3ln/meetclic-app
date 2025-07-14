@@ -1,0 +1,40 @@
+{
+  "login": {
+    "welcome": "Welcome to Meetclic",
+    "buttonRegister": "Register",
+    "buttonLogin": "Login"
+  },
+  "app": {
+    "title": "Mi Aplicación es",
+    "language": "Idioma es "
+  },
+  "loading": "Cargando",
+  "pages": {
+    "home": "Inicio",
+    "business": "Empresas",
+    "aboutUs": "Quienes Somos",
+    "shop": "Tienda",
+    "gaming": "Juegos",
+    "profile": "Perfil",
+    "projects": "Proyectos"
+  },
+  "gamification": {
+    "points": "Puntos"
+  },
+  "language": {
+    "select": "Seleccione el Idioma",
+    "spanish": "Español",
+    "english": "Ingles",
+    "kichwa": "Kichwa"
+  },
+  "aboutUsDataTitle": {
+    "contact": "Contactanos",
+    "socials": "Redes Sociales"
+  },
+  "gamingDataTitle": {
+    "newsRegisterCount": "Nuevas Visitas",
+    "customerCount": "Clientes Satisfechos",
+    "rewardsWonCount": "Premios Ganados"
+
+  }
+}

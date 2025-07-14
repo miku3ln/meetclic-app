@@ -1,0 +1,41 @@
+{
+  "login": {
+    "welcome": "Welcome to Meetclic",
+    "buttonRegister": "Register",
+    "buttonLogin": "Login"
+
+  },
+  "app": {
+    "title": "Mi Aplicaciónki",
+    "language": "Idioma ki"
+  },
+  "loading": "ñitishka",
+  "pages": {
+    "home": "Wasi",
+    "business": "Kamay",
+    "aboutUs": "Ñukunchikpi rikcharishka",
+    "shop": "Ranti wasi",
+    "gaming": "Pukllay",
+    "profile": "Rikchaykuna",
+    "projects": "Ruraykuna"
+  },
+  "gamification": {
+    "points": "Yapitas"
+
+  },
+  "language": {
+    "select": "Shimita chayarí",
+    "spanish": "Kastillanu",
+    "english": "Ingles",
+    "kichwa": "Kichwa"
+  },
+  "aboutUsDataTitle": {
+    "contact": "Kaykuna rikuchiy",
+    "socials": "Ñukanchik ñetwirkunapi"
+  },
+  "gamingDataTitle": {
+    "newsRegisterCount": "Willaykunata kuyaykuna",
+    "customerCount": "Kusikushka rantikuna",
+    "rewardsWonCount": "Apashka pampachikuna"
+  }
+}

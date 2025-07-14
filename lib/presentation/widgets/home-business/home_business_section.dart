@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'header_business_section.dart';
 import '../../../domain/entities/business.dart';
 import '../../../shared/utils/util_common.dart'; // ajusta el import según tu estructura
+import 'package:meetclic/shared/localization/app_localizations.dart';
 
 class _InfoTile extends StatelessWidget {
   final IconData icon;
@@ -13,9 +14,11 @@ class _InfoTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
-      child: ListTile(leading: Icon(icon), title: Text(text),
+      child: ListTile(leading: Icon(icon), title: Text(text,style:TextStyle(fontSize:  theme.textTheme.labelLarge?.fontSize,height: 4)),
         onTap: () =>(
             UtilCommon.handleTap(
               context: context,
@@ -95,6 +98,8 @@ class HomeBusinessSection extends StatelessWidget {
     final businessDataCurrent = businessData;
     final paddingContainer = MediaQuery.of(context).size.height * 0.38;
    final double heightCurrent=280;// MediaQuery.of(context).size.height * 0.32;
+    final appLocalizations = AppLocalizations.of(context);
+
     return Column(
       children: [
         SizedBox(
@@ -109,16 +114,19 @@ class HomeBusinessSection extends StatelessWidget {
             child: Column(
               children: [
                 Text(
-                  "Contactanos",
-                  style: theme.textTheme.titleLarge?.copyWith(
+
+    appLocalizations.translate('aboutUsDataTitle.contact'),
+                  style:TextStyle(
                     color: theme.colorScheme.primary,
+                    fontSize: theme.textTheme.titleLarge?.fontSize,
                   ),
                 ),
                 _buildContactSection(),
                 Text(
-                  "Redes Sociales",
-                  style: theme.textTheme.titleLarge?.copyWith(
+                  appLocalizations.translate('aboutUsDataTitle.socials'),
+                  style: TextStyle(
                     color: theme.colorScheme.primary,
+                    fontSize: theme.textTheme.titleLarge?.fontSize,
                   ),
                 ),
                 _buildSocialIcons(),

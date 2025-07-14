@@ -4,10 +4,11 @@ import '../../../domain/entities/status_item.dart';
 import '../../../presentation/widgets/template/custom_app_bar.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/utils/rive_util_common.dart';
+import 'package:meetclic/domain/entities/menu_tab_up_item.dart';
 
 class VehiclesScreenPage extends StatefulWidget {
   final String title;
-  final List<StatusItem> itemsStatus;
+  final List<MenuTabUpItem> itemsStatus;
 
   const VehiclesScreenPage({
     super.key,
@@ -108,7 +109,7 @@ class _VehiclesScreenPageState extends State<VehiclesScreenPage> {
     final controller = StateMachineController.fromArtboard(_riveArtboard!, name);
     if (controller != null) {
       _riveArtboard!.addController(controller);
-      final inputs = { for (final input in controller.inputs) input.name: input };
+      final inputs = {for (final input in controller.inputs) input.name: input};
       setState(() {
         _selectedStateMachine = name;
         _stateInputs = inputs;
@@ -142,14 +143,18 @@ class _VehiclesScreenPageState extends State<VehiclesScreenPage> {
       appBar: CustomAppBar(title: widget.title, items: widget.itemsStatus),
       body: Column(
         children: [
-          const SizedBox(height: 12),
+          // RENDER BOX (70%)
           Expanded(
+            flex: 7,
             child: Container(
+              key: const ValueKey("RenderBox"),
+              width: double.infinity,
               color: _backgroundColor,
               child: Center(
                 child: _riveArtboard == null
                     ? const CircularProgressIndicator()
                     : Rive(
+                  useArtboardSize: true,
                   artboard: _riveArtboard!,
                   fit: _fit,
                   alignment: _alignment,
@@ -157,52 +162,67 @@ class _VehiclesScreenPageState extends State<VehiclesScreenPage> {
               ),
             ),
           ),
-          const Divider(),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-            child: Wrap(
-              alignment: WrapAlignment.center,
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                _buildDropdown<String>(
-                  context: context,
-                  label: "Archivo Rive",
-                  value: _selectedRiveFile,
-                  items: _riveFiles,
-                  display: (f) => f.replaceAll('.riv', ''),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedRiveFile = value!;
-                      _loadRiveInspector(value);
-                    });
-                  },
-                ),
-                if (animations.isNotEmpty)
-                  for (final anim in animations)
-                    ElevatedButton(
-                      onPressed: () => _switchAnimation(anim),
-                      child: Text(anim),
-                    ),
-                if (stateMachines.isNotEmpty && _selectedStateMachine != null)
+          const Divider(height: 1),
+          // CONTROLES (30%)
+          Expanded(
+            flex: 3,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 12,
+                runSpacing: 12,
+                children: [
                   _buildDropdown<String>(
                     context: context,
-                    label: "State Machine",
-                    value: _selectedStateMachine!,
-                    items: stateMachines,
-                    display: (f) => f,
-                    onChanged: (value) => _initStateMachine(value!),
+                    label: "Archivo Rive",
+                    value: _selectedRiveFile,
+                    items: _riveFiles,
+                    display: (f) => f.replaceAll('.riv', ''),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedRiveFile = value!;
+                        _loadRiveInspector(value);
+                      });
+                    },
                   ),
-                if (_selectedStateMachine != null)
-                  ...[
+                  ...animations.map((anim) => ElevatedButton(
+                    onPressed: () => _switchAnimation(anim),
+                    child: Text(anim,
+                        style: TextStyle(
+                          fontSize: theme.textTheme.labelLarge?.fontSize,
+                          height: 4,
+                          color: theme.colorScheme.onSurface,
+                        )),
+                  )),
+                  if (stateMachines.isNotEmpty && _selectedStateMachine != null)
+                    _buildDropdown<String>(
+                      context: context,
+                      label: "State Machine",
+                      value: _selectedStateMachine!,
+                      items: stateMachines,
+                      display: (f) => f,
+                      onChanged: (value) => _initStateMachine(value!),
+                    ),
+                  if (_selectedStateMachine != null) ...[
                     for (final name in _inspector!.getTriggers(_selectedStateMachine!))
                       ElevatedButton(
                         onPressed: () => _onTriggerPressed(name),
-                        child: Text('Trigger: $name'),
+                        child: Text('Trigger: $name',
+                            style: TextStyle(
+                              fontSize: theme.textTheme.labelLarge?.fontSize,
+                              height: 4,
+                              color: theme.colorScheme.onSurface,
+                            )),
                       ),
                     for (final name in _inspector!.getBooleans(_selectedStateMachine!))
                       SwitchListTile(
-                        title: Text('Bool: $name'),
+                        title: Text('Bool: $name',
+                            style: TextStyle(
+                              fontSize: theme.textTheme.labelLarge?.fontSize,
+                              height: 4,
+                              color: theme.colorScheme.onSurface,
+                            )),
                         value: (_stateInputs[name] as SMIBool?)?.value ?? false,
                         onChanged: (v) => _onBoolChanged(name, v),
                       ),
@@ -210,7 +230,12 @@ class _VehiclesScreenPageState extends State<VehiclesScreenPage> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Number: $name'),
+                          Text('Number: $name',
+                              style: TextStyle(
+                                fontSize: theme.textTheme.labelLarge?.fontSize,
+                                height: 4,
+                                color: theme.colorScheme.onSurface,
+                              )),
                           Slider(
                             value: (_stateInputs[name] as SMINumber?)?.value ?? 0,
                             onChanged: (v) => _onNumberChanged(name, v),
@@ -220,50 +245,56 @@ class _VehiclesScreenPageState extends State<VehiclesScreenPage> {
                         ],
                       ),
                   ],
-                ElevatedButton(
-                  onPressed: _togglePlayPause,
-                  child: Text(_isPlaying ? 'Pausar' : 'Reanudar'),
-                ),
-                _buildDropdown<BoxFit>(
-                  context: context,
-                  label: "Fit",
-                  value: _fit,
-                  items: BoxFit.values,
-                  display: (f) => f.name.toUpperCase(),
-                  onChanged: (value) => setState(() => _fit = value!),
-                ),
-                _buildDropdown<Alignment>(
-                  context: context,
-                  label: "Alignment",
-                  value: _alignment,
-                  items: [
-                    Alignment.center,
-                    Alignment.topCenter,
-                    Alignment.bottomCenter,
-                    Alignment.centerLeft,
-                    Alignment.centerRight,
-                  ],
-                  display: (a) {
-                    if (a == Alignment.center) return "Centro";
-                    if (a == Alignment.topCenter) return "Arriba";
-                    if (a == Alignment.bottomCenter) return "Abajo";
-                    if (a == Alignment.centerLeft) return "Izquierda";
-                    if (a == Alignment.centerRight) return "Derecha";
-                    return "Otro";
-                  },
-                  onChanged: (value) => setState(() => _alignment = value!),
-                ),
-                _buildDropdown<String>(
-                  context: context,
-                  label: "Fondo",
-                  value: _backgroundColorString(),
-                  items: ['Black', 'Transparent', 'White', 'Pink'],
-                  display: (c) => c,
-                  onChanged: (value) => setState(() {
-                    _backgroundColor = _parseColor(value!);
-                  }),
-                ),
-              ],
+                  ElevatedButton(
+                    onPressed: _togglePlayPause,
+                    child: Text(_isPlaying ? 'Pausar' : 'Reanudar',
+                        style: TextStyle(
+                          fontSize: theme.textTheme.labelLarge?.fontSize,
+                          height: 4,
+                          color: theme.colorScheme.onSurface,
+                        )),
+                  ),
+                  _buildDropdown<BoxFit>(
+                    context: context,
+                    label: "Fit",
+                    value: _fit,
+                    items: BoxFit.values,
+                    display: (f) => f.name.toUpperCase(),
+                    onChanged: (value) => setState(() => _fit = value!),
+                  ),
+                  _buildDropdown<Alignment>(
+                    context: context,
+                    label: "Alignment",
+                    value: _alignment,
+                    items: [
+                      Alignment.center,
+                      Alignment.topCenter,
+                      Alignment.bottomCenter,
+                      Alignment.centerLeft,
+                      Alignment.centerRight,
+                    ],
+                    display: (a) {
+                      if (a == Alignment.center) return "Centro";
+                      if (a == Alignment.topCenter) return "Arriba";
+                      if (a == Alignment.bottomCenter) return "Abajo";
+                      if (a == Alignment.centerLeft) return "Izquierda";
+                      if (a == Alignment.centerRight) return "Derecha";
+                      return "Otro";
+                    },
+                    onChanged: (value) => setState(() => _alignment = value!),
+                  ),
+                  _buildDropdown<String>(
+                    context: context,
+                    label: "Fondo",
+                    value: _backgroundColorString(),
+                    items: ['Black', 'Transparent', 'White', 'Pink'],
+                    display: (c) => c,
+                    onChanged: (value) => setState(() {
+                      _backgroundColor = _parseColor(value!);
+                    }),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

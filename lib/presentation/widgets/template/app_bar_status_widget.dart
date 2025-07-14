@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import '../../../domain/entities/status_item.dart';
+import 'package:meetclic/domain/entities/menu_tab_up_item.dart';
 class AppBarStatusWidget extends StatelessWidget {
   final List<StatusItem> items;
 
