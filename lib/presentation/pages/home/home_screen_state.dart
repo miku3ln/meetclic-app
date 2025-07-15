@@ -59,30 +59,98 @@ class HomeScreenState extends State<HomeScreen> {
           MenuTabUpItem(
             id: 2,
             name: 'fuego',
-            asset: 'assets/appbar/yapita-premium.png',
+            asset: 'assets/appbar/yapitas.png',
             number: 5,
-            onTap: () => showTopModal(context, 'Fuego'),
+            onTap: () => showTopModal(
+              context: context,
+              title: "¡Bienvenido!",
+              contentText: "Gracias por unirte a nuestra aplicación.",
+              buttonText: "Aceptar",
+              onButtonPressed: () {
+                print("Botón presionado");
+              },
+              heightPercentage: 0.25,
+              backgroundColor: Colors.white,
+              titleStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue),
+              contentStyle: TextStyle(fontSize: 16, color: Colors.black87),
+              buttonStyle: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                minimumSize: Size.fromHeight(50),
+                textStyle: TextStyle(fontSize: 18),
+              ),
+            ),
           ),
           MenuTabUpItem(
             id: 3,
             name: 'diamante',
-            asset: 'assets/appbar/yapita-premium-one.png',
+            asset: 'assets/appbar/yapitas-premium.png',
             number: 2480,
-            onTap: () => showTopModal(context, 'Diamantes'),
+            onTap: () => showTopModal(
+              context: context,
+              title: "¡Bienvenido!",
+              contentText: "Gracias por unirte a nuestra aplicación.",
+              buttonText: "Aceptar",
+              onButtonPressed: () {
+                print("Botón presionado");
+              },
+              heightPercentage: 0.25,
+              backgroundColor: Colors.white,
+              titleStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue),
+              contentStyle: TextStyle(fontSize: 16, color: Colors.black87),
+              buttonStyle: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                minimumSize: Size.fromHeight(50),
+                textStyle: TextStyle(fontSize: 18),
+              ),
+            ),
           ),
           MenuTabUpItem(
             id: 4,
             name: 'trofeo',
-            asset: 'assets/appbar/yapita-premium-one.png',
+            asset: 'assets/appbar/trophy-two.png',
             number: 2,
-            onTap: () => showTopModal(context, 'Trofeos'),
+            onTap: () =>showTopModal(
+              context: context,
+              title: "¡Bienvenido!",
+              contentText: "Gracias por unirte a nuestra aplicación.",
+              buttonText: "Aceptar",
+              onButtonPressed: () {
+                print("Botón presionado");
+              },
+              heightPercentage: 0.25,
+              backgroundColor: Colors.white,
+              titleStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue),
+              contentStyle: TextStyle(fontSize: 16, color: Colors.black87),
+              buttonStyle: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                minimumSize: Size.fromHeight(50),
+                textStyle: TextStyle(fontSize: 18),
+              ),
+            ),
           ),
           MenuTabUpItem(
             id: 5,
             name: 'cesta',
-            asset: 'assets/appbar/yapita-premium-one.png',
+            asset: 'assets/appbar/basket.png',
             number: 4,
-            onTap: () => showTopModal(context, 'Cesta'),
+            onTap: () => showTopModal(
+              context: context,
+              title: "¡Bienvenido!",
+              contentText: "Gracias por unirte a nuestra aplicación.",
+              buttonText: "Aceptar",
+              onButtonPressed: () {
+                print("Botón presionado");
+              },
+              heightPercentage: 0.25,
+              backgroundColor: Colors.white,
+              titleStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue),
+              contentStyle: TextStyle(fontSize: 16, color: Colors.black87),
+              buttonStyle: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                minimumSize: Size.fromHeight(50),
+                textStyle: TextStyle(fontSize: 18),
+              ),
+            ),
           ),
         ];
       });
