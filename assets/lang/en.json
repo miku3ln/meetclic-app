@@ -41,7 +41,17 @@
   "gamingDataTitle": {
     "newsRegisterCount": "New Visits",
     "customerCount": "Satisfied Customers",
-    "rewardsWonCount": "Rewards Won"
-  }
+    "rewardsWonCount": "Rewards Won",
+    "money": "Point",
+    "moneyPremium": "Point Premium",
+    "trophy": "Trophy"
+  },
+  "profileDataTitle": {
+    "business": "Business",
+    "following": "Following",
+    "followers": "Followers",
+    "addFriends": "Ad Friends",
+    "join": "Joined"
 
+  }
 }

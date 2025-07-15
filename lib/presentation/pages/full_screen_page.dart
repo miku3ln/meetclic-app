@@ -6,7 +6,6 @@ import 'package:meetclic/presentation/filters/widgets/custom_filter_group.dart';
 import 'package:meetclic/presentation/filters/widgets/custom_slider.dart';
 import 'package:meetclic/presentation/filters/widgets/custom_section_title.dart';
 import 'package:meetclic/presentation/filters/widgets/atoms/custom_switch_tile.dart';
-import 'package:meetclic/presentation/filters/widgets/molecules/custom_checkbox_list.dart';
 import 'package:meetclic/presentation/filters/widgets/molecules/custom_radio_list.dart';
 
 class FullScreenPage extends StatefulWidget {

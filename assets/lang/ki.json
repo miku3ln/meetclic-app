@@ -43,6 +43,17 @@
   "gamingDataTitle": {
     "newsRegisterCount": "Willaykunata kuyaykuna",
     "customerCount": "Kusikushka rantikuna",
-    "rewardsWonCount": "Apashka pampachikuna"
+    "rewardsWonCount": "Apashka pampachikuna",
+    "money": "Yapitas",
+    "moneyPremium": "Suma Yapitas",
+    "trophy": "Kachi Kuna"
+  },
+  "profileDataTitle": {
+    "business": "Ruray Ayllu",
+    "following": "Katiy",
+    "followers": "Katikuna",
+    "addFriends": "Maki Kuri",
+    "join": "Yaykushka"
+
   }
 }

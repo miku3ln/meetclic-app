@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:meetclic/presentation/pages/rive-example/vehicles_page.dart';
 import 'package:provider/provider.dart';
 import 'package:app_links/app_links.dart';
 
@@ -13,8 +14,9 @@ import 'package:meetclic/shared/localization/app_localizations.dart';
 import 'package:meetclic/presentation/widgets/home_drawer_widget.dart';
 import 'package:meetclic/presentation/widgets/template/custom_app_bar.dart';
 import 'package:meetclic/presentation/pages/full_screen_page.dart';
+import 'package:meetclic/presentation/pages/profile_page.dart';
+
 import 'package:meetclic/presentation/pages/business_map_page.dart';
-import 'package:meetclic/presentation/pages/rive-example/vehicles_page.dart';
 import 'modals/top_modal.dart';
 import 'modals/language_modal.dart';
 import 'home_page.dart';
@@ -265,18 +267,19 @@ class HomeScreenState extends State<HomeScreen> {
       title: AppLocalizations.of(context).translate('pages.shop'),
       itemsStatus: menuTabUpItems,
     ),
-    FullScreenPage(
+    VehiclesScreenPage(
       title: AppLocalizations.of(context).translate('pages.aboutUs'),
+      itemsStatus: menuTabUpItems,
+    ),
+    ProfilePage(
+      title: AppLocalizations.of(context).translate('pages.profile'),
       itemsStatus: menuTabUpItems,
     ),
     FullScreenPage(
       title: AppLocalizations.of(context).translate('pages.gaming'),
       itemsStatus: menuTabUpItems,
     ),
-    VehiclesScreenPage(
-      title: AppLocalizations.of(context).translate('pages.projects'),
-      itemsStatus: menuTabUpItems,
-    ),
+
   ];
   Widget _buildHomeContent() {
     final theme = Theme.of(context);

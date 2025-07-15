@@ -41,6 +41,17 @@
   "gamingDataTitle": {
     "newsRegisterCount": "Nuevas Visitas",
     "customerCount": "Clientes Satisfechos",
-    "rewardsWonCount": "Premios Ganados"
+    "rewardsWonCount": "Premios Ganados",
+    "money": "Yapitas",
+    "moneyPremium": "Suma Yapitas",
+    "trophy": "Trofeos"
+  },
+  "profileDataTitle": {
+    "business": "Empresa",
+    "following": "Siguiendo",
+    "followers": "Seguidores",
+    "addFriends": "Agregar Amigos",
+    "join": "Registrado"
+
   }
 }
