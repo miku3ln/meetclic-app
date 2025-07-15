@@ -49,6 +49,7 @@ dependencies:
   app_links: ^3.4.2
   font_awesome_flutter: ^10.6.0
   easy_localization: ^3.0.3
+  geolocator: ^10.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

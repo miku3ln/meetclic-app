@@ -10,6 +10,7 @@ import '../../../domain/entities/status_item.dart';
 import 'package:meetclic/presentation/widgets/template/custom_app_bar.dart';
 
 import 'package:meetclic/domain/entities/menu_tab_up_item.dart';
+import 'package:geolocator/geolocator.dart';
 class BusinessMapPage extends StatefulWidget {
   final DeepLinkInfo? info;
   final List<MenuTabUpItem> itemsStatus;
@@ -125,11 +126,50 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
       );
     }).toList();
   }
+  Future<void> _checkAndRequestLocationPermission() async {
+    bool serviceEnabled;
+    LocationPermission permission;
 
+    // Verifica si el GPS está activado
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      // Opción: mostrar un diálogo informando al usuario que active el GPS
+      return;
+    }
+
+    // Verifica el permiso actual
+    permission = await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        // El usuario sigue negando el permiso
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      // El usuario bloqueó permanentemente el permiso, deberías mostrar una alerta
+      return;
+    }
+
+    // Permiso concedido
+  }
+  Future<void> _centerToCurrentLocation() async {
+    await _checkAndRequestLocationPermission();
+
+    final position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    final newCenter = LatLng(position.latitude, position.longitude);
+    _mapController.move(newCenter, _mapController.zoom);
+  }
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-   final String title= AppLocalizations.of(context).translate('pages.business');
+    final String title = AppLocalizations.of(context).translate('pages.business');
+
     return Scaffold(
       appBar: CustomAppBar(title: title, items: widget.itemsStatus),
       body: FlutterMap(
@@ -151,8 +191,8 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
               popupDisplayOptions: PopupDisplayOptions(
                 builder: (context, marker) {
                   final business = businesses.firstWhere(
-                    (b) =>
-                        b.lat == marker.point.latitude &&
+                        (b) =>
+                    b.lat == marker.point.latitude &&
                         b.lng == marker.point.longitude,
                     orElse: () => businesses[0],
                   );
@@ -162,6 +202,12 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: theme.colorScheme.primary,
+        child:  Icon(Icons.my_location),
+        onPressed: _centerToCurrentLocation,
+        tooltip: 'Ubicación actual',
       ),
     );
   }
