@@ -1,7 +1,9 @@
 // presentation/widgets/start_button_widget.dart
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-void showLoginModal(BuildContext context) {
+
+
+void showLoginModal(BuildContext context,VoidCallback onTapGoogle,VoidCallback onTapFacebook) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -36,9 +38,10 @@ void showLoginModal(BuildContext context) {
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
+                height: 70,
                 child: ElevatedButton(
                   onPressed: () {},
-                  child: const Text('Login'),
+                  child:  Text('Login'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0xFF5C4DB1),
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -51,6 +54,7 @@ void showLoginModal(BuildContext context) {
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
+                height: 70,
                 child: OutlinedButton(
                   onPressed: () {},
                   child: const Text('Sign Up'),
@@ -71,12 +75,13 @@ void showLoginModal(BuildContext context) {
               const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  SocialIcon(FontAwesomeIcons.facebookF),
+                children:  [
+                  SocialIcon(FontAwesomeIcons.google, onTap: onTapGoogle ),
+
                   SizedBox(width: 16),
-                  SocialIcon(FontAwesomeIcons.google),
+                  SocialIcon(FontAwesomeIcons.facebookF, onTap: onTapFacebook),
                   SizedBox(width: 16),
-                  SocialIcon(FontAwesomeIcons.linkedinIn),
+
                 ],
               ),
             ],
@@ -89,14 +94,19 @@ void showLoginModal(BuildContext context) {
 
 class SocialIcon extends StatelessWidget {
   final IconData icon;
-  const SocialIcon(this.icon, {super.key});
+  final VoidCallback onTap;
+
+  const SocialIcon(this.icon, {required this.onTap, super.key});
 
   @override
   Widget build(BuildContext context) {
-    return CircleAvatar(
-      radius: 20,
-      backgroundColor: Color(0xFFE0E0E0),
-      child: Icon(icon, size: 18, color: Colors.black),
+    return GestureDetector(
+      onTap: onTap,
+      child: CircleAvatar(
+        radius: 20,
+        backgroundColor: Color(0xFFE0E0E0),
+        child: Icon(icon, size: 18, color: Colors.black),
+      ),
     );
   }
 }
@@ -111,7 +121,12 @@ class StartButtonWidget extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: GestureDetector(
         onTap: () {
-          showLoginModal(context);
+          showLoginModal(context,  () {
+            print('Google icon tapped!');
+          },
+                  () {
+                print('Facebook icon tapped!');
+              });
 
         },
         child: Stack(

@@ -20,10 +20,15 @@ import 'package:meetclic/presentation/pages/business_map_page.dart';
 import 'modals/top_modal.dart';
 import 'modals/language_modal.dart';
 import 'home_page.dart';
+import 'package:meetclic/presentation/widgets/start_button_widget.dart';
+
+import 'package:meetclic/shared/models/api_response.dart';
 
 
 import 'package:meetclic/presentation/pages/home/home_infinity.dart';
-
+import 'dart:convert';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
 class HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final AppLinks _appLinks = AppLinks();
@@ -34,6 +39,105 @@ class HomeScreenState extends State<HomeScreen> {
 
   DeepLinkInfo? _pendingDeepLink;
   List<MenuTabUpItem> menuTabUpItems = [];
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email', 'profile'],
+  );
+  String status = 'No autenticado';
+  Future<ApiResponse<Map<String, dynamic>>> loginWithGoogle() async {
+    try {
+      print('sendTokenToBackend---------------------------');
+
+      final account = await _googleSignIn.signIn();
+      if (account == null) {
+        final message='Cancelado por el usuario';
+        print('loginWithGoogle: ${message}');
+        return ApiResponse(
+          success: false,
+          message:message,
+          data: null,
+        );
+      }
+
+      final auth = await account.authentication;
+      final idToken = auth.idToken;
+
+      if (idToken == null) {
+        final message='Error: idToken es null';
+        print('loginWithGoogle: ${message}');
+        return ApiResponse(
+          success: false,
+          message:message,
+          data: null,
+        );
+      }
+
+      // ✅ Retorna la respuesta del backend como ApiResponse
+      return await sendTokenToBackend(idToken);
+
+    } catch (e) {
+
+      final message= 'Error: $e';
+      print('loginWithGoogle: ${message}');
+      return ApiResponse(
+        success: false,
+        message:message,
+        data: null,
+      );
+    }
+
+    print('loginWithGoogle--------------------------- ERORR');
+  }
+
+  Future<ApiResponse<Map<String, dynamic>>> sendTokenToBackend(String idToken) async {
+    try {
+      final url = Uri.parse('https://tudominio.com/api/auth/google-mobile');
+
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'id_token': idToken}),
+      );
+
+      // ✅ Manejo de errores HTTP
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        // Éxito: procesar normalmente
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        final message= 'Ok';
+        print('sendTokenToBackend---------------------------: ${message}');
+        return ApiResponse.fromJson(
+          jsonResponse,
+              (data) => data as Map<String, dynamic>,
+        );
+      } else {
+        // ⚠️ Error HTTP: devolver código y respuesta cruda del backend
+        String backendMessage = response.body;
+        try {
+          // Intentar extraer un mensaje legible del backend si está en formato JSON
+          final Map<String, dynamic> errorResponse = jsonDecode(response.body);
+          backendMessage = errorResponse['message'] ?? backendMessage;
+        } catch (_) {
+          // Ignorar si no es JSON
+        }
+        final message= 'Error ${response.statusCode}: $backendMessage';
+        print('sendTokenToBackend: ${message}');
+        return ApiResponse(
+          success: false,
+          message:message,
+          data: null,
+        );
+      }
+    } catch (e) {
+      // ❌ Errores de conexión, timeout, formato inválido, etc.
+      final message= 'Error de red o inesperado: $e';
+      print('sendTokenToBackend: ${message}');
+      return ApiResponse(
+        success: false,
+        message:message,
+        data: null,
+      );
+    }
+  }
+
 
   @override
   void initState() {
@@ -63,23 +167,18 @@ class HomeScreenState extends State<HomeScreen> {
             name: 'fuego',
             asset: 'assets/appbar/yapitas.png',
             number: 5,
-            onTap: () => showTopModal(
-              context: context,
-              title: "¡Bienvenido!",
-              contentText: "Gracias por unirte a nuestra aplicación.",
-              buttonText: "Aceptar",
-              onButtonPressed: () {
-                print("Botón presionado");
+            onTap: () => showLoginModal(
+              context,
+              () async  {
+                final result = await loginWithGoogle();
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(result.message)),
+                );
               },
-              heightPercentage: 0.25,
-              backgroundColor: Colors.white,
-              titleStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue),
-              contentStyle: TextStyle(fontSize: 16, color: Colors.black87),
-              buttonStyle: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                minimumSize: Size.fromHeight(50),
-                textStyle: TextStyle(fontSize: 18),
-              ),
+              () {
+                print('Facebook -------------');
+              },
             ),
           ),
           MenuTabUpItem(
@@ -97,7 +196,11 @@ class HomeScreenState extends State<HomeScreen> {
               },
               heightPercentage: 0.25,
               backgroundColor: Colors.white,
-              titleStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue),
+              titleStyle: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
+              ),
               contentStyle: TextStyle(fontSize: 16, color: Colors.black87),
               buttonStyle: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
@@ -111,7 +214,7 @@ class HomeScreenState extends State<HomeScreen> {
             name: 'trofeo',
             asset: 'assets/appbar/trophy-two.png',
             number: 2,
-            onTap: () =>showTopModal(
+            onTap: () => showTopModal(
               context: context,
               title: "¡Bienvenido!",
               contentText: "Gracias por unirte a nuestra aplicación.",
@@ -121,7 +224,11 @@ class HomeScreenState extends State<HomeScreen> {
               },
               heightPercentage: 0.25,
               backgroundColor: Colors.white,
-              titleStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue),
+              titleStyle: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
+              ),
               contentStyle: TextStyle(fontSize: 16, color: Colors.black87),
               buttonStyle: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
@@ -145,7 +252,11 @@ class HomeScreenState extends State<HomeScreen> {
               },
               heightPercentage: 0.25,
               backgroundColor: Colors.white,
-              titleStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue),
+              titleStyle: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
+              ),
               contentStyle: TextStyle(fontSize: 16, color: Colors.black87),
               buttonStyle: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
@@ -279,11 +390,12 @@ class HomeScreenState extends State<HomeScreen> {
       title: AppLocalizations.of(context).translate('pages.gaming'),
       itemsStatus: menuTabUpItems,
     ),
-
   ];
+
   Widget _buildHomeContent() {
     final theme = Theme.of(context);
-    final bodyCurrent2= const HomeScrollView(); // o crea aquí tu widget inicial
+    final bodyCurrent2 =
+        const HomeScrollView(); // o crea aquí tu widget inicial
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -326,7 +438,7 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final  appLocalizations= AppLocalizations.of(context);
+    final appLocalizations = AppLocalizations.of(context);
 
     return Scaffold(
       key: _scaffoldKey,
@@ -340,12 +452,27 @@ class HomeScreenState extends State<HomeScreen> {
         unselectedItemColor: Colors.white,
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
-        items:  [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label:     appLocalizations .translate('pages.home')),
-          BottomNavigationBarItem(icon: Icon(Icons.language), label: appLocalizations .translate('pages.explore')),
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_bag), label: appLocalizations .translate('pages.shop')),
-          BottomNavigationBarItem(icon: Icon(Icons.emoji_events), label: appLocalizations .translate('pages.gaming')),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: appLocalizations .translate('pages.profile')),
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: appLocalizations.translate('pages.home'),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.language),
+            label: appLocalizations.translate('pages.explore'),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_bag),
+            label: appLocalizations.translate('pages.shop'),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.emoji_events),
+            label: appLocalizations.translate('pages.gaming'),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: appLocalizations.translate('pages.profile'),
+          ),
         ],
       ),
     );
