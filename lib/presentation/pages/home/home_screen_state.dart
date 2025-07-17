@@ -22,11 +22,12 @@ import 'package:meetclic/presentation/pages/business_map_page.dart';
 import 'modals/top_modal.dart';
 import 'modals/language_modal.dart';
 import 'home_page.dart';
-import 'package:meetclic/presentation/widgets/start_button_widget.dart';
+
 
 import 'package:meetclic/shared/models/api_response.dart';
-
 import 'package:meetclic/presentation/pages/home/home_infinity.dart';
+import 'package:meetclic/presentation/widgets/modals/register_user_modal.dart';
+
 import 'dart:convert';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
@@ -172,27 +173,11 @@ class HomeScreenState extends State<HomeScreen> {
             name: 'trofeo',
             asset: 'assets/appbar/trophy-two.png',
             number: 2,
-            onTap: () => showTopModal(
-              context: context,
-              title: "¡Bienvenido!",
-              contentText: "Gracias por unirte a nuestra aplicación.",
-              buttonText: "Aceptar",
-              onButtonPressed: () {
-                print("Botón presionado");
+            onTap: () => showRegisterUserModal(
+              context,
+                  (user) {
+                print('Registro completado: ${user.email}');
               },
-              heightPercentage: 0.25,
-              backgroundColor: Colors.white,
-              titleStyle: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue,
-              ),
-              contentStyle: TextStyle(fontSize: 16, color: Colors.black87),
-              buttonStyle: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                minimumSize: Size.fromHeight(50),
-                textStyle: TextStyle(fontSize: 18),
-              ),
             ),
           ),
           MenuTabUpItem(
