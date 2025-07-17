@@ -15,6 +15,8 @@ import 'package:meetclic/presentation/widgets/home_drawer_widget.dart';
 import 'package:meetclic/presentation/widgets/template/custom_app_bar.dart';
 import 'package:meetclic/presentation/pages/full_screen_page.dart';
 import 'package:meetclic/presentation/pages/profile_page.dart';
+import 'modals/show_register_user.dart';
+import 'modals/show_view_components.dart';
 
 import 'package:meetclic/presentation/pages/business_map_page.dart';
 import 'modals/top_modal.dart';
@@ -24,11 +26,11 @@ import 'package:meetclic/presentation/widgets/start_button_widget.dart';
 
 import 'package:meetclic/shared/models/api_response.dart';
 
-
 import 'package:meetclic/presentation/pages/home/home_infinity.dart';
 import 'dart:convert';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
+
 class HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final AppLinks _appLinks = AppLinks();
@@ -39,56 +41,43 @@ class HomeScreenState extends State<HomeScreen> {
 
   DeepLinkInfo? _pendingDeepLink;
   List<MenuTabUpItem> menuTabUpItems = [];
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: ['email', 'profile'],
-  );
+  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
   String status = 'No autenticado';
+
   Future<ApiResponse<Map<String, dynamic>>> loginWithGoogle() async {
     try {
       print('sendTokenToBackend---------------------------');
 
       final account = await _googleSignIn.signIn();
       if (account == null) {
-        final message='Cancelado por el usuario';
+        final message = 'Cancelado por el usuario';
         print('loginWithGoogle: ${message}');
-        return ApiResponse(
-          success: false,
-          message:message,
-          data: null,
-        );
+        return ApiResponse(success: false, message: message, data: null);
       }
 
       final auth = await account.authentication;
       final idToken = auth.idToken;
 
       if (idToken == null) {
-        final message='Error: idToken es null';
+        final message = 'Error: idToken es null';
         print('loginWithGoogle: ${message}');
-        return ApiResponse(
-          success: false,
-          message:message,
-          data: null,
-        );
+        return ApiResponse(success: false, message: message, data: null);
       }
 
       // ✅ Retorna la respuesta del backend como ApiResponse
       return await sendTokenToBackend(idToken);
-
     } catch (e) {
-
-      final message= 'Error: $e';
+      final message = 'Error: $e';
       print('loginWithGoogle: ${message}');
-      return ApiResponse(
-        success: false,
-        message:message,
-        data: null,
-      );
+      return ApiResponse(success: false, message: message, data: null);
     }
 
     print('loginWithGoogle--------------------------- ERORR');
   }
 
-  Future<ApiResponse<Map<String, dynamic>>> sendTokenToBackend(String idToken) async {
+  Future<ApiResponse<Map<String, dynamic>>> sendTokenToBackend(
+    String idToken,
+  ) async {
     try {
       final url = Uri.parse('https://tudominio.com/api/auth/google-mobile');
 
@@ -102,11 +91,11 @@ class HomeScreenState extends State<HomeScreen> {
       if (response.statusCode >= 200 && response.statusCode < 300) {
         // Éxito: procesar normalmente
         final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
-        final message= 'Ok';
+        final message = 'Ok';
         print('sendTokenToBackend---------------------------: ${message}');
         return ApiResponse.fromJson(
           jsonResponse,
-              (data) => data as Map<String, dynamic>,
+          (data) => data as Map<String, dynamic>,
         );
       } else {
         // ⚠️ Error HTTP: devolver código y respuesta cruda del backend
@@ -118,26 +107,17 @@ class HomeScreenState extends State<HomeScreen> {
         } catch (_) {
           // Ignorar si no es JSON
         }
-        final message= 'Error ${response.statusCode}: $backendMessage';
+        final message = 'Error ${response.statusCode}: $backendMessage';
         print('sendTokenToBackend: ${message}');
-        return ApiResponse(
-          success: false,
-          message:message,
-          data: null,
-        );
+        return ApiResponse(success: false, message: message, data: null);
       }
     } catch (e) {
       // ❌ Errores de conexión, timeout, formato inválido, etc.
-      final message= 'Error de red o inesperado: $e';
+      final message = 'Error de red o inesperado: $e';
       print('sendTokenToBackend: ${message}');
-      return ApiResponse(
-        success: false,
-        message:message,
-        data: null,
-      );
+      return ApiResponse(success: false, message: message, data: null);
     }
   }
-
 
   @override
   void initState() {
@@ -167,19 +147,16 @@ class HomeScreenState extends State<HomeScreen> {
             name: 'fuego',
             asset: 'assets/appbar/yapitas.png',
             number: 5,
-            onTap: () => showLoginModal(
-              context,
-              () async  {
-                final result = await loginWithGoogle();
+            onTap: () => showViewComponents(context, (formData) {
+              // Aquí recibes el Map<String, String> con los datos ingresados
+              print('🚀 Datos capturados del modal:');
+              formData.forEach((key, value) {
+                print('$key: $value');
+              });
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(result.message)),
-                );
-              },
-              () {
-                print('Facebook -------------');
-              },
-            ),
+              // Puedes usar formData aquí para cualquier lógica
+              // Por ejemplo, enviarlo a un backend o guardarlo en un estado
+            }),
           ),
           MenuTabUpItem(
             id: 3,
