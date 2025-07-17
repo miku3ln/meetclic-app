@@ -24,8 +24,8 @@ class UserRegistrationFormController {
     return UserRegistrationLoginModel(
       email: emailController.text,
       password: passwordController.text,
-      nombres: nombresController.text,
-      apellidos: apellidosController.text,
+      name: nombresController.text,
+      last_name: apellidosController.text,
       birthdate: fechaNacimiento!,
     );
   }

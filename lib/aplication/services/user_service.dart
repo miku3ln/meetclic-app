@@ -8,7 +8,7 @@ class UserService {
 
   UserService(this.registerUserUseCase);
 
-  Future<ApiResponseModel<ApiResponseViewModel>> register(UserRegistrationLoginModel user) {
+  Future<ApiResponseModel<Map<String, dynamic>>> register(UserRegistrationLoginModel user) {
     return registerUserUseCase(user);
   }
 }

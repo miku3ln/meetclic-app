@@ -8,7 +8,7 @@ class RegisterUserUseCase {
 
   RegisterUserUseCase(this.repository);
 
-  Future<ApiResponseModel<ApiResponseViewModel>> call(
+  Future<ApiResponseModel<Map<String, dynamic>>> call(
       UserRegistrationLoginModel user,
   ) {
     return repository.registerUser(user);

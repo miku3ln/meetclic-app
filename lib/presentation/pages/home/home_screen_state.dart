@@ -31,6 +31,7 @@ import 'package:meetclic/infrastructure/repositories/implementations/user_reposi
 import 'package:meetclic/domain/usecases/register_user_usecase.dart';
 import 'package:meetclic/aplication/services/user_service.dart';
 import 'package:meetclic/domain/models/user_registration_model.dart';
+import 'package:meetclic/domain/models/usuario_login.dart';
 
 class HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -77,8 +78,7 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<ApiResponse<Map<String, dynamic>>> sendTokenToBackend(
-    String idToken,
-  ) async {
+      String idToken,) async {
     try {
       final url = Uri.parse('https://tudominio.com/api/auth/google-mobile');
 
@@ -96,7 +96,7 @@ class HomeScreenState extends State<HomeScreen> {
         print('sendTokenToBackend---------------------------: ${message}');
         return ApiResponse.fromJson(
           jsonResponse,
-          (data) => data as Map<String, dynamic>,
+              (data) => data as Map<String, dynamic>,
         );
       } else {
         // ⚠️ Error HTTP: devolver código y respuesta cruda del backend
@@ -131,12 +131,13 @@ class HomeScreenState extends State<HomeScreen> {
       name: 'idioma',
       asset: 'assets/flags/$currentLocale.png',
       number: 3,
-      onTap: () => showTopLanguageModal(
-        context,
-        (newLocale) => config.setLocale(Locale(newLocale)),
-        menuTabUpItems,
-        setState,
-      ),
+      onTap: () =>
+          showTopLanguageModal(
+            context,
+                (newLocale) => config.setLocale(Locale(newLocale)),
+            menuTabUpItems,
+            setState,
+          ),
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -148,16 +149,17 @@ class HomeScreenState extends State<HomeScreen> {
             name: 'fuego',
             asset: 'assets/appbar/yapitas.png',
             number: 5,
-            onTap: () => showViewComponents(context, (formData) {
-              // Aquí recibes el Map<String, String> con los datos ingresados
-              print('🚀 Datos capturados del modal:');
-              formData.forEach((key, value) {
-                print('$key: $value');
-              });
+            onTap: () =>
+                showViewComponents(context, (formData) {
+                  // Aquí recibes el Map<String, String> con los datos ingresados
+                  print('🚀 Datos capturados del modal:');
+                  formData.forEach((key, value) {
+                    print('$key: $value');
+                  });
 
-              // Puedes usar formData aquí para cualquier lógica
-              // Por ejemplo, enviarlo a un backend o guardarlo en un estado
-            }),
+                  // Puedes usar formData aquí para cualquier lógica
+                  // Por ejemplo, enviarlo a un backend o guardarlo en un estado
+                }),
           ),
           MenuTabUpItem(
             id: 3,
@@ -172,7 +174,8 @@ class HomeScreenState extends State<HomeScreen> {
             asset: 'assets/appbar/trophy-two.png',
             number: 2,
             onTap: () =>
-                showRegisterUserModal(context, (contextFromModal, user) async {
+                showRegisterUserModal(context, (contextFromModal,
+                    user,) async {
                   final repository = UserRepositoryImpl();
                   final useCase = RegisterUserUseCase(repository);
                   final userService = UserService(useCase);
@@ -180,8 +183,8 @@ class HomeScreenState extends State<HomeScreen> {
                   final userSend = UserRegistrationLoginModel(
                     email: user.email,
                     password: user.password,
-                    nombres: user.nombres,
-                    apellidos: user.apellidos,
+                    name: user.nombres,
+                    last_name: user.apellidos,
                     birthdate: user.fechaNacimiento,
                   );
 
@@ -192,13 +195,40 @@ class HomeScreenState extends State<HomeScreen> {
                   print('RESPONSE --------------------------');
                   print(response.message);
                   if (response.success) {
-                    Navigator.pop(
-                      contextFromModal,
-                    ); // ✅ CIERRA el modal desde el onSubmit
-                    return true;
+                    final jsonString = response
+                        .data; // Tu cadena JSON recibida}
+                    print(jsonString);
+                    final Map<String, dynamic> jsonMap = jsonDecode(
+                      jsonString,
+                    );
+                    final usuarioLogin = UsuarioLogin.fromJson(jsonMap);
+                    print(usuarioLogin.accessToken);
+                    print(usuarioLogin.customer.businessName);
+
+
+                  Navigator.pop(
+                  contextFromModal,
+                  ); // ✅ CIERRA el modal desde el onSubmit
+
+                  Fluttertoast.showToast(
+                  msg: "Registrado",
+                  toastLength: Toast.LENGTH_SHORT,
+                  gravity: ToastGravity.BOTTOM,
+                  backgroundColor: Colors.black87,
+                  textColor: Colors.white,
+                  fontSize: 16.0,
+                  );
+                  return true;
                   } else {
-                    // Maneja los errores aquí
-                    return false;
+                  Fluttertoast.showToast(
+                  msg: "Existe un Error :$response.type",
+                  toastLength: Toast.LENGTH_SHORT,
+                  gravity: ToastGravity.BOTTOM,
+                  backgroundColor: Colors.black87,
+                  textColor: Colors.white,
+                  fontSize: 16.0,
+                  );
+                  return false;
                   }
                 }),
           ),
@@ -207,28 +237,29 @@ class HomeScreenState extends State<HomeScreen> {
             name: 'cesta',
             asset: 'assets/appbar/basket.png',
             number: 4,
-            onTap: () => showTopModal(
-              context: context,
-              title: "¡Bienvenido!",
-              contentText: "Gracias por unirte a nuestra aplicación.",
-              buttonText: "Aceptar",
-              onButtonPressed: () {
-                print("Botón presionado");
-              },
-              heightPercentage: 0.25,
-              backgroundColor: Colors.white,
-              titleStyle: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue,
-              ),
-              contentStyle: TextStyle(fontSize: 16, color: Colors.black87),
-              buttonStyle: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                minimumSize: Size.fromHeight(50),
-                textStyle: TextStyle(fontSize: 18),
-              ),
-            ),
+            onTap: () =>
+                showTopModal(
+                  context: context,
+                  title: "¡Bienvenido!",
+                  contentText: "Gracias por unirte a nuestra aplicación.",
+                  buttonText: "Aceptar",
+                  onButtonPressed: () {
+                    print("Botón presionado");
+                  },
+                  heightPercentage: 0.25,
+                  backgroundColor: Colors.white,
+                  titleStyle: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue,
+                  ),
+                  contentStyle: TextStyle(fontSize: 16, color: Colors.black87),
+                  buttonStyle: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    minimumSize: Size.fromHeight(50),
+                    textStyle: TextStyle(fontSize: 18),
+                  ),
+                ),
           ),
         ];
       });
@@ -246,7 +277,7 @@ class HomeScreenState extends State<HomeScreen> {
     }
 
     _linkSubscription = _appLinks.uriLinkStream.listen(
-      (Uri uri) => _handleDeepLink(uri),
+          (Uri uri) => _handleDeepLink(uri),
       onError: (err) => debugPrint('❌ Error en uriLinkStream: $err'),
     );
   }
@@ -306,61 +337,63 @@ class HomeScreenState extends State<HomeScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Module Options',
-              style: TextStyle(color: colorScheme.primary, fontSize: 18),
+      builder: (context) =>
+          Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Module Options',
+                  style: TextStyle(color: colorScheme.primary, fontSize: 18),
+                ),
+                const SizedBox(height: 12),
+                ListTile(
+                  leading: Icon(Icons.info, color: colorScheme.secondary),
+                  title: Text(
+                    'View Details',
+                    style: TextStyle(color: colorScheme.primary),
+                  ),
+                ),
+                ListTile(
+                  leading: Icon(Icons.lock_open, color: colorScheme.secondary),
+                  title: Text(
+                    'Unlock Unit',
+                    style: TextStyle(color: colorScheme.primary),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            ListTile(
-              leading: Icon(Icons.info, color: colorScheme.secondary),
-              title: Text(
-                'View Details',
-                style: TextStyle(color: colorScheme.primary),
-              ),
-            ),
-            ListTile(
-              leading: Icon(Icons.lock_open, color: colorScheme.secondary),
-              title: Text(
-                'Unlock Unit',
-                style: TextStyle(color: colorScheme.primary),
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 
-  List<Widget> get _screens => [
-    _buildHomeContent(),
-    BusinessMapPage(info: _pendingDeepLink, itemsStatus: menuTabUpItems),
-    FullScreenPage(
-      title: AppLocalizations.of(context).translate('pages.shop'),
-      itemsStatus: menuTabUpItems,
-    ),
-    VehiclesScreenPage(
-      title: AppLocalizations.of(context).translate('pages.aboutUs'),
-      itemsStatus: menuTabUpItems,
-    ),
-    ProfilePage(
-      title: AppLocalizations.of(context).translate('pages.profile'),
-      itemsStatus: menuTabUpItems,
-    ),
-    FullScreenPage(
-      title: AppLocalizations.of(context).translate('pages.gaming'),
-      itemsStatus: menuTabUpItems,
-    ),
-  ];
+  List<Widget> get _screens =>
+      [
+        _buildHomeContent(),
+        BusinessMapPage(info: _pendingDeepLink, itemsStatus: menuTabUpItems),
+        FullScreenPage(
+          title: AppLocalizations.of(context).translate('pages.shop'),
+          itemsStatus: menuTabUpItems,
+        ),
+        VehiclesScreenPage(
+          title: AppLocalizations.of(context).translate('pages.aboutUs'),
+          itemsStatus: menuTabUpItems,
+        ),
+        ProfilePage(
+          title: AppLocalizations.of(context).translate('pages.profile'),
+          itemsStatus: menuTabUpItems,
+        ),
+        FullScreenPage(
+          title: AppLocalizations.of(context).translate('pages.gaming'),
+          itemsStatus: menuTabUpItems,
+        ),
+      ];
 
   Widget _buildHomeContent() {
     final theme = Theme.of(context);
     final bodyCurrent2 =
-        const HomeScrollView(); // o crea aquí tu widget inicial
+    const HomeScrollView(); // o crea aquí tu widget inicial
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
