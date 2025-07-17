@@ -6,6 +6,7 @@ import 'package:meetclic/presentation/widgets/atoms/date_picker_atom.dart';
 import 'package:meetclic/presentation/widgets/atoms/dropdown_atom.dart';
 import 'package:meetclic/presentation/widgets/atoms/switch_toggle_atom.dart';
 import 'package:meetclic/presentation/widgets/atoms/checkbox_atom.dart';
+import 'package:meetclic/presentation/widgets/atoms/button_atom.dart';
 
 void showViewComponents(BuildContext context, Function(Map<String, String>) onSubmit) {
   showModalBottomSheet(
@@ -94,19 +95,11 @@ class _ViewComponentsModalState extends State<_ViewComponentsModal> {
               DatePickerAtom(
                 label: 'Fecha de Nacimiento',
                 selectedDateText: selectedDate,
-                onTap: () async {
-                  DateTime? picked = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime(1900),
-                    lastDate: DateTime(2100),
-                  );
-                  if (picked != null) {
-                    setState(() {
-                      selectedDate = '${picked.toLocal()}'.split(' ')[0];
-                      formData['fechaNacimiento'] = selectedDate!;
-                    });
-                  }
+                onDateSelected: (picked) {
+                  setState(() {
+                    selectedDate = '${picked.toLocal()}'.split(' ')[0];
+                    formData['fechaNacimiento'] = selectedDate!;
+                  });
                 },
               ),
               SizedBox(height: 12),
@@ -126,35 +119,35 @@ class _ViewComponentsModalState extends State<_ViewComponentsModal> {
               children: [
                 if (currentStep > 0)
                   Expanded(
-                    child: ElevatedButton(
+                    child: ButtonAtom(
+                      text: 'Atrás',
                       onPressed: () {
                         setState(() {
                           currentStep--;
                         });
                       },
-                      child: Text('Atrás'),
                     ),
                   ),
                 SizedBox(width: 8),
                 if (currentStep < 1)
                   Expanded(
-                    child: ElevatedButton(
+                    child: ButtonAtom(
+                      text: 'Siguiente',
                       onPressed: () {
                         setState(() {
                           currentStep++;
                         });
                       },
-                      child: Text('Siguiente'),
                     ),
                   )
                 else
                   Expanded(
-                    child: ElevatedButton(
+                    child: ButtonAtom(
+                      text: 'Guardar',
                       onPressed: () {
                         widget.onSubmit(formData);
                         Navigator.of(context).pop();
                       },
-                      child: Text('Guardar'),
                     ),
                   ),
               ],

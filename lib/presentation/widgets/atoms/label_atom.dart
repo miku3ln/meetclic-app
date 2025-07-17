@@ -9,9 +9,13 @@ class LabelAtom extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Text(
       text,
-      style: style ?? AtomStyles.labelTextStyle,
+      style: (style ?? AtomStyles.labelTextStyle).copyWith(
+        color: theme.textTheme.bodyMedium?.color,
+      ),
     );
   }
 }

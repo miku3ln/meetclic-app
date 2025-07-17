@@ -9,9 +9,13 @@ class TitleAtom extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Text(
       text,
-      style: style ?? AtomStyles.titleTextStyle,
+      style: (style ?? AtomStyles.titleTextStyle).copyWith(
+        color: theme.textTheme.titleLarge?.color,
+      ),
       textAlign: TextAlign.center,
     );
   }

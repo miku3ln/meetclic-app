@@ -1,63 +1,51 @@
 import 'package:flutter/material.dart';
 
 class AtomStyles {
-  // 🎨 Label por defecto
-  static const double labelHeight = 20;
+  // 📏 Medidas estándar
+
+  static const double buttonHeight = 48;
+  static const double buttonBorderRadius = 12;
+
+  // Altura del campo dropdown (como input)
+  // 📏 Dropdown Field
+  static const double dropdownFieldHeight = 48;
+  static const double dropdownPaddingVertical = 12;
+  static const double dropdownPaddingHorizontal = 16;
+
+
+  // Altura de los ítems del menú (opcional)
+  static const double dropdownItemHeight = 40;
+
+  // 🏷️ Tipografías
+  static const TextStyle buttonTextStyle = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.bold,
+    height: 1.2,
+  );
+
   static const TextStyle labelTextStyle = TextStyle(
     fontSize: 14,
-    color: Colors.black87,
     fontWeight: FontWeight.w500,
-    height: labelHeight / 14,
+    height: 1.4,
   );
 
-  // 🎨 Título por defecto
-  static const double titleHeight = 28;
   static const TextStyle titleTextStyle = TextStyle(
     fontSize: 20,
-    color: Colors.black,
     fontWeight: FontWeight.bold,
-    height: titleHeight / 20,
+    height: 1.3,
   );
 
-  // 🎨 Input Text
-  static const double inputHeight = 48;
   static const TextStyle inputTextStyle = TextStyle(
     fontSize: 16,
-    color: Colors.black,
-    height: inputHeight / 16,
+    height: 1.4,
   );
 
   static const OutlineInputBorder inputBorder = OutlineInputBorder(
-    borderSide: BorderSide(color: Colors.green),
     borderRadius: BorderRadius.all(Radius.circular(8)),
   );
 
-  // 🎨 Dropdown
-  static const double dropdownHeight = 56;
   static const TextStyle dropdownItemStyle = TextStyle(
     fontSize: 16,
-    color: Colors.black87,
-    height: dropdownHeight / 16,
+    height: 1.4,
   );
-
-  // 🎨 Date Picker
-  static const double datePickerHeight = 64;
-  static const TextStyle datePickerLabelStyle = TextStyle(
-    fontSize: 14,
-    color: Colors.black87,
-    fontWeight: FontWeight.w500,
-    height: datePickerHeight / 14,
-  );
-
-  static const TextStyle datePickerTextStyle = TextStyle(
-    fontSize: 16,
-    color: Colors.blueGrey,
-    height: datePickerHeight / 16,
-  );
-
-  // 🎨 Switch / Checkbox
-  static const double switchHeight = 40;
-  static const double checkboxHeight = 48;
-  static const Color activeColor = Colors.green;
-  static const Color inactiveColor = Colors.grey;
 }

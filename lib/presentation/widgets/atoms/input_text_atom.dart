@@ -27,20 +27,37 @@ class InputTextAtom extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return SizedBox(
       height: height,
       child: TextFormField(
-
         obscureText: obscureText,
         keyboardType: keyboardType,
         onChanged: onChanged,
         validator: validator,
-        style: textStyle ?? AtomStyles.inputTextStyle,
+        style: (textStyle ?? AtomStyles.inputTextStyle).copyWith(
+          color: theme.textTheme.bodyMedium?.color,
+        ),
         decoration: decoration ??
             InputDecoration(
               labelText: label,
-              labelStyle: labelStyle ?? AtomStyles.labelTextStyle,
-              border: AtomStyles.inputBorder,
+              labelStyle: (labelStyle ?? AtomStyles.labelTextStyle).copyWith(
+                color: theme.textTheme.titleSmall?.color,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: theme.colorScheme.primary,
+                ),
+                borderRadius: AtomStyles.inputBorder.borderRadius,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: theme.colorScheme.secondary,
+                  width: 1.5,
+                ),
+                borderRadius: AtomStyles.inputBorder.borderRadius,
+              ),
             ),
       ),
     );

@@ -6,38 +6,56 @@ class DropdownAtom extends StatelessWidget {
   final List<String> items;
   final String value;
   final ValueChanged<String?>? onChanged;
-  final TextStyle? labelStyle;
-  final TextStyle? itemStyle;
-  final double? height;
 
   const DropdownAtom({
     this.label,
     required this.items,
     required this.value,
     this.onChanged,
-    this.labelStyle,
-    this.itemStyle,
-    this.height,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: height ?? AtomStyles.dropdownHeight,
-      child: DropdownButtonFormField<String>(
-        value: value,
-        items: items
-            .map((e) => DropdownMenuItem(
+    final theme = Theme.of(context);
+
+    return DropdownButtonFormField<String>(
+      value: value,
+      items: items
+          .map(
+            (e) => DropdownMenuItem(
           value: e,
-          child: Text(e, style: itemStyle ?? AtomStyles.dropdownItemStyle),
-        ))
-            .toList(),
-        onChanged: onChanged,
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: labelStyle ?? AtomStyles.labelTextStyle,
-          border: AtomStyles.inputBorder,
+          child: Text(
+            e,
+            style: AtomStyles.dropdownItemStyle.copyWith(
+              color: theme.textTheme.bodyMedium?.color,
+            ),
+          ),
+        ),
+      )
+          .toList(),
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: AtomStyles.labelTextStyle.copyWith(
+          color: theme.textTheme.titleSmall?.color,
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: AtomStyles.dropdownPaddingVertical,
+          horizontal: AtomStyles.dropdownPaddingHorizontal,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: theme.colorScheme.primary,
+          ),
+          borderRadius: AtomStyles.inputBorder.borderRadius,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: theme.colorScheme.secondary,
+            width: 1.5,
+          ),
+          borderRadius: AtomStyles.inputBorder.borderRadius,
         ),
       ),
     );
