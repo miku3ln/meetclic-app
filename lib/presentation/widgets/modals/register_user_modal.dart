@@ -9,7 +9,7 @@ import '../../components/personal_data_step.dart';
 
 import '../../../domain/models/user_registration_model.dart';
 import '../atoms/button_atom.dart';
-void registerUserModal(BuildContext context, Function(UserRegistrationModel) onSubmit) {
+void registerUserModal(BuildContext context, Function(UserRegistrationLoginModel) onSubmit) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -25,7 +25,7 @@ void registerUserModal(BuildContext context, Function(UserRegistrationModel) onS
 }
 
 class RegisterUserModal extends StatefulWidget {
-  final Function(UserRegistrationModel) onSubmit;
+  final Function(UserRegistrationLoginModel) onSubmit;
 
   const RegisterUserModal({required this.onSubmit, super.key});
 
@@ -48,7 +48,7 @@ class _RegisterUserModalState extends State<RegisterUserModal> {
       setState(() => currentStep = 1);
     } else if (currentStep == 1 && controller.isStep2Valid) {
       widget.onSubmit(controller.buildUser());
-      Navigator.pop(context);
+     // Navigator.pop(context);
     }
   }
 

@@ -10,7 +10,7 @@ class UserRegistrationModel {
   final String apellidos;
   final DateTime fechaNacimiento;
 
-  UserRegistrationModel({
+  UserRegistrationModel({//HOLA
     required this.email,
     required this.password,
     required this.nombres,
@@ -18,24 +18,30 @@ class UserRegistrationModel {
     required this.fechaNacimiento,
   });
 }
-
-void showRegisterUserModal(BuildContext context, Function(UserRegistrationModel) onSubmit) {
+// ✅ Modal trigger con función que recibe context y modelo
+void showRegisterUserModal(
+    BuildContext context,
+    Future<bool> Function(BuildContext, UserRegistrationModel) onSubmit,
+    ) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.white,
-    shape: RoundedRectangleBorder(
+    shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
-    builder: (context) => FractionallySizedBox(
-      heightFactor: 0.95, // Ocupa 95% de la pantalla
-      child: _RegisterUserModal(onSubmit: onSubmit),
+    builder: (contextModal) => FractionallySizedBox(
+      heightFactor: 0.95,
+      child: _RegisterUserModal(
+        onSubmit: onSubmit,
+      ),
     ),
   );
 }
 
+// ✅ Modal corregido
 class _RegisterUserModal extends StatefulWidget {
-  final Function(UserRegistrationModel) onSubmit;
+  final Future<bool> Function(BuildContext, UserRegistrationModel) onSubmit;
 
   const _RegisterUserModal({required this.onSubmit});
 
@@ -65,11 +71,12 @@ class _RegisterUserModalState extends State<_RegisterUserModal> {
       _formKeyStep2.currentState?.validate() == true &&
           fechaNacimiento != null;
 
-  void nextStep() {
+  Future<void> nextStep() async {
     if (currentStep == 0 && isStep1Valid) {
       setState(() => currentStep = 1);
     } else if (currentStep == 1 && isStep2Valid) {
-      widget.onSubmit(
+      final shouldClose = await widget.onSubmit(
+        context,
         UserRegistrationModel(
           email: emailController.text,
           password: passwordController.text,
@@ -78,7 +85,9 @@ class _RegisterUserModalState extends State<_RegisterUserModal> {
           fechaNacimiento: fechaNacimiento!,
         ),
       );
-      Navigator.pop(context);
+      if (shouldClose) {
+      //  Navigator.pop(context);
+      }
     }
   }
 
@@ -87,6 +96,7 @@ class _RegisterUserModalState extends State<_RegisterUserModal> {
       setState(() => currentStep--);
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -192,5 +202,4 @@ class _RegisterUserModalState extends State<_RegisterUserModal> {
       ),
     );
   }
-
 }

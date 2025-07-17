@@ -20,13 +20,13 @@ class UserRegistrationFormController {
   bool get isStep2Valid =>
       formKeyStep2.currentState?.validate() == true && fechaNacimiento != null;
 
-  UserRegistrationModel buildUser() {
-    return UserRegistrationModel(
+  UserRegistrationLoginModel buildUser() {
+    return UserRegistrationLoginModel(
       email: emailController.text,
       password: passwordController.text,
       nombres: nombresController.text,
       apellidos: apellidosController.text,
-      fechaNacimiento: fechaNacimiento!,
+      birthdate: fechaNacimiento!,
     );
   }
 

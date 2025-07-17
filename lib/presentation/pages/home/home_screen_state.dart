@@ -22,15 +22,15 @@ import 'package:meetclic/presentation/pages/business_map_page.dart';
 import 'modals/top_modal.dart';
 import 'modals/language_modal.dart';
 import 'home_page.dart';
-
-
 import 'package:meetclic/shared/models/api_response.dart';
 import 'package:meetclic/presentation/pages/home/home_infinity.dart';
-import 'package:meetclic/presentation/widgets/modals/register_user_modal.dart';
-
 import 'dart:convert';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
+import 'package:meetclic/infrastructure/repositories/implementations/user_repository_impl.dart';
+import 'package:meetclic/domain/usecases/register_user_usecase.dart';
+import 'package:meetclic/aplication/services/user_service.dart';
+import 'package:meetclic/domain/models/user_registration_model.dart';
 
 class HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -164,21 +164,43 @@ class HomeScreenState extends State<HomeScreen> {
             name: 'diamante',
             asset: 'assets/appbar/yapitas-premium.png',
             number: 2480,
-            onTap: () => showRegisterUserModal(context, (formData) {
-              print('Registro completado');
-            }),
+            onTap: () => {},
           ),
           MenuTabUpItem(
             id: 4,
             name: 'trofeo',
             asset: 'assets/appbar/trophy-two.png',
             number: 2,
-            onTap: () => showRegisterUserModal(
-              context,
-                  (user) {
-                print('Registro completado: ${user.email}');
-              },
-            ),
+            onTap: () =>
+                showRegisterUserModal(context, (contextFromModal, user) async {
+                  final repository = UserRepositoryImpl();
+                  final useCase = RegisterUserUseCase(repository);
+                  final userService = UserService(useCase);
+
+                  final userSend = UserRegistrationLoginModel(
+                    email: user.email,
+                    password: user.password,
+                    nombres: user.nombres,
+                    apellidos: user.apellidos,
+                    birthdate: user.fechaNacimiento,
+                  );
+
+                  final response = await userService.register(userSend);
+
+                  print('🚀 ENVIAR DATOS--------------------------');
+                  print(userSend.birthdate);
+                  print('RESPONSE --------------------------');
+                  print(response.message);
+                  if (response.success) {
+                    Navigator.pop(
+                      contextFromModal,
+                    ); // ✅ CIERRA el modal desde el onSubmit
+                    return true;
+                  } else {
+                    // Maneja los errores aquí
+                    return false;
+                  }
+                }),
           ),
           MenuTabUpItem(
             id: 5,
