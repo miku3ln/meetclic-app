@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'atom_styles.dart';
-
 class InputTextAtom extends StatelessWidget {
   final String? label;
   final TextInputType keyboardType;
@@ -11,6 +10,7 @@ class InputTextAtom extends StatelessWidget {
   final InputDecoration? decoration;
   final void Function(String)? onChanged;
   final String? Function(String?)? validator;
+  final TextEditingController? controller; // ✅ Nuevo: Controller opcional
 
   const InputTextAtom({
     this.label,
@@ -22,6 +22,7 @@ class InputTextAtom extends StatelessWidget {
     this.decoration,
     this.onChanged,
     this.validator,
+    this.controller, // ✅ Lo añades aquí también
     super.key,
   });
 
@@ -32,6 +33,7 @@ class InputTextAtom extends StatelessWidget {
     return SizedBox(
       height: height,
       child: TextFormField(
+        controller: controller, // ✅ Permite usar el controller si se pasa
         obscureText: obscureText,
         keyboardType: keyboardType,
         onChanged: onChanged,

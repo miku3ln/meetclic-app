@@ -15,7 +15,7 @@ import 'package:meetclic/presentation/widgets/home_drawer_widget.dart';
 import 'package:meetclic/presentation/widgets/template/custom_app_bar.dart';
 import 'package:meetclic/presentation/pages/full_screen_page.dart';
 import 'package:meetclic/presentation/pages/profile_page.dart';
-import 'modals/show_register_user.dart';
+import 'package:meetclic/presentation/widgets/register_user_modal.dart';
 import 'modals/show_view_components.dart';
 
 import 'package:meetclic/presentation/pages/business_map_page.dart';
@@ -163,28 +163,9 @@ class HomeScreenState extends State<HomeScreen> {
             name: 'diamante',
             asset: 'assets/appbar/yapitas-premium.png',
             number: 2480,
-            onTap: () => showTopModal(
-              context: context,
-              title: "¡Bienvenido!",
-              contentText: "Gracias por unirte a nuestra aplicación.",
-              buttonText: "Aceptar",
-              onButtonPressed: () {
-                print("Botón presionado");
-              },
-              heightPercentage: 0.25,
-              backgroundColor: Colors.white,
-              titleStyle: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue,
-              ),
-              contentStyle: TextStyle(fontSize: 16, color: Colors.black87),
-              buttonStyle: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                minimumSize: Size.fromHeight(50),
-                textStyle: TextStyle(fontSize: 18),
-              ),
-            ),
+            onTap: () => showRegisterUserModal(context, (formData) {
+              print('Registro completado');
+            }),
           ),
           MenuTabUpItem(
             id: 4,
