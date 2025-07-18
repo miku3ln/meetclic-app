@@ -178,7 +178,59 @@ class HomeScreenState extends State<HomeScreen> {
                       print('LOGIN');
                     },
                     () {
-                      print('SING UP');
+                      showRegisterUserModal(context, (
+                          contextFromModal,
+                          user,
+                          ) async {
+                        final repository = UserRepositoryImpl();
+                        final useCase = RegisterUserUseCase(repository);
+                        final userService = UserService(useCase);
+                        final userSend = UserRegistrationLoginModel(
+                          email: user.email,
+                          password: user.password,
+                          name: user.nombres,
+                          last_name: user.apellidos,
+                          birthdate: user.fechaNacimiento,
+                        );
+
+                        final response = await userService.register(userSend);
+
+                        print('🚀 ENVIAR DATOS--------------------------');
+                        print(userSend.birthdate);
+                        print('RESPONSE --------------------------');
+                        print(response.message);
+                        if (response.success) {
+                          final jsonString = response.data; // Tu cadena JSON recibida}
+                          print(jsonString);
+                          final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
+                          final usuarioLogin = UsuarioLogin.fromJson(jsonMap);
+                          print(usuarioLogin.accessToken);
+                          print(usuarioLogin.customer.businessName);
+                          Navigator.pop(
+                            contextFromModal,
+                          ); // ✅ CIERRA el modal desde el onSubmit
+
+                          Fluttertoast.showToast(
+                            msg: "Registrado",
+                            toastLength: Toast.LENGTH_SHORT,
+                            gravity: ToastGravity.BOTTOM,
+                            backgroundColor: Colors.black87,
+                            textColor: Colors.white,
+                            fontSize: 16.0,
+                          );
+                          return true;
+                        } else {
+                          Fluttertoast.showToast(
+                            msg: "Existe un Error :$response.type",
+                            toastLength: Toast.LENGTH_SHORT,
+                            gravity: ToastGravity.BOTTOM,
+                            backgroundColor: Colors.black87,
+                            textColor: Colors.white,
+                            fontSize: 16.0,
+                          );
+                          return false;
+                        }
+                      });
                     },
                   ),
                 }
@@ -206,59 +258,7 @@ class HomeScreenState extends State<HomeScreen> {
             name: 'trofeo',
             asset: 'assets/appbar/trophy-two.png',
             number: trofeosCount,
-            onTap: () => showRegisterUserModal(context, (
-              contextFromModal,
-              user,
-            ) async {
-              final repository = UserRepositoryImpl();
-              final useCase = RegisterUserUseCase(repository);
-              final userService = UserService(useCase);
-              final userSend = UserRegistrationLoginModel(
-                email: user.email,
-                password: user.password,
-                name: user.nombres,
-                last_name: user.apellidos,
-                birthdate: user.fechaNacimiento,
-              );
-
-              final response = await userService.register(userSend);
-
-              print('🚀 ENVIAR DATOS--------------------------');
-              print(userSend.birthdate);
-              print('RESPONSE --------------------------');
-              print(response.message);
-              if (response.success) {
-                final jsonString = response.data; // Tu cadena JSON recibida}
-                print(jsonString);
-                final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
-                final usuarioLogin = UsuarioLogin.fromJson(jsonMap);
-                print(usuarioLogin.accessToken);
-                print(usuarioLogin.customer.businessName);
-                Navigator.pop(
-                  contextFromModal,
-                ); // ✅ CIERRA el modal desde el onSubmit
-
-                Fluttertoast.showToast(
-                  msg: "Registrado",
-                  toastLength: Toast.LENGTH_SHORT,
-                  gravity: ToastGravity.BOTTOM,
-                  backgroundColor: Colors.black87,
-                  textColor: Colors.white,
-                  fontSize: 16.0,
-                );
-                return true;
-              } else {
-                Fluttertoast.showToast(
-                  msg: "Existe un Error :$response.type",
-                  toastLength: Toast.LENGTH_SHORT,
-                  gravity: ToastGravity.BOTTOM,
-                  backgroundColor: Colors.black87,
-                  textColor: Colors.white,
-                  fontSize: 16.0,
-                );
-                return false;
-              }
-            }),
+            onTap: () =>{},
           ),
           MenuTabUpItem(
             id: 5,
