@@ -167,11 +167,13 @@ class _RegisterUserModalState extends State<_RegisterUserModal> {
                             ),
                             AppSpacing.spaceBetweenInputs,
                             InputTextAtom(
-                              label: appLocalizations.translate('loginManagerTitle.fieldPassword'),
+                              label: appLocalizations.translate(
+                                'loginManagerTitle.fieldPassword',
+                              ),
                               controller: passwordController,
-                              obscureText: true,  // 👈 Esto activa el ojo automáticamente
+                              obscureText: true,
                               validator: (value) =>
-                              value != null && value.length >= 6
+                                  value != null && value.length >= 6
                                   ? null
                                   : 'Mínimo 6 caracteres',
                             ),
@@ -181,13 +183,13 @@ class _RegisterUserModalState extends State<_RegisterUserModal> {
                                 'loginManagerTitle.register.fieldPasswordRepeat',
                               ),
                               controller: repeatPasswordController,
-                              obscureText: true,  // 👈 También aquí se activa el ojo
+                              obscureText: true,
                               validator: (value) =>
-                              value == passwordController.text
+                                  value == passwordController.text
                                   ? null
                                   : appLocalizations.translate(
-                                'loginManagerTitle.register.fieldPasswordRepeatError',
-                              ),
+                                      'loginManagerTitle.register.fieldPasswordRepeatError',
+                                    ),
                             ),
                           ],
                         ),

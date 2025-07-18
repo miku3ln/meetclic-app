@@ -6,6 +6,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:meetclic/presentation/widgets/modals/register_user_modal.dart';
 import 'package:meetclic/presentation/widgets/modals/show_management_login_modal.dart';
+import 'package:meetclic/presentation/widgets/modals/show_login_modal.dart';
+
 import 'package:meetclic/infrastructure/repositories/implementations/user_repository_impl.dart';
 import 'package:meetclic/domain/usecases/register_user_usecase.dart';
 import 'package:meetclic/aplication/services/user_service.dart';
@@ -13,10 +15,10 @@ import 'package:meetclic/domain/models/user_registration_model.dart';
 import 'package:meetclic/domain/models/usuario_login.dart';
 import 'package:meetclic/domain/services/session_service.dart';
 import 'package:meetclic/shared/models/api_response.dart';
+import 'package:meetclic/domain/models/user_login.dart';
 
 final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
 
-/// ✅ Enviar token a backend y obtener ApiResponse
 Future<ApiResponse<Map<String, dynamic>>> sendTokenToBackend(
   String idToken,
 ) async {
@@ -119,7 +121,7 @@ class AccessManagerService {
         final result = await loginWithGoogle();
         completer.complete(result);
       },
-      'facebook': ()  {
+      'facebook': () {
         completer.complete(
           ApiResponse(
             success: false,
@@ -136,13 +138,15 @@ class AccessManagerService {
             data: null,
           ),
         );
-
+        showLoginModal(context, {
+          'login': (UserLoginModel model) async {
+            print('✅ Email recibido: ${model.email}');
+            print('✅ Password recibido: ${model.password}');
+          },
+        });
       },
       'signup': () {
-        showRegisterUserModal(context, (
-            contextFromModal,
-            user,
-            ) async {
+        showRegisterUserModal(context, (contextFromModal, user) async {
           final repository = UserRepositoryImpl();
           final useCase = RegisterUserUseCase(repository);
           final userService = UserService(useCase);
@@ -160,12 +164,9 @@ class AccessManagerService {
           print('RESPONSE --------------------------');
           print(response.message);
           if (response.success) {
-            final jsonString =
-                response.data; // Tu cadena JSON recibida}
+            final jsonString = response.data; // Tu cadena JSON recibida}
             print(jsonString);
-            final Map<String, dynamic> jsonMap = jsonDecode(
-              jsonString,
-            );
+            final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
             final usuarioLogin = UsuarioLogin.fromJson(jsonMap);
             print(usuarioLogin.accessToken);
             print(usuarioLogin.customer.businessName);
@@ -201,7 +202,6 @@ class AccessManagerService {
             data: null,
           ),
         );*/
-
       },
     });
 
