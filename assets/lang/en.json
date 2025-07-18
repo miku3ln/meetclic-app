@@ -53,5 +53,35 @@
     "addFriends": "Ad Friends",
     "join": "Joined"
 
+  },
+  "loginManagerTitle": {
+    "hi": "Hello",
+    "welcome": "Welcome to Meetclic, where sharing and buying is more fun",
+    "singInButton": "Login",
+    "singUpButton": "Sign Up",
+    "loginInNetwork": "Sign up using",
+    "fieldEmail": "Email",
+    "fieldEmailInput": "Enter your email",
+    "fieldPassword": "Password",
+    "fieldPasswordInput": "Enter your password",
+
+    "register": {
+      "title": "Register User",
+      "stepOne": "User Data",
+      "stepTwo": "Personal Data",
+      "fieldPasswordRepeat": "Repeat Password",
+      "fieldPasswordRepeatInput": "Enter password again",
+      "fieldPasswordRepeatError": "Passwords do not match",
+      "fieldName": "First Name(s)",
+      "fieldNameInput": "Enter your first name(s)",
+      "fieldLastName": "Last Name",
+      "fieldLastNameInput": "Enter your last name",
+      "fieldBirthday": "Birthday",
+      "fieldBirthdayInput": "Enter your birth date",
+      "buttonBack": "Back",
+      "buttonNext": "Next",
+      "buttonRegister": "Register"
+    }
   }
+
 }

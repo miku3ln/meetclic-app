@@ -5,13 +5,16 @@ import 'package:meetclic/shared/localization/app_localizations.dart';
 import 'package:meetclic/presentation/widgets/atoms/intro_logo.dart';
 import 'package:meetclic/shared/themes/app_spacing.dart';
 
-void showLoginModal(
+void showManagementLoginModal(
   BuildContext context,
-  VoidCallback onTapGoogle,
-  VoidCallback onTapFacebook,
-  VoidCallback onTapLogin,
-  VoidCallback onTapSignUp,
+
+  Map<String, VoidCallback> actions,
 ) {
+  final onTapGoogle = actions['google'];
+  final onTapFacebook = actions['facebook'];
+  final onTapLogin = actions['login'];
+  final onTapSignUp = actions['signup'];
+
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -50,14 +53,14 @@ void showLoginModal(
               ), // 👈 Usa bodyMedium y onSurface
             ),
             const SizedBox(height: 24),
-
-            // Botón LOGIN
             SizedBox(
               width: double.infinity,
               height: 70,
               child: ElevatedButton(
                 onPressed: onTapLogin,
-                child:  Text( appLocalizations.translate('loginManagerTitle.singInButton')),
+                child: Text(
+                  appLocalizations.translate('loginManagerTitle.singInButton'),
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: theme.colorScheme.primary, // 👈 Usa primary
                   foregroundColor: theme.colorScheme.onPrimary, // 👈 Texto
@@ -70,14 +73,15 @@ void showLoginModal(
             ),
             AppSpacing.spaceBetweenButtons,
 
-
             // Botón SIGN UP
             SizedBox(
               width: double.infinity,
               height: 70,
               child: OutlinedButton(
                 onPressed: onTapSignUp,
-                child:  Text(appLocalizations.translate('loginManagerTitle.singUpButton')),
+                child: Text(
+                  appLocalizations.translate('loginManagerTitle.singUpButton'),
+                ),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: theme.colorScheme.primary, // 👈 Texto
                   padding: const EdgeInsets.symmetric(vertical: 14),
@@ -98,13 +102,12 @@ void showLoginModal(
               ),
             ),
             const SizedBox(height: 12),
-
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SocialIcon(FontAwesomeIcons.google, onTap: onTapGoogle),
+                SocialIcon(FontAwesomeIcons.google, onTap: onTapGoogle!),
                 const SizedBox(width: 16),
-                SocialIcon(FontAwesomeIcons.facebookF, onTap: onTapFacebook),
+                SocialIcon(FontAwesomeIcons.facebookF, onTap: onTapFacebook!),
                 const SizedBox(width: 16),
               ],
             ),
@@ -115,5 +118,3 @@ void showLoginModal(
     },
   );
 }
-
-

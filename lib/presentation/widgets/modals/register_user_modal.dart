@@ -1,15 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:meetclic/presentation/widgets/atoms/button_atom.dart';
+import 'package:meetclic/presentation/widgets/atoms/input_text_atom.dart';
+import 'package:meetclic/presentation/widgets/atoms/date_picker_atom.dart';
+import 'package:meetclic/shared/localization/app_localizations.dart';
+import 'package:meetclic/presentation/widgets/atoms/intro_logo.dart';
+import 'package:meetclic/shared/themes/app_spacing.dart';
 
-import 'package:meetclic/aplication/controllers/user_registration_form_controller.dart';
+class UserRegistrationModel {
+  final String email;
+  final String password;
+  final String nombres;
+  final String apellidos;
+  final DateTime fechaNacimiento;
 
+  UserRegistrationModel({
+    //HOLA
+    required this.email,
+    required this.password,
+    required this.nombres,
+    required this.apellidos,
+    required this.fechaNacimiento,
+  });
+}
 
-import '../../components/user_data_step.dart';
-import '../../components/personal_data_step.dart';
-
-
-import '../../../domain/models/user_registration_model.dart';
-import '../atoms/button_atom.dart';
-void registerUserModal(BuildContext context, Function(UserRegistrationLoginModel) onSubmit) {
+// ✅ Modal trigger con función que recibe context y modelo
+void showRegisterUserModal(
+  BuildContext context,
+  Future<bool> Function(BuildContext, UserRegistrationModel) onSubmit,
+) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -17,99 +35,249 @@ void registerUserModal(BuildContext context, Function(UserRegistrationLoginModel
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
-    builder: (context) => FractionallySizedBox(
+    builder: (contextModal) => FractionallySizedBox(
       heightFactor: 0.95,
-      child: RegisterUserModal(onSubmit: onSubmit),
+      child: _RegisterUserModal(onSubmit: onSubmit),
     ),
   );
 }
 
-class RegisterUserModal extends StatefulWidget {
-  final Function(UserRegistrationLoginModel) onSubmit;
+// ✅ Modal corregido
+class _RegisterUserModal extends StatefulWidget {
+  final Future<bool> Function(BuildContext, UserRegistrationModel) onSubmit;
 
-  const RegisterUserModal({required this.onSubmit, super.key});
+  const _RegisterUserModal({required this.onSubmit});
 
   @override
-  State<RegisterUserModal> createState() => _RegisterUserModalState();
+  State<_RegisterUserModal> createState() => _RegisterUserModalState();
 }
 
-class _RegisterUserModalState extends State<RegisterUserModal> {
-  final controller = UserRegistrationFormController();
+class _RegisterUserModalState extends State<_RegisterUserModal> {
   int currentStep = 0;
 
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
+  final _formKeyStep1 = GlobalKey<FormState>();
+  final _formKeyStep2 = GlobalKey<FormState>();
 
-  void nextStep() {
-    if (currentStep == 0 && controller.isStep1Valid) {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController repeatPasswordController =
+      TextEditingController();
+  final TextEditingController nombresController = TextEditingController();
+  final TextEditingController apellidosController = TextEditingController();
+
+  DateTime? fechaNacimiento;
+
+  bool get isStep1Valid =>
+      _formKeyStep1.currentState?.validate() == true &&
+      passwordController.text == repeatPasswordController.text;
+
+  bool get isStep2Valid =>
+      _formKeyStep2.currentState?.validate() == true && fechaNacimiento != null;
+
+  Future<void> nextStep() async {
+    if (currentStep == 0 && isStep1Valid) {
       setState(() => currentStep = 1);
-    } else if (currentStep == 1 && controller.isStep2Valid) {
-      widget.onSubmit(controller.buildUser());
-     // Navigator.pop(context);
+    } else if (currentStep == 1 && isStep2Valid) {
+      final shouldClose = await widget.onSubmit(
+        context,
+        UserRegistrationModel(
+          email: emailController.text,
+          password: passwordController.text,
+          nombres: nombresController.text,
+          apellidos: apellidosController.text,
+          fechaNacimiento: fechaNacimiento!,
+        ),
+      );
+      if (shouldClose) {
+        //  Navigator.pop(context);
+      }
     }
   }
 
   void previousStep() {
-    if (currentStep > 0) setState(() => currentStep--);
+    if (currentStep > 0) {
+      setState(() => currentStep--);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            const Text('Registro de Usuario',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            Expanded(
-              child: Stepper(
-                type: StepperType.vertical,
-                currentStep: currentStep,
-                onStepTapped: (index) {
-                  if (index == 1 && controller.isStep1Valid) {
-                    setState(() => currentStep = 1);
-                  } else if (index == 0) {
-                    setState(() => currentStep = 0);
-                  }
-                },
-                controlsBuilder: (context, _) => const SizedBox.shrink(),
-                steps: [
-                  Step(
-                    title: const Text('Datos de Usuario'),
-                    content: UserDataStep(controller: controller),
-                    isActive: true,
-                  ),
-                  Step(
-                    title: const Text('Datos Personales'),
-                    content: PersonalDataStep(controller: controller),
-                    isActive: controller.isStep1Valid,
-                  ),
-                ],
-              ),
-            ),
-            Row(
+    final appLocalizations = AppLocalizations.of(context);
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: SingleChildScrollView(
+            child: Column(
               children: [
-                if (currentStep > 0)
-                  Expanded(
-                      child:
-                      ButtonAtom(text: 'Atrás', onPressed: previousStep)),
-                if (currentStep > 0) const SizedBox(width: 12),
-                Expanded(
-                  child: ButtonAtom(
-                    text: currentStep == 1 ? 'Registrar' : 'Siguiente',
-                    onPressed: nextStep,
+                Text(
+                  appLocalizations.translate(
+                    'loginManagerTitle.register.title',
                   ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                Center(
+                  child: IntroLogo(
+                    assetPath: 'assets/login/init-login-register.png',
+                    height: 250,
+                  ),
+                ),
+                Stepper(
+                  type: StepperType.vertical,
+                  currentStep: currentStep,
+                  onStepTapped: (index) {
+                    if (index == 1 && isStep1Valid) {
+                      setState(() => currentStep = 1);
+                    } else if (index == 0) {
+                      setState(() => currentStep = 0);
+                    }
+                  },
+                  controlsBuilder: (context, _) => const SizedBox.shrink(),
+                  steps: [
+                    Step(
+                      title: Text(
+                        appLocalizations.translate(
+                          'loginManagerTitle.register.stepOne',
+                        ),
+                      ),
+                      isActive: true,
+                      content: Form(
+                        key: _formKeyStep1,
+                        child: Column(
+                          children: [
+                            AppSpacing.spaceBetweenInputs,
+                            InputTextAtom(
+                              label: appLocalizations.translate(
+                                'loginManagerTitle.fieldEmail',
+                              ),
+                              controller: emailController,
+                              validator: (value) {
+                                if (value == null || value.isEmpty)
+                                  return appLocalizations.translate(
+                                    'loginManagerTitle.fieldEmailInput',
+                                  );
+                                if (!RegExp(
+                                  r'^[^@]+@[^@]+\.[^@]+',
+                                ).hasMatch(value))
+                                  return 'Correo inválido';
+                                return null;
+                              },
+                            ),
+                            AppSpacing.spaceBetweenInputs,
+                            InputTextAtom(
+                              label: appLocalizations.translate('loginManagerTitle.fieldPassword'),
+                              controller: passwordController,
+                              obscureText: true,  // 👈 Esto activa el ojo automáticamente
+                              validator: (value) =>
+                              value != null && value.length >= 6
+                                  ? null
+                                  : 'Mínimo 6 caracteres',
+                            ),
+                            AppSpacing.spaceBetweenInputs,
+                            InputTextAtom(
+                              label: appLocalizations.translate(
+                                'loginManagerTitle.register.fieldPasswordRepeat',
+                              ),
+                              controller: repeatPasswordController,
+                              obscureText: true,  // 👈 También aquí se activa el ojo
+                              validator: (value) =>
+                              value == passwordController.text
+                                  ? null
+                                  : appLocalizations.translate(
+                                'loginManagerTitle.register.fieldPasswordRepeatError',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Step(
+                      title: Text(
+                        appLocalizations.translate(
+                          'loginManagerTitle.register.stepTwo',
+                        ),
+                      ),
+                      isActive: isStep1Valid,
+                      content: Form(
+                        key: _formKeyStep2,
+                        child: Column(
+                          children: [
+                            AppSpacing.spaceBetweenInputs,
+                            InputTextAtom(
+                              label: appLocalizations.translate(
+                                'loginManagerTitle.register.fieldName',
+                              ),
+                              controller: nombresController,
+                              validator: (value) =>
+                                  value != null && value.isNotEmpty
+                                  ? null
+                                  : appLocalizations.translate(
+                                      'loginManagerTitle.register.fieldNameInput',
+                                    ),
+                            ),
+                            AppSpacing.spaceBetweenInputs,
+                            InputTextAtom(
+                              label: appLocalizations.translate(
+                                'loginManagerTitle.register.fieldLastName',
+                              ),
+                              controller: apellidosController,
+                              validator: (value) =>
+                                  value != null && value.isNotEmpty
+                                  ? null
+                                  : appLocalizations.translate(
+                                      'loginManagerTitle.register.fieldLastNameInput',
+                                    ),
+                            ),
+                            AppSpacing.spaceBetweenInputs,
+                            DatePickerAtom(
+                              label: appLocalizations.translate(
+                                'loginManagerTitle.register.fieldBirthday',
+                              ),
+                              selectedDateText: fechaNacimiento == null
+                                  ? null
+                                  : '${fechaNacimiento!.day}/${fechaNacimiento!.month}/${fechaNacimiento!.year}',
+                              onDateSelected: (picked) =>
+                                  setState(() => fechaNacimiento = picked),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    if (currentStep > 0)
+                      Expanded(
+                        child: ButtonAtom(
+                          text: appLocalizations.translate(
+                            'loginManagerTitle.register.buttonBack',
+                          ),
+                          onPressed: previousStep,
+                        ),
+                      ),
+                    if (currentStep > 0) const SizedBox(width: 12),
+                    Expanded(
+                      child: ButtonAtom(
+                        text: currentStep == 1
+                            ? appLocalizations.translate(
+                                'loginManagerTitle.register.buttonRegister',
+                              )
+                            : appLocalizations.translate(
+                                'loginManagerTitle.register.buttonNext',
+                              ),
+                        onPressed: nextStep,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
-

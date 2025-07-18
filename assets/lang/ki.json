@@ -55,5 +55,35 @@
     "addFriends": "Maki Kuri",
     "join": "Yaykushka"
 
+  },
+  "loginManagerTitle": {
+    "hi": "Napaykuyki",
+    "welcome": "Meetclicman napaykuyki, kaypi kunankapak killkashka mikuna ranti kaykunata kusikushkami ruranapaq",
+    "singInButton": "Yaykuy",
+    "singUpButton": "Killkakunata ruray",
+    "loginInNetwork": "Kaykunawan killkakunata ruray",
+    "fieldEmail": "Killkana watay",
+    "fieldEmailInput": "Watayta yaykuchiy",
+    "fieldPassword": "Pakina rimay",
+    "fieldPasswordInput": "Pakina rimayta yaykuchiy",
+
+    "register": {
+      "title": "Ruray runa killkakuna",
+      "stepOne": "Runa willakuna",
+      "stepTwo": "Sapa runa willakuna",
+      "fieldPasswordRepeat": "Pakina rimay kunawan rikuchiy",
+      "fieldPasswordRepeatInput": "Pakina rimayta ñawpakta yaykuchiy",
+      "fieldPasswordRepeatError": "Pakina rimaykunaka mana kikinka kanchu",
+      "fieldName": "Suti",
+      "fieldNameInput": "Sutiyki yaykuchiy",
+      "fieldLastName": "Ñawpak suti",
+      "fieldLastNameInput": "Ñawpak sutiyki yaykuchiy",
+      "fieldBirthday": "Wawakuna p'unchay",
+      "fieldBirthdayInput": "Wawakuna p'unchayta yaykuchiy",
+      "buttonBack": "Kutiy",
+      "buttonNext": "Ñawpa",
+      "buttonRegister": "Killkakunata ruray"
+    }
   }
+
 }

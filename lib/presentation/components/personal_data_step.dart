@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:meetclic/aplication/controllers/user_registration_form_controller.dart';
 import '../widgets/atoms/input_text_atom.dart';
 import '../widgets/atoms/date_picker_atom.dart';
+import 'package:meetclic/shared/localization/app_localizations.dart';
 
 class PersonalDataStep extends StatelessWidget {
   final UserRegistrationFormController controller;
@@ -11,24 +12,26 @@ class PersonalDataStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appLocalizations = AppLocalizations.of(context);
+
     return Form(
       key: controller.formKeyStep2,
       child: Column(
         children: [
           InputTextAtom(
-            label: 'Nombres',
+            label: appLocalizations.translate('loginManagerTitle.register.fieldName'),
             controller: controller.nombresController,
-            validator: (value) => value != null && value.isNotEmpty ? null : 'Campo requerido',
+            validator: (value) => value != null && value.isNotEmpty ? null : appLocalizations.translate('loginManagerTitle.register.fieldNameInput'),
           ),
           const SizedBox(height: 12),
           InputTextAtom(
-            label: 'Apellidos',
+            label:  appLocalizations.translate('loginManagerTitle.register.fieldLastName'),
             controller: controller.apellidosController,
-            validator: (value) => value != null && value.isNotEmpty ? null : 'Campo requerido',
+            validator: (value) => value != null && value.isNotEmpty ? null : appLocalizations.translate('loginManagerTitle.register.fieldLastNameInput'),
           ),
           const SizedBox(height: 12),
           DatePickerAtom(
-            label: 'Fecha de nacimiento',
+            label: appLocalizations.translate('loginManagerTitle.register.fieldBirthday'),
             selectedDateText: controller.fechaNacimiento == null
                 ? null
                 : '${controller.fechaNacimiento!.day}/${controller.fechaNacimiento!.month}/${controller.fechaNacimiento!.year}',

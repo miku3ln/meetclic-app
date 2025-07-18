@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'atom_styles.dart';
-class InputTextAtom extends StatelessWidget {
+
+class InputTextAtom extends StatefulWidget {
   final String? label;
   final TextInputType keyboardType;
   final bool obscureText;
@@ -10,7 +11,7 @@ class InputTextAtom extends StatelessWidget {
   final InputDecoration? decoration;
   final void Function(String)? onChanged;
   final String? Function(String?)? validator;
-  final TextEditingController? controller; // ✅ Nuevo: Controller opcional
+  final TextEditingController? controller;
 
   const InputTextAtom({
     this.label,
@@ -22,29 +23,37 @@ class InputTextAtom extends StatelessWidget {
     this.decoration,
     this.onChanged,
     this.validator,
-    this.controller, // ✅ Lo añades aquí también
+    this.controller,
     super.key,
   });
+
+  @override
+  State<InputTextAtom> createState() => _InputTextAtomState();
+}
+
+class _InputTextAtomState extends State<InputTextAtom> {
+  bool _showText = false; // Control interno para mostrar/ocultar
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return SizedBox(
-      height: height,
+      height: widget.height,
       child: TextFormField(
-        controller: controller, // ✅ Permite usar el controller si se pasa
-        obscureText: obscureText,
-        keyboardType: keyboardType,
-        onChanged: onChanged,
-        validator: validator,
-        style: (textStyle ?? AtomStyles.inputTextStyle).copyWith(
+        controller: widget.controller,
+        obscureText: widget.obscureText ? !_showText : false,
+        keyboardType: widget.keyboardType,
+        onChanged: widget.onChanged,
+        validator: widget.validator,
+        style: (widget.textStyle ?? AtomStyles.inputTextStyle).copyWith(
           color: theme.textTheme.bodyMedium?.color,
         ),
-        decoration: decoration ??
+        decoration: (widget.decoration ??
             InputDecoration(
-              labelText: label,
-              labelStyle: (labelStyle ?? AtomStyles.labelTextStyle).copyWith(
+              labelText: widget.label,
+              labelStyle: (widget.labelStyle ?? AtomStyles.labelTextStyle)
+                  .copyWith(
                 color: theme.textTheme.titleSmall?.color,
               ),
               enabledBorder: OutlineInputBorder(
@@ -60,7 +69,22 @@ class InputTextAtom extends StatelessWidget {
                 ),
                 borderRadius: AtomStyles.inputBorder.borderRadius,
               ),
+            )).copyWith(
+          // ✅ Solo si es un campo de tipo password muestra el icono
+          suffixIcon: widget.obscureText
+              ? IconButton(
+            icon: Icon(
+              _showText ? Icons.visibility : Icons.visibility_off,
+              color: theme.colorScheme.primary,
             ),
+            onPressed: () {
+              setState(() {
+                _showText = !_showText;
+              });
+            },
+          )
+              : null,
+        ),
       ),
     );
   }

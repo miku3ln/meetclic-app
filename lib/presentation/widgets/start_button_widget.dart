@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-void showLoginModal(BuildContext context,VoidCallback onTapGoogle,VoidCallback onTapFacebook) {
+void showLoginModal3(BuildContext context,VoidCallback onTapGoogle,VoidCallback onTapFacebook) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -118,7 +118,7 @@ class StartButtonWidget extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: GestureDetector(
         onTap: () {
-          showLoginModal(context,  () {
+          showLoginModal3(context,  () {
             print('Google icon tapped!');
           },
                   () {

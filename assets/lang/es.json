@@ -52,6 +52,33 @@
     "followers": "Seguidores",
     "addFriends": "Agregar Amigos",
     "join": "Registrado"
-
+  },
+  "loginManagerTitle": {
+    "hi": "Hola",
+    "welcome": "Bienvenido a Meetclic, donde compartir y comprar es más divertido",
+    "singInButton": "Iniciar sesión",
+    "singUpButton": "Crear cuenta",
+    "loginInNetwork": "Regístrate usando",
+    "fieldEmail": "Correo electrónico",
+    "fieldEmailInput": "Ingresa tu correo electrónico",
+    "fieldPassword": "Contraseña",
+    "fieldPasswordInput": "Ingresa tu contraseña",
+    "register": {
+      "title": "Registrar usuario",
+      "stepOne": "Datos del usuario",
+      "stepTwo": "Datos personales",
+      "fieldPasswordRepeat": "Repetir contraseña",
+      "fieldPasswordRepeatInput": "Ingresa nuevamente la contraseña",
+      "fieldPasswordRepeatError": "Las contraseñas no coinciden",
+      "fieldName": "Nombres",
+      "fieldNameInput": "Ingresa tus nombres",
+      "fieldLastName": "Apellidos",
+      "fieldLastNameInput": "Ingresa tus apellidos",
+      "fieldBirthday": "Fecha de nacimiento",
+      "fieldBirthdayInput": "Ingresa tu fecha de nacimiento",
+      "buttonBack": "Atrás",
+      "buttonNext": "Siguiente",
+      "buttonRegister": "Registrar"
+    }
   }
 }
