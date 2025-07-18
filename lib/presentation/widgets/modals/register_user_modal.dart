@@ -103,6 +103,7 @@ class _RegisterUserModalState extends State<_RegisterUserModal> {
   @override
   Widget build(BuildContext context) {
     final appLocalizations = AppLocalizations.of(context);
+    final theme = Theme.of(context);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -263,6 +264,9 @@ class _RegisterUserModalState extends State<_RegisterUserModal> {
                     if (currentStep > 0) const SizedBox(width: 12),
                     Expanded(
                       child: ButtonAtom(
+                        backgroundColor: isStep1Valid&&isStep2Valid
+                            ? theme.colorScheme.primary
+                            : theme.disabledColor,
                         text: currentStep == 1
                             ? appLocalizations.translate(
                                 'loginManagerTitle.register.buttonRegister',

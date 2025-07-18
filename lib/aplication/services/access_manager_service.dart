@@ -16,6 +16,7 @@ import 'package:meetclic/domain/models/usuario_login.dart';
 import 'package:meetclic/domain/services/session_service.dart';
 import 'package:meetclic/shared/models/api_response.dart';
 import 'package:meetclic/domain/models/user_login.dart';
+import 'package:meetclic/domain/viewmodels/user_registration_error_viewmodel.dart';
 
 final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
 
@@ -131,17 +132,18 @@ class AccessManagerService {
         );
       },
       'login': () {
-        completer.complete(
-          ApiResponse(
-            success: false,
-            message: 'Sin manual no implementado.',
-            data: null,
-          ),
-        );
         showLoginModal(context, {
           'login': (UserLoginModel model) async {
             print('✅ Email recibido: ${model.email}');
             print('✅ Password recibido: ${model.password}');
+
+            completer.complete(
+              ApiResponse(
+                success: false,
+                message: 'Sin manual no implementado.',
+                data: null,
+              ),
+            );
           },
         });
       },
@@ -168,12 +170,10 @@ class AccessManagerService {
             print(jsonString);
             final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
             final usuarioLogin = UsuarioLogin.fromJson(jsonMap);
-            print(usuarioLogin.accessToken);
-            print(usuarioLogin.customer.businessName);
+            SessionService().saveSession(usuarioLogin);
             Navigator.pop(
               contextFromModal,
             ); // ✅ CIERRA el modal desde el onSubmit
-
             Fluttertoast.showToast(
               msg: "Registrado",
               toastLength: Toast.LENGTH_SHORT,
@@ -182,10 +182,15 @@ class AccessManagerService {
               textColor: Colors.white,
               fontSize: 16.0,
             );
+
             return true;
           } else {
+            var jsonString=response.data;
+            final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
+            final errorResponse = UserRegistrationErrorViewModel.fromJson(jsonMap);
+            final globalMessage = errorResponse.generateGlobalMessage();
             Fluttertoast.showToast(
-              msg: "Existe un Error :$response.type",
+              msg: globalMessage,
               toastLength: Toast.LENGTH_SHORT,
               gravity: ToastGravity.BOTTOM,
               backgroundColor: Colors.black87,
