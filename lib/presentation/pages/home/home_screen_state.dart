@@ -16,6 +16,8 @@ import 'package:meetclic/presentation/widgets/template/custom_app_bar.dart';
 import 'package:meetclic/presentation/pages/full_screen_page.dart';
 import 'package:meetclic/presentation/pages/profile_page.dart';
 import 'package:meetclic/presentation/widgets/register_user_modal.dart';
+import 'package:meetclic/presentation/widgets/modals/show_login_modal.dart';
+
 import 'modals/show_view_components.dart';
 
 import 'package:meetclic/presentation/pages/business_map_page.dart';
@@ -32,6 +34,7 @@ import 'package:meetclic/domain/usecases/register_user_usecase.dart';
 import 'package:meetclic/aplication/services/user_service.dart';
 import 'package:meetclic/domain/models/user_registration_model.dart';
 import 'package:meetclic/domain/models/usuario_login.dart';
+import 'package:meetclic/domain/services/session_service.dart';
 
 class HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -78,7 +81,8 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<ApiResponse<Map<String, dynamic>>> sendTokenToBackend(
-      String idToken,) async {
+    String idToken,
+  ) async {
     try {
       final url = Uri.parse('https://tudominio.com/api/auth/google-mobile');
 
@@ -96,7 +100,7 @@ class HomeScreenState extends State<HomeScreen> {
         print('sendTokenToBackend---------------------------: ${message}');
         return ApiResponse.fromJson(
           jsonResponse,
-              (data) => data as Map<String, dynamic>,
+          (data) => data as Map<String, dynamic>,
         );
       } else {
         // ⚠️ Error HTTP: devolver código y respuesta cruda del backend
@@ -122,6 +126,17 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
+    var yapitasCount = 0;
+    var yapitasPremiumCount = 0;
+    var trofeosCount = 0;
+    var cestaCount = 0;
+    var idiomaCount = 3;
+    if (SessionService().isLoggedIn) {
+      yapitasCount = 100;
+      yapitasPremiumCount = 20;
+      trofeosCount = 3;
+      cestaCount = 0;
+    }
     super.initState();
     final config = Provider.of<AppConfig>(context, listen: false);
     // Post-frame callback
@@ -130,14 +145,13 @@ class HomeScreenState extends State<HomeScreen> {
       id: 1,
       name: 'idioma',
       asset: 'assets/flags/$currentLocale.png',
-      number: 3,
-      onTap: () =>
-          showTopLanguageModal(
-            context,
-                (newLocale) => config.setLocale(Locale(newLocale)),
-            menuTabUpItems,
-            setState,
-          ),
+      number: idiomaCount,
+      onTap: () => showTopLanguageModal(
+        context,
+        (newLocale) => config.setLocale(Locale(newLocale)),
+        menuTabUpItems,
+        setState,
+      ),
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -148,118 +162,131 @@ class HomeScreenState extends State<HomeScreen> {
             id: 2,
             name: 'fuego',
             asset: 'assets/appbar/yapitas.png',
-            number: 5,
-            onTap: () =>
-                showViewComponents(context, (formData) {
-                  // Aquí recibes el Map<String, String> con los datos ingresados
-                  print('🚀 Datos capturados del modal:');
-                  formData.forEach((key, value) {
-                    print('$key: $value');
-                  });
-
-                  // Puedes usar formData aquí para cualquier lógica
-                  // Por ejemplo, enviarlo a un backend o guardarlo en un estado
-                }),
+            number: yapitasCount,
+            onTap: () => {
+              if (!SessionService().isLoggedIn)
+                {
+                  showLoginModal(
+                    context,
+                    () {
+                      loginWithGoogle();
+                    },
+                    () {
+                      print('Facebook icon tapped!');
+                    },
+                    () {
+                      print('LOGIN');
+                    },
+                    () {
+                      print('SING UP');
+                    },
+                  ),
+                }
+              else
+                {
+                  showViewComponents(context, (formData) {
+                    // Aquí recibes el Map<String, String> con los datos ingresados
+                    print('🚀 Datos capturados del modal:');
+                    formData.forEach((key, value) {
+                      print('$key: $value');
+                    });
+                  }),
+                },
+            },
           ),
           MenuTabUpItem(
             id: 3,
             name: 'diamante',
             asset: 'assets/appbar/yapitas-premium.png',
-            number: 2480,
+            number: yapitasPremiumCount,
             onTap: () => {},
           ),
           MenuTabUpItem(
             id: 4,
             name: 'trofeo',
             asset: 'assets/appbar/trophy-two.png',
-            number: 2,
-            onTap: () =>
-                showRegisterUserModal(context, (contextFromModal,
-                    user,) async {
-                  final repository = UserRepositoryImpl();
-                  final useCase = RegisterUserUseCase(repository);
-                  final userService = UserService(useCase);
+            number: trofeosCount,
+            onTap: () => showRegisterUserModal(context, (
+              contextFromModal,
+              user,
+            ) async {
+              final repository = UserRepositoryImpl();
+              final useCase = RegisterUserUseCase(repository);
+              final userService = UserService(useCase);
+              final userSend = UserRegistrationLoginModel(
+                email: user.email,
+                password: user.password,
+                name: user.nombres,
+                last_name: user.apellidos,
+                birthdate: user.fechaNacimiento,
+              );
 
-                  final userSend = UserRegistrationLoginModel(
-                    email: user.email,
-                    password: user.password,
-                    name: user.nombres,
-                    last_name: user.apellidos,
-                    birthdate: user.fechaNacimiento,
-                  );
+              final response = await userService.register(userSend);
 
-                  final response = await userService.register(userSend);
-
-                  print('🚀 ENVIAR DATOS--------------------------');
-                  print(userSend.birthdate);
-                  print('RESPONSE --------------------------');
-                  print(response.message);
-                  if (response.success) {
-                    final jsonString = response
-                        .data; // Tu cadena JSON recibida}
-                    print(jsonString);
-                    final Map<String, dynamic> jsonMap = jsonDecode(
-                      jsonString,
-                    );
-                    final usuarioLogin = UsuarioLogin.fromJson(jsonMap);
-                    print(usuarioLogin.accessToken);
-                    print(usuarioLogin.customer.businessName);
-
-
-                  Navigator.pop(
+              print('🚀 ENVIAR DATOS--------------------------');
+              print(userSend.birthdate);
+              print('RESPONSE --------------------------');
+              print(response.message);
+              if (response.success) {
+                final jsonString = response.data; // Tu cadena JSON recibida}
+                print(jsonString);
+                final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
+                final usuarioLogin = UsuarioLogin.fromJson(jsonMap);
+                print(usuarioLogin.accessToken);
+                print(usuarioLogin.customer.businessName);
+                Navigator.pop(
                   contextFromModal,
-                  ); // ✅ CIERRA el modal desde el onSubmit
+                ); // ✅ CIERRA el modal desde el onSubmit
 
-                  Fluttertoast.showToast(
+                Fluttertoast.showToast(
                   msg: "Registrado",
                   toastLength: Toast.LENGTH_SHORT,
                   gravity: ToastGravity.BOTTOM,
                   backgroundColor: Colors.black87,
                   textColor: Colors.white,
                   fontSize: 16.0,
-                  );
-                  return true;
-                  } else {
-                  Fluttertoast.showToast(
+                );
+                return true;
+              } else {
+                Fluttertoast.showToast(
                   msg: "Existe un Error :$response.type",
                   toastLength: Toast.LENGTH_SHORT,
                   gravity: ToastGravity.BOTTOM,
                   backgroundColor: Colors.black87,
                   textColor: Colors.white,
                   fontSize: 16.0,
-                  );
-                  return false;
-                  }
-                }),
+                );
+                return false;
+              }
+            }),
           ),
           MenuTabUpItem(
             id: 5,
             name: 'cesta',
             asset: 'assets/appbar/basket.png',
-            number: 4,
-            onTap: () =>
-                showTopModal(
-                  context: context,
-                  title: "¡Bienvenido!",
-                  contentText: "Gracias por unirte a nuestra aplicación.",
-                  buttonText: "Aceptar",
-                  onButtonPressed: () {
-                    print("Botón presionado");
-                  },
-                  heightPercentage: 0.25,
-                  backgroundColor: Colors.white,
-                  titleStyle: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
-                  ),
-                  contentStyle: TextStyle(fontSize: 16, color: Colors.black87),
-                  buttonStyle: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    minimumSize: Size.fromHeight(50),
-                    textStyle: TextStyle(fontSize: 18),
-                  ),
-                ),
+            number: cestaCount,
+            onTap: () => showTopModal(
+              context: context,
+              title: "¡Bienvenido!",
+              contentText: "Gracias por unirte a nuestra aplicación.",
+              buttonText: "Aceptar",
+              onButtonPressed: () {
+                print("Botón presionado");
+              },
+              heightPercentage: 0.25,
+              backgroundColor: Colors.white,
+              titleStyle: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
+              ),
+              contentStyle: TextStyle(fontSize: 16, color: Colors.black87),
+              buttonStyle: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                minimumSize: Size.fromHeight(50),
+                textStyle: TextStyle(fontSize: 18),
+              ),
+            ),
           ),
         ];
       });
@@ -277,7 +304,7 @@ class HomeScreenState extends State<HomeScreen> {
     }
 
     _linkSubscription = _appLinks.uriLinkStream.listen(
-          (Uri uri) => _handleDeepLink(uri),
+      (Uri uri) => _handleDeepLink(uri),
       onError: (err) => debugPrint('❌ Error en uriLinkStream: $err'),
     );
   }
@@ -337,63 +364,61 @@ class HomeScreenState extends State<HomeScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) =>
-          Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Module Options',
-                  style: TextStyle(color: colorScheme.primary, fontSize: 18),
-                ),
-                const SizedBox(height: 12),
-                ListTile(
-                  leading: Icon(Icons.info, color: colorScheme.secondary),
-                  title: Text(
-                    'View Details',
-                    style: TextStyle(color: colorScheme.primary),
-                  ),
-                ),
-                ListTile(
-                  leading: Icon(Icons.lock_open, color: colorScheme.secondary),
-                  title: Text(
-                    'Unlock Unit',
-                    style: TextStyle(color: colorScheme.primary),
-                  ),
-                ),
-              ],
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Module Options',
+              style: TextStyle(color: colorScheme.primary, fontSize: 18),
             ),
-          ),
+            const SizedBox(height: 12),
+            ListTile(
+              leading: Icon(Icons.info, color: colorScheme.secondary),
+              title: Text(
+                'View Details',
+                style: TextStyle(color: colorScheme.primary),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.lock_open, color: colorScheme.secondary),
+              title: Text(
+                'Unlock Unit',
+                style: TextStyle(color: colorScheme.primary),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  List<Widget> get _screens =>
-      [
-        _buildHomeContent(),
-        BusinessMapPage(info: _pendingDeepLink, itemsStatus: menuTabUpItems),
-        FullScreenPage(
-          title: AppLocalizations.of(context).translate('pages.shop'),
-          itemsStatus: menuTabUpItems,
-        ),
-        VehiclesScreenPage(
-          title: AppLocalizations.of(context).translate('pages.aboutUs'),
-          itemsStatus: menuTabUpItems,
-        ),
-        ProfilePage(
-          title: AppLocalizations.of(context).translate('pages.profile'),
-          itemsStatus: menuTabUpItems,
-        ),
-        FullScreenPage(
-          title: AppLocalizations.of(context).translate('pages.gaming'),
-          itemsStatus: menuTabUpItems,
-        ),
-      ];
+  List<Widget> get _screens => [
+    _buildHomeContent(),
+    BusinessMapPage(info: _pendingDeepLink, itemsStatus: menuTabUpItems),
+    FullScreenPage(
+      title: AppLocalizations.of(context).translate('pages.shop'),
+      itemsStatus: menuTabUpItems,
+    ),
+    VehiclesScreenPage(
+      title: AppLocalizations.of(context).translate('pages.aboutUs'),
+      itemsStatus: menuTabUpItems,
+    ),
+    ProfilePage(
+      title: AppLocalizations.of(context).translate('pages.profile'),
+      itemsStatus: menuTabUpItems,
+    ),
+    FullScreenPage(
+      title: AppLocalizations.of(context).translate('pages.gaming'),
+      itemsStatus: menuTabUpItems,
+    ),
+  ];
 
   Widget _buildHomeContent() {
     final theme = Theme.of(context);
     final bodyCurrent2 =
-    const HomeScrollView(); // o crea aquí tu widget inicial
+        const HomeScrollView(); // o crea aquí tu widget inicial
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -438,6 +463,32 @@ class HomeScreenState extends State<HomeScreen> {
     final theme = Theme.of(context);
     final appLocalizations = AppLocalizations.of(context);
 
+    var itemsMenu = [
+      BottomNavigationBarItem(
+        icon: Icon(Icons.home),
+        label: appLocalizations.translate('pages.home'),
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.language),
+        label: appLocalizations.translate('pages.explore'),
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.shopping_bag),
+        label: appLocalizations.translate('pages.shop'),
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.emoji_events),
+        label: appLocalizations.translate('pages.gaming'),
+      ),
+    ];
+    if (SessionService().isLoggedIn) {
+      itemsMenu.add(
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person),
+          label: appLocalizations.translate('pages.profile'),
+        ),
+      );
+    }
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -450,28 +501,7 @@ class HomeScreenState extends State<HomeScreen> {
         unselectedItemColor: Colors.white,
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: appLocalizations.translate('pages.home'),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.language),
-            label: appLocalizations.translate('pages.explore'),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_bag),
-            label: appLocalizations.translate('pages.shop'),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.emoji_events),
-            label: appLocalizations.translate('pages.gaming'),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: appLocalizations.translate('pages.profile'),
-          ),
-        ],
+        items: itemsMenu,
       ),
     );
   }

@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-void showLoginModal(BuildContext context,VoidCallback onTapGoogle,VoidCallback onTapFacebook) {
+
+void showLoginModal(
+    BuildContext context,
+    VoidCallback onTapGoogle,
+    VoidCallback onTapFacebook,
+    VoidCallback onTapLogin,
+    VoidCallback onTapSignUp,
+    ) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -18,7 +25,7 @@ void showLoginModal(BuildContext context,VoidCallback onTapGoogle,VoidCallback o
             mainAxisSize: MainAxisSize.min,
             children: [
               Image.asset(
-                'assets/login/init-login-register.png', // Asegúrate de tener esta imagen
+                'assets/login/init-login-register.png',
                 height: 200,
               ),
               const SizedBox(height: 24),
@@ -33,14 +40,16 @@ void showLoginModal(BuildContext context,VoidCallback onTapGoogle,VoidCallback o
                 style: TextStyle(color: Colors.grey),
               ),
               const SizedBox(height: 24),
+
+              // Botón LOGIN -> onTapLogin
               SizedBox(
                 width: double.infinity,
                 height: 70,
                 child: ElevatedButton(
-                  onPressed: () {},
-                  child:  Text('Login'),
+                  onPressed: onTapLogin,
+                  child: const Text('Login'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF5C4DB1),
+                    backgroundColor: const Color(0xFF5C4DB1),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),
@@ -49,11 +58,13 @@ void showLoginModal(BuildContext context,VoidCallback onTapGoogle,VoidCallback o
                 ),
               ),
               const SizedBox(height: 12),
+
+              // Botón SIGN UP -> onTapSignUp
               SizedBox(
                 width: double.infinity,
                 height: 70,
                 child: OutlinedButton(
-                  onPressed: () {},
+                  onPressed: onTapSignUp,
                   child: const Text('Sign Up'),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -64,21 +75,22 @@ void showLoginModal(BuildContext context,VoidCallback onTapGoogle,VoidCallback o
                   ),
                 ),
               ),
+
               const SizedBox(height: 16),
               const Text(
                 'Sign up using',
                 style: TextStyle(color: Colors.grey),
               ),
               const SizedBox(height: 12),
+
+              // Íconos sociales
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children:  [
-                  SocialIcon(FontAwesomeIcons.google, onTap: onTapGoogle ),
-
-                  SizedBox(width: 16),
+                children: [
+                  SocialIcon(FontAwesomeIcons.google, onTap: onTapGoogle),
+                  const SizedBox(width: 16),
                   SocialIcon(FontAwesomeIcons.facebookF, onTap: onTapFacebook),
-                  SizedBox(width: 16),
-
+                  const SizedBox(width: 16),
                 ],
               ),
             ],
@@ -101,12 +113,13 @@ class SocialIcon extends StatelessWidget {
       onTap: onTap,
       child: CircleAvatar(
         radius: 20,
-        backgroundColor: Color(0xFFE0E0E0),
+        backgroundColor: const Color(0xFFE0E0E0),
         child: Icon(icon, size: 18, color: Colors.black),
       ),
     );
   }
 }
+
 class StartButtonWidget extends StatelessWidget {
   const StartButtonWidget({super.key});
 
@@ -118,13 +131,21 @@ class StartButtonWidget extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: GestureDetector(
         onTap: () {
-          showLoginModal(context,  () {
-            print('Google icon tapped!');
-          },
-                  () {
-                print('Facebook icon tapped!');
-              });
-
+          showLoginModal(
+            context,
+                () {
+              print('Google icon tapped!');
+            },
+                () {
+              print('Facebook icon tapped!');
+            },
+                () {
+              print('Login button tapped!');
+            },
+                () {
+              print('Sign Up button tapped!');
+            },
+          );
         },
         child: Stack(
           alignment: Alignment.center,

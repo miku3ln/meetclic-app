@@ -28,4 +28,15 @@ class User {
       apiToken: json['api_token'],
     );
   }
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'email': email,
+      'provider': provider,
+      'updated_at': updatedAt,
+      'created_at': createdAt,
+      'id': id,
+      'api_token': apiToken,
+    };
+  }
 }

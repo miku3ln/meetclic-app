@@ -28,4 +28,17 @@ class Customer {
       id: json['id'],
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'identification_document': identificationDocument,
+      'people_type_identification_id': peopleTypeIdentificationId,
+      'people_id': peopleId,
+      'business_name': businessName,
+      'business_reason': businessReason,
+      'ruc_type_id': rucTypeId,
+      'id': id,
+    };
+  }
+
 }

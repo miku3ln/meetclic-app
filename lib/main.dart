@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'app/init_mock_app.dart';
 
+import 'domain/services/session_service.dart';
 
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // 🔥 Fuerza el fondo blanco en el motor de Flutter desde el arranque:
   WidgetsBinding.instance.renderView.automaticSystemUiAdjustment = false;
+  await SessionService().loadSession();
   runApp(const InitMockApp());
 }

@@ -1,8 +1,6 @@
 import '../../domain/models/user_registration_model.dart';
 import '../../domain/usecases/register_user_usecase.dart';
 import '../../domain/models/api_response_model.dart';
-import '../../domain/viewmodels/api_response_viewmodel.dart';
-
 class UserService {
   final RegisterUserUseCase registerUserUseCase;
 
