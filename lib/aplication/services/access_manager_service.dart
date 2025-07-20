@@ -6,17 +6,23 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:meetclic/presentation/widgets/modals/register_user_modal.dart';
 import 'package:meetclic/presentation/widgets/modals/show_management_login_modal.dart';
-import 'package:meetclic/presentation/widgets/modals/show_login_modal.dart';
+import 'package:meetclic/presentation/widgets/modals/show_login_user_modal.dart';
 
 import 'package:meetclic/infrastructure/repositories/implementations/user_repository_impl.dart';
 import 'package:meetclic/domain/usecases/register_user_usecase.dart';
 import 'package:meetclic/aplication/services/user_service.dart';
 import 'package:meetclic/domain/models/user_registration_model.dart';
+import 'package:meetclic/domain/models/user_login.dart';
+import 'package:meetclic/domain/models/api_response_model.dart';
+
 import 'package:meetclic/domain/models/usuario_login.dart';
 import 'package:meetclic/domain/services/session_service.dart';
-import 'package:meetclic/shared/models/api_response.dart';
-import 'package:meetclic/domain/models/user_login.dart';
 import 'package:meetclic/domain/viewmodels/user_registration_error_viewmodel.dart';
+
+import 'package:meetclic/aplication/services/user_login_service.dart';
+import 'package:meetclic/domain/usecases/login_user_usecase.dart';
+
+import 'package:meetclic/shared/models/api_response.dart';
 
 final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
 
@@ -132,18 +138,52 @@ class AccessManagerService {
         );
       },
       'login': () {
-        showLoginModal(context, {
-          'login': (UserLoginModel model) async {
+        showLoginUserModal(context, {
+          'login': (BuildContext contextFromModal, UserLoginModel model) async {
+            // Aquí escribes la lógica del login
+            print('Email: ${model.email}');
+            print('Password: ${model.password}');
             print('✅ Email recibido: ${model.email}');
             print('✅ Password recibido: ${model.password}');
 
-            completer.complete(
-              ApiResponse(
-                success: false,
-                message: 'Sin manual no implementado.',
-                data: null,
-              ),
-            );
+            final repository = UserRepositoryImpl();
+            final useCase = LoginUseCase(repository);
+            final userService = UserLoginService(useCase);
+            final userSend = model;
+            final response = await userService.loginUseCase(userSend);
+            if (response.success) {
+              final jsonString = response.data; // Tu cadena JSON recibida}
+              print(jsonString);
+              final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
+              final usuarioLogin = UsuarioLogin.fromJson(jsonMap);
+              SessionService().saveSession(usuarioLogin);
+              Navigator.pop(
+                contextFromModal,
+              ); // ✅ CIERRA el modal desde el onSubmit
+              Fluttertoast.showToast(
+                msg: "Logead",
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+                backgroundColor: Colors.black87,
+                textColor: Colors.white,
+                fontSize: 16.0,
+              );
+            } else {
+              var jsonString = response.data;
+              final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
+              final errorResponse = UserRegistrationErrorViewModel.fromJson(
+                jsonMap,
+              );
+              final globalMessage = errorResponse.generateGlobalMessage();
+              Fluttertoast.showToast(
+                msg: globalMessage,
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+                backgroundColor: Colors.black87,
+                textColor: Colors.white,
+                fontSize: 16.0,
+              );
+            }
           },
         });
       },
@@ -159,7 +199,6 @@ class AccessManagerService {
             last_name: user.apellidos,
             birthdate: user.fechaNacimiento,
           );
-
           final response = await userService.register(userSend);
           print('🚀 ENVIAR DATOS--------------------------');
           print(userSend.birthdate);
@@ -185,9 +224,11 @@ class AccessManagerService {
 
             return true;
           } else {
-            var jsonString=response.data;
+            var jsonString = response.data;
             final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
-            final errorResponse = UserRegistrationErrorViewModel.fromJson(jsonMap);
+            final errorResponse = UserRegistrationErrorViewModel.fromJson(
+              jsonMap,
+            );
             final globalMessage = errorResponse.generateGlobalMessage();
             Fluttertoast.showToast(
               msg: globalMessage,
