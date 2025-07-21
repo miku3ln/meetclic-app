@@ -108,7 +108,7 @@ class HomeScreenState extends State<HomeScreen> {
           if (result.success) {
             print('✅ Acceso concedido o registrado');
           } else {
-            print('❌ Error: ${result.message}');
+            print('❌ Error: ${result.message} trofeo');
           }
         },
       ),

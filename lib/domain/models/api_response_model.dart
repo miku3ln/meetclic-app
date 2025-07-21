@@ -2,7 +2,7 @@ class ApiResponseModel<T> {
   final int type;
   final bool success;
   final String message;
-  final String data;
+  final T data; // <- Aquí el cambio
 
   ApiResponseModel({
     required this.type,
@@ -13,11 +13,15 @@ class ApiResponseModel<T> {
 
   factory ApiResponseModel.fromJson(
       Map<String, dynamic> json, T Function(dynamic) fromDataJson) {
+    var type = json['type'] ?? 0;
+    var success = json['success'] ?? false;
+    var message = json['message'] ?? '';
+    T data = fromDataJson(json['data']);
     return ApiResponseModel<T>(
-      type: json['type'] ?? 0,
-      success: json['success'] ?? false,
-      message: json['message'] ?? '',
-      data: json['data'],
+      type: type,
+      success: success,
+      message: message,
+      data: data,
     );
   }
 }

@@ -13,7 +13,7 @@ import 'package:meetclic/domain/usecases/register_user_usecase.dart';
 import 'package:meetclic/aplication/services/user_service.dart';
 import 'package:meetclic/domain/models/user_registration_model.dart';
 import 'package:meetclic/domain/models/user_login.dart';
-import 'package:meetclic/domain/models/api_response_model.dart';
+import 'package:meetclic/domain/models/user_data_login.dart';
 
 import 'package:meetclic/domain/models/usuario_login.dart';
 import 'package:meetclic/domain/services/session_service.dart';
@@ -140,12 +140,6 @@ class AccessManagerService {
       'login': () {
         showLoginUserModal(context, {
           'login': (BuildContext contextFromModal, UserLoginModel model) async {
-            // Aquí escribes la lógica del login
-            print('Email: ${model.email}');
-            print('Password: ${model.password}');
-            print('✅ Email recibido: ${model.email}');
-            print('✅ Password recibido: ${model.password}');
-
             final repository = UserRepositoryImpl();
             final useCase = LoginUseCase(repository);
             final userService = UserLoginService(useCase);
@@ -154,12 +148,6 @@ class AccessManagerService {
             if (response.success) {
               final jsonString = response.data; // Tu cadena JSON recibida}
               print(jsonString);
-              final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
-              final usuarioLogin = UsuarioLogin.fromJson(jsonMap);
-              SessionService().saveSession(usuarioLogin);
-              Navigator.pop(
-                contextFromModal,
-              ); // ✅ CIERRA el modal desde el onSubmit
               Fluttertoast.showToast(
                 msg: "Logead",
                 toastLength: Toast.LENGTH_SHORT,
@@ -168,13 +156,19 @@ class AccessManagerService {
                 textColor: Colors.white,
                 fontSize: 16.0,
               );
-            } else {
-              var jsonString = response.data;
-              final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
-              final errorResponse = UserRegistrationErrorViewModel.fromJson(
-                jsonMap,
+              Navigator.pop(context);
+              Navigator.pop(contextFromModal);
+              var resultCurrent = true;
+              completer.complete(
+                ApiResponse(
+                  success: resultCurrent,
+                  message: 'login ok .',
+                  data: null,
+                ),
               );
-              final globalMessage = errorResponse.generateGlobalMessage();
+
+            } else {
+              var globalMessage = response.message;
               Fluttertoast.showToast(
                 msg: globalMessage,
                 toastLength: Toast.LENGTH_SHORT,
@@ -182,6 +176,14 @@ class AccessManagerService {
                 backgroundColor: Colors.black87,
                 textColor: Colors.white,
                 fontSize: 16.0,
+              );
+              var resultCurrent = false;
+              completer.complete(
+                ApiResponse(
+                  success: resultCurrent,
+                  message: 'login .',
+                  data: null,
+                ),
               );
             }
           },
@@ -207,29 +209,28 @@ class AccessManagerService {
           if (response.success) {
             final jsonString = response.data; // Tu cadena JSON recibida}
             print(jsonString);
-            final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
-            final usuarioLogin = UsuarioLogin.fromJson(jsonMap);
-            SessionService().saveSession(usuarioLogin);
-            Navigator.pop(
-              contextFromModal,
-            ); // ✅ CIERRA el modal desde el onSubmit
+            // final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
+            //  final usuarioLogin = UserDataLogin.fromJson(jsonMap);
+            //  SessionService().saveSession(usuarioLogin);
             Fluttertoast.showToast(
-              msg: "Registrado",
+              msg: "Logeado",
               toastLength: Toast.LENGTH_SHORT,
               gravity: ToastGravity.BOTTOM,
               backgroundColor: Colors.black87,
               textColor: Colors.white,
               fontSize: 16.0,
             );
-
+            Navigator.pop(context);
+            Navigator.pop(contextFromModal);
             return true;
           } else {
             var jsonString = response.data;
-            final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
-            final errorResponse = UserRegistrationErrorViewModel.fromJson(
+            /*final Map<String, dynamic> jsonMap = jsonDecode(jsonString);*/
+            /* final errorResponse = UserRegistrationErrorViewModel.fromJson(
               jsonMap,
-            );
-            final globalMessage = errorResponse.generateGlobalMessage();
+            );*/
+            /*    final globalMessage = errorResponse.generateGlobalMessage();*/
+            var globalMessage = "";
             Fluttertoast.showToast(
               msg: globalMessage,
               toastLength: Toast.LENGTH_SHORT,
@@ -238,16 +239,18 @@ class AccessManagerService {
               textColor: Colors.white,
               fontSize: 16.0,
             );
-            return false;
+
+            var resultCurrent = false;
+            completer.complete(
+              ApiResponse(
+                success: resultCurrent,
+                message: 'Login manual no implementado.',
+                data: null,
+              ),
+            );
+            return resultCurrent;
           }
         });
-        /* completer.complete(
-          ApiResponse(
-            success: true,
-            message: 'Login manual no implementado.',
-            data: null,
-          ),
-        );*/
       },
     });
 
