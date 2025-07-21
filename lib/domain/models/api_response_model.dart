@@ -2,7 +2,7 @@ class ApiResponseModel<T> {
   final int type;
   final bool success;
   final String message;
-  final T data; // <- Aquí el cambio
+  final T data;  // Siempre requerido
 
   ApiResponseModel({
     required this.type,
@@ -24,4 +24,16 @@ class ApiResponseModel<T> {
       data: data,
     );
   }
+
+  factory ApiResponseModel.error(String message, T emptyData) {
+    return ApiResponseModel<T>(
+      type: 0,
+      success: false,
+      message: message,
+      data: emptyData,   // Siempre un valor no-nulo
+    );
+  }
+
+  bool get isError => !success;
+  bool get isSuccess => success;
 }

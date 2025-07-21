@@ -242,7 +242,9 @@ class HomeScreenState extends State<HomeScreen> {
     final theme = Theme.of(context);
     final appLocalizations = AppLocalizations.of(context);
 
-    var itemsMenu = [
+    final session = Provider.of<SessionService>(context);  // ✅ Reactivo: escucha cambios
+
+    final itemsMenu = [
       BottomNavigationBarItem(
         icon: Icon(Icons.home),
         label: appLocalizations.translate('pages.home'),
@@ -259,15 +261,13 @@ class HomeScreenState extends State<HomeScreen> {
         icon: Icon(Icons.emoji_events),
         label: appLocalizations.translate('pages.gaming'),
       ),
-    ];
-    if (SessionService().isLoggedIn) {
-      itemsMenu.add(
+      if (session.isLoggedIn)   // ✅ Cambio reactivo automático
         BottomNavigationBarItem(
           icon: Icon(Icons.person),
           label: appLocalizations.translate('pages.profile'),
         ),
-      );
-    }
+    ];
+
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: theme.scaffoldBackgroundColor,

@@ -4,30 +4,29 @@ import 'package:meetclic/presentation/widgets/atoms/intro_logo.dart';
 import 'package:meetclic/shared/themes/app_spacing.dart';
 import 'package:meetclic/presentation/widgets/atoms/input_text_atom.dart';
 import 'package:meetclic/domain/models/user_login.dart';
+/// Callback estándar: retorna bool indicando éxito del login
+typedef LoginActionCallback = Future<bool> Function(BuildContext context, UserLoginModel model);
 
-/// Callback estándar para cualquier acción de login
-typedef LoginActionCallback = Future<void> Function(BuildContext context, UserLoginModel model);
-
-/// Método para mostrar el modal
-Future<void> showLoginUserModal(
+/// Modal que devuelve un bool (login exitoso o fallido)
+Future<bool> showLoginUserModal(
     BuildContext context,
-    Map<String, LoginActionCallback> actions,
-    ) {
-  final onTapLogin = actions['login'];
-
-  return showModalBottomSheet(
+    LoginActionCallback onLoginSubmit,
+    ) async {
+  final result = await showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (context) => LoginModalContent(onTapLogin: onTapLogin),
+    builder: (context) => LoginModalContent(onLoginSubmit: onLoginSubmit),
   );
+
+  return result == true;
 }
 
 /// Contenido del modal de login
 class LoginModalContent extends StatefulWidget {
-  final LoginActionCallback? onTapLogin;
+  final LoginActionCallback onLoginSubmit;
 
-  const LoginModalContent({required this.onTapLogin, super.key});
+  const LoginModalContent({required this.onLoginSubmit, super.key});
 
   @override
   State<LoginModalContent> createState() => _LoginModalContentState();
@@ -38,6 +37,7 @@ class _LoginModalContentState extends State<LoginModalContent> {
   final TextEditingController passwordController = TextEditingController();
 
   bool isButtonEnabled = false;
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -56,6 +56,27 @@ class _LoginModalContentState extends State<LoginModalContent> {
     setState(() {
       isButtonEnabled = emailValid && passwordValid;
     });
+  }
+
+  Future<void> handleLogin() async {
+    if (!isButtonEnabled) return;
+
+    setState(() => isLoading = true);
+
+    final model = UserLoginModel(
+      email: emailController.text.trim(),
+      password: passwordController.text,
+    );
+
+    final result = await widget.onLoginSubmit(context, model);
+
+    setState(() => isLoading = false);
+
+    if (result) {
+      Navigator.pop(context, true); // ✅ Cierra modal si login fue exitoso
+    } else {
+      // Permite reintento, no cierra modal
+    }
   }
 
   @override
@@ -83,24 +104,9 @@ class _LoginModalContentState extends State<LoginModalContent> {
           children: [
             IntroLogo(
               assetPath: 'assets/login/init-login-register.png',
-              height: 250,
+              height: 200,
             ),
             AppSpacing.spaceBetweenInputs,
-            Text(
-              '${appLocalizations.translate('loginManagerTitle.hi')} what: $isButtonEnabled',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            AppSpacing.spaceBetweenInputs,
-            Text(
-              appLocalizations.translate('loginManagerTitle.welcome'),
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.6),
-              ),
-            ),
-            AppSpacing.spaceBetweenSections,
             InputTextAtom(
               label: appLocalizations.translate('loginManagerTitle.fieldEmail'),
               controller: emailController,
@@ -114,35 +120,18 @@ class _LoginModalContentState extends State<LoginModalContent> {
             AppSpacing.spaceBetweenInputs,
             SizedBox(
               width: double.infinity,
-              height: 70,
+              height: 60,
               child: ElevatedButton(
-                onPressed: isButtonEnabled
-                    ? () async {
-                  final model = UserLoginModel(
-                    email: emailController.text.trim(),
-                    password: passwordController.text,
-                  );
-
-                  if (widget.onTapLogin != null) {
-                    await widget.onTapLogin!(context, model);
-                  }
-
-                  Navigator.pop(context);
-                }
-                    : null,
-                child: Text(
-                  appLocalizations.translate('loginManagerTitle.singInButton'),
-                ),
+                onPressed: isButtonEnabled && !isLoading ? handleLogin : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isButtonEnabled
-                      ? theme.colorScheme.primary
-                      : theme.disabledColor,
-                  foregroundColor: theme.colorScheme.onPrimary,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  backgroundColor: isButtonEnabled ? theme.colorScheme.primary : theme.disabledColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(24),
                   ),
                 ),
+                child: isLoading
+                    ? const CircularProgressIndicator()
+                    : Text(appLocalizations.translate('loginManagerTitle.singInButton')),
               ),
             ),
           ],

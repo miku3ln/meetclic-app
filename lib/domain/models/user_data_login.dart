@@ -60,10 +60,13 @@ class UserDataLogin {
   });
 
   factory UserDataLogin.fromJson(Map<String, dynamic> json) {
-    var userData=json["userData"];
+    var userData=json;
+    var gamification= userData['gamification'] != null
+        ? GamificationData.fromJson(userData['gamification'])
+        : null;
     return UserDataLogin(
       userId: userData['user_id'],
-      accessToken: userData['accessToken'],
+      accessToken: userData['access_token'],
       userName: userData['user_name'],
       email: userData['email'],
       userStatus: userData['user_status'],
@@ -88,9 +91,7 @@ class UserDataLogin {
       birthdate: userData['birthdate'],
       age: userData['age'],
       gender: userData['gender'],
-      gamification: userData['gamification'] != null
-          ? GamificationData.fromJson(userData['gamification'])
-          : null,
+      gamification:gamification
     );
   }
 

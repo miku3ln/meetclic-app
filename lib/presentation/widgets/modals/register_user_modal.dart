@@ -89,7 +89,7 @@ class _RegisterUserModalState extends State<_RegisterUserModal> {
         ),
       );
       if (shouldClose) {
-        //  Navigator.pop(context);
+         Navigator.pop(context);
       }
     }
   }

@@ -15,9 +15,7 @@ import 'package:meetclic/domain/models/user_registration_model.dart';
 import 'package:meetclic/domain/models/user_login.dart';
 import 'package:meetclic/domain/models/user_data_login.dart';
 
-import 'package:meetclic/domain/models/usuario_login.dart';
 import 'package:meetclic/domain/services/session_service.dart';
-import 'package:meetclic/domain/viewmodels/user_registration_error_viewmodel.dart';
 
 import 'package:meetclic/aplication/services/user_login_service.dart';
 import 'package:meetclic/domain/usecases/login_user_usecase.dart';
@@ -90,107 +88,104 @@ Future<ApiResponse<Map<String, dynamic>>> loginWithGoogle() async {
   }
 }
 
-/// ✅ Servicio unificado para controlar el acceso
 class AccessManagerService {
   final BuildContext context;
 
   AccessManagerService(this.context);
 
-  /// ✅ Método principal: retorna siempre ApiResponse
   Future<ApiResponse> handleAccess(
     FutureOr<void> Function() onLoggedInAction,
   ) async {
     if (!SessionService().isLoggedIn) {
-      return await _showManagementLoginModalWithResult();
-    } else {
-      try {
+      final result = await _showManagementLoginModalWithResult();
+      if (result.success) {
         await onLoggedInAction();
         return ApiResponse(
           success: true,
           message: 'Acceso concedido',
           data: null,
         );
-      } catch (e) {
-        return ApiResponse(
-          success: false,
-          message: 'Error al ejecutar acción: $e',
-          data: null,
-        );
+      } else {
+        return result;
       }
+    } else {
+      await onLoggedInAction();
+      return ApiResponse(
+        success: true,
+        message: 'Acceso concedido',
+        data: null,
+      );
     }
   }
 
-  /// ✅ Muestra modal de gestión y espera resultado como ApiResponse
   Future<ApiResponse> _showManagementLoginModalWithResult() async {
     final completer = Completer<ApiResponse>();
+
     showManagementLoginModal(context, {
       'google': () async {
         final result = await loginWithGoogle();
+        if (result.success) {
+          Navigator.pop(context); // Cierra modal principal
+        }
         completer.complete(result);
       },
       'facebook': () {
         completer.complete(
           ApiResponse(
             success: false,
-            message: 'Facebook login no implementado.',
+            message: 'Login con Facebook no implementado',
             data: null,
           ),
         );
       },
-      'login': () {
-        showLoginUserModal(context, {
-          'login': (BuildContext contextFromModal, UserLoginModel model) async {
-            final repository = UserRepositoryImpl();
-            final useCase = LoginUseCase(repository);
-            final userService = UserLoginService(useCase);
-            final userSend = model;
-            final response = await userService.loginUseCase(userSend);
-            if (response.success) {
-              final jsonString = response.data; // Tu cadena JSON recibida}
-              print(jsonString);
-              Fluttertoast.showToast(
-                msg: "Logead",
-                toastLength: Toast.LENGTH_SHORT,
-                gravity: ToastGravity.BOTTOM,
-                backgroundColor: Colors.black87,
-                textColor: Colors.white,
-                fontSize: 16.0,
-              );
-              Navigator.pop(context);
-              Navigator.pop(contextFromModal);
-              var resultCurrent = true;
-              completer.complete(
-                ApiResponse(
-                  success: resultCurrent,
-                  message: 'login ok .',
-                  data: null,
-                ),
-              );
+      'login': () async {
+        final result = await showLoginUserModal(context, (
+          ctxModal,
+          model,
+        ) async {
+          final repository = UserRepositoryImpl();
+          final useCase = LoginUseCase(repository);
+          final userService = UserLoginService(useCase);
 
-            } else {
-              var globalMessage = response.message;
-              Fluttertoast.showToast(
-                msg: globalMessage,
-                toastLength: Toast.LENGTH_SHORT,
-                gravity: ToastGravity.BOTTOM,
-                backgroundColor: Colors.black87,
-                textColor: Colors.white,
-                fontSize: 16.0,
-              );
-              var resultCurrent = false;
-              completer.complete(
-                ApiResponse(
-                  success: resultCurrent,
-                  message: 'login .',
-                  data: null,
-                ),
-              );
-            }
-          },
+          final response = await userService.loginUseCase(model);
+
+          if (response.success) {
+            Fluttertoast.showToast(msg: "Login exitoso");
+            var userDataMap = response.data['userData'] as Map<String, dynamic>;
+            final userDataMapManagement = UserDataLogin.fromJson(userDataMap);
+            SessionService().saveSession(userDataMapManagement);
+          } else {
+            Fluttertoast.showToast(
+              msg: response.message ?? "Error al iniciar sesión",
+            );
+          }
+
+          return response.success; // ✅ Devuelve bool al modal
         });
+
+        if (result) {
+          Navigator.pop(
+            context,
+          ); // ✅ Cierra el modal principal si login exitoso
+          completer.complete(
+            ApiResponse(
+              success: true,
+              message: 'Login realizado correctamente.',
+              data: null,
+            ),
+          );
+        } else {
+          completer.complete(
+            ApiResponse(
+              success: false,
+              message: 'No se pudo iniciar sesión.',
+              data: null,
+            ),
+          );
+        }
       },
       'signup': () {
-        showRegisterUserModal(context, (contextFromModal, user) async {
+        showRegisterUserModal(context, (ctxModal, user) async {
           final repository = UserRepositoryImpl();
           final useCase = RegisterUserUseCase(repository);
           final userService = UserService(useCase);
@@ -202,54 +197,22 @@ class AccessManagerService {
             birthdate: user.fechaNacimiento,
           );
           final response = await userService.register(userSend);
-          print('🚀 ENVIAR DATOS--------------------------');
-          print(userSend.birthdate);
-          print('RESPONSE --------------------------');
-          print(response.message);
           if (response.success) {
-            final jsonString = response.data; // Tu cadena JSON recibida}
-            print(jsonString);
-            // final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
-            //  final usuarioLogin = UserDataLogin.fromJson(jsonMap);
-            //  SessionService().saveSession(usuarioLogin);
-            Fluttertoast.showToast(
-              msg: "Logeado",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.black87,
-              textColor: Colors.white,
-              fontSize: 16.0,
-            );
-            Navigator.pop(context);
-            Navigator.pop(contextFromModal);
-            return true;
+            Fluttertoast.showToast(msg: "Registro exitoso");
+            //      Navigator.pop(ctxModal); // Cierra modal de registro
+            Navigator.pop(context); // Cierra modal principal
           } else {
-            var jsonString = response.data;
-            /*final Map<String, dynamic> jsonMap = jsonDecode(jsonString);*/
-            /* final errorResponse = UserRegistrationErrorViewModel.fromJson(
-              jsonMap,
-            );*/
-            /*    final globalMessage = errorResponse.generateGlobalMessage();*/
-            var globalMessage = "";
-            Fluttertoast.showToast(
-              msg: globalMessage,
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.black87,
-              textColor: Colors.white,
-              fontSize: 16.0,
-            );
-
-            var resultCurrent = false;
-            completer.complete(
-              ApiResponse(
-                success: resultCurrent,
-                message: 'Login manual no implementado.',
-                data: null,
-              ),
-            );
-            return resultCurrent;
+            Fluttertoast.showToast(msg: "Error al registrar");
           }
+          completer.complete(
+            ApiResponse(
+              success: response.success,
+              message: response.message,
+              data: null,
+            ),
+          );
+
+          return response.success;
         });
       },
     });
