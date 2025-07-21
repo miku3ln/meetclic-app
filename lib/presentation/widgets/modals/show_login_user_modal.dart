@@ -4,7 +4,12 @@ import 'package:meetclic/presentation/widgets/atoms/intro_logo.dart';
 import 'package:meetclic/shared/themes/app_spacing.dart';
 import 'package:meetclic/presentation/widgets/atoms/input_text_atom.dart';
 import 'package:meetclic/domain/models/user_login.dart';
-Future<void> showLoginModal(
+
+/// Callback estándar para cualquier acción de login
+typedef LoginActionCallback = Future<void> Function(BuildContext context, UserLoginModel model);
+
+/// Método para mostrar el modal
+Future<void> showLoginUserModal(
     BuildContext context,
     Map<String, LoginActionCallback> actions,
     ) {
@@ -14,14 +19,13 @@ Future<void> showLoginModal(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (context) => LoginModalContent(
-      onTapLogin: onTapLogin!,
-    ),
+    builder: (context) => LoginModalContent(onTapLogin: onTapLogin),
   );
 }
-typedef LoginActionCallback = Future<void> Function(UserLoginModel model);
+
+/// Contenido del modal de login
 class LoginModalContent extends StatefulWidget {
-  final LoginActionCallback onTapLogin;
+  final LoginActionCallback? onTapLogin;
 
   const LoginModalContent({required this.onTapLogin, super.key});
 
@@ -83,8 +87,7 @@ class _LoginModalContentState extends State<LoginModalContent> {
             ),
             AppSpacing.spaceBetweenInputs,
             Text(
-              appLocalizations.translate('loginManagerTitle.hi') +
-                  " what: $isButtonEnabled",
+              '${appLocalizations.translate('loginManagerTitle.hi')} what: $isButtonEnabled',
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -119,11 +122,17 @@ class _LoginModalContentState extends State<LoginModalContent> {
                     email: emailController.text.trim(),
                     password: passwordController.text,
                   );
-                  await widget.onTapLogin(model);
+
+                  if (widget.onTapLogin != null) {
+                    await widget.onTapLogin!(context, model);
+                  }
+
                   Navigator.pop(context);
                 }
                     : null,
-                child: Text(appLocalizations.translate('loginManagerTitle.singInButton')),
+                child: Text(
+                  appLocalizations.translate('loginManagerTitle.singInButton'),
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: isButtonEnabled
                       ? theme.colorScheme.primary
