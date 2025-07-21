@@ -6,6 +6,7 @@ import 'package:meetclic/presentation/pages/profile-page/molecules/counter-info-
 import 'package:meetclic/shared/localization/app_localizations.dart';
 import 'package:meetclic/presentation/pages/profile-page/molecules/counter-reward-earned.dart';
 import 'package:meetclic/presentation/widgets/atoms/title_widget.dart';
+import '../../../../shared/providers_session.dart';
 
 class UserProfileHeader extends StatelessWidget {
   const UserProfileHeader({super.key});
@@ -13,12 +14,15 @@ class UserProfileHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-  final appLocalizations=  AppLocalizations.of(context);
+    final session = Provider.of<SessionService>(
+      context,
+    ); // ✅ Reactivo: escucha cambios
+    var userData = session.currentSession;
+    final appLocalizations = AppLocalizations.of(context);
     return Column(
-      children:  [
+      children: [
         AvatarImage(size: 50),
         SizedBox(height: 12),
-
         UserInfoBlock(),
         SizedBox(height: 12),
         TitleWidget(
@@ -26,7 +30,7 @@ class UserProfileHeader extends StatelessWidget {
           textAlign: TextAlign.left,
           fontSize: 24,
           fontWeight: FontWeight.w600,
-          color:  theme.primaryColor,
+          color: theme.primaryColor,
         ),
         CounterInfoRow(
           items: [
@@ -57,7 +61,7 @@ class UserProfileHeader extends StatelessWidget {
           textAlign: TextAlign.left,
           fontSize: 24,
           fontWeight: FontWeight.w600,
-          color:  theme.primaryColor,
+          color: theme.primaryColor,
         ),
         RewardsGrid(
           items: [
@@ -92,9 +96,6 @@ class UserProfileHeader extends StatelessWidget {
           ],
         ),
         SizedBox(height: 12),
-
-
-
       ],
     );
   }

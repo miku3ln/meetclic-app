@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../presentation/widgets/template/custom_app_bar.dart';
 import 'package:meetclic/domain/entities/menu_tab_up_item.dart';
 import 'package:meetclic/presentation/pages/profile-page/organisms/user-profile-header.dart';
+import '../../../../shared/providers_session.dart';
 
 
 class ProfilePage extends StatefulWidget {

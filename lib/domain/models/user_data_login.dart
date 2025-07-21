@@ -60,18 +60,15 @@ class UserDataLogin {
   });
 
   factory UserDataLogin.fromJson(Map<String, dynamic> json) {
-    var userData=json;
-    var gamification= userData['gamification'] != null
-        ? GamificationData.fromJson(userData['gamification'])
-        : null;
+    var userData = json;
     return UserDataLogin(
-      userId: userData['user_id'],
-      accessToken: userData['access_token'],
-      userName: userData['user_name'],
-      email: userData['email'],
-      userStatus: userData['user_status'],
-      roleId: userData['role_id'],
-      roleName: userData['role_name'],
+      userId: userData['user_id'] ?? 0,
+      accessToken: userData['access_token'] ?? '',
+      userName: userData['user_name'] ?? '',
+      email: userData['email'] ?? '',
+      userStatus: userData['user_status'] ?? '',
+      roleId: userData['role_id'] ?? 0,
+      roleName: userData['role_name'] ?? '',
       username: userData['username'],
       avatar: userData['avatar'],
       customerId: userData['customer_id'],
@@ -91,7 +88,9 @@ class UserDataLogin {
       birthdate: userData['birthdate'],
       age: userData['age'],
       gender: userData['gender'],
-      gamification:gamification
+      gamification: userData['gamification'] != null
+          ? GamificationData.fromJson(userData['gamification'])
+          : null,
     );
   }
 
