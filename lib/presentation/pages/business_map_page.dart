@@ -6,15 +6,17 @@ import '../../domain/entities/business.dart';
 import 'business_detail_page.dart';
 import '../../../shared/utils/deep_link_type.dart';
 import 'package:meetclic/shared/localization/app_localizations.dart';
-import '../../../domain/entities/status_item.dart';
 import 'package:meetclic/presentation/widgets/template/custom_app_bar.dart';
-
 import 'package:meetclic/domain/entities/menu_tab_up_item.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:meetclic/domain/usecases/get_nearby_businesses_usecase.dart';
+import 'package:meetclic/infrastructure/repositories/implementations/business_repository_impl.dart';
+
 class BusinessMapPage extends StatefulWidget {
   final DeepLinkInfo? info;
   final List<MenuTabUpItem> itemsStatus;
-  const BusinessMapPage({super.key, this.info ,required this.itemsStatus});
+
+  const BusinessMapPage({super.key, this.info, required this.itemsStatus});
 
   @override
   State<BusinessMapPage> createState() => _BusinessMapPageState();
@@ -23,80 +25,86 @@ class BusinessMapPage extends StatefulWidget {
 class _BusinessMapPageState extends State<BusinessMapPage> {
   final PopupController _popupController = PopupController();
   final MapController _mapController = MapController();
-  late final Business? _currentSelect;
-  final List<Business> businesses = [
-    Business(
-      id: 1,
-      name: 'Meetclic',
-      description: 'Pan artesanal y repostería desde 1990.',
-      lat: -0.3000,
-      lng: -78.6000,
-      points: 15,
-      imageBackground:
-          "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
-      imageLogo:
-          "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
-      starCount: 2.5,
-    ),
-    Business(
-      id: 1,
-      name: 'Muelle Catalina',
-      description: 'Pan artesanal y repostería desde 1990.',
-      lat: -0.3000,
-      lng: -78.6000,
-      points: 15,
-      imageBackground:
-          "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
-      imageLogo:
-          "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
-      starCount: 2.5,
-    ),
-    Business(
-      id: 2,
-      name: 'Mikuy Yachack',
-      description: 'Venta de productos orgánicos y locales.',
-      lat: -0.3100,
-      lng: -78.6050,
-      points: 20,
-      imageBackground:
-          "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
-      imageLogo:
-          "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
-      starCount: 3,
-    ),
-  ];
 
-  late final List<Marker> markers;
+  bool isLoading = false;
+  List<Business> businesses = [];
+  List<Marker> markers = [];
+  Marker? currentLocationMarker;
 
   @override
   void initState() {
     super.initState();
-    if (widget.info?.id != null) {
-      final int? idBuscado = int.tryParse(widget.info!.id!);
-      _currentSelect = businesses[0];
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadNearbyBusinesses();
+    });
+  }
 
-        final point = LatLng(_currentSelect!.lat, _currentSelect!.lng);
-        _mapController.move(point, 15);
-        _popupController.showPopupsOnlyFor([
-          Marker(
-            point: point,
-            width: 40,
-            height: 40,
-            alignment: Alignment.topCenter,
-            child: const Icon(Icons.location_on, color: Colors.red, size: 40),
-          ),
-        ]);
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => BusinessDetailPage(business: _currentSelect!),
-          ),
-        );
-      });
-    } else {
-      _currentSelect = null;
+  Future<void> _checkAndRequestLocationPermission() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, activa el GPS para continuar.')),
+      );
+      return;
     }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Permiso de ubicación denegado.')),
+        );
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Permiso de ubicación bloqueado permanentemente.')),
+      );
+      return;
+    }
+  }
+
+  Future<void> _loadNearbyBusinesses() async {
+    if (isLoading) return;
+    setState(() => isLoading = true);
+
+    await _checkAndRequestLocationPermission();
+    final position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    final useCase = GetNearbyBusinessesUseCase(
+      repository: BusinessRepositoryImpl(),
+    );
+
+    final response = await useCase.execute(
+      latitude: position.latitude,
+      longitude: position.longitude,
+      radiusKm: 10,
+    );
+
+    final businessList = response.data ?? [];
+
+    businesses = businessList.map((b) => Business(
+      id: b.id,
+      name: b.businessName ?? b.title ?? 'Negocio',
+      description: b.description ?? '',
+      lat: b.streetLat ?? 0.0,
+      lng: b.streetLng ?? 0.0,
+      points: 0,
+      imageBackground: '',
+      imageLogo: '',
+      starCount: 0,
+    )).toList();
+
+    _generateMarkers();
+    setState(() => isLoading = false);
+  }
+
+  void _generateMarkers() {
     markers = businesses.map((business) {
       final markerPoint = LatLng(business.lat, business.lng);
       return Marker(
@@ -113,11 +121,7 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
                 width: 40,
                 height: 40,
                 alignment: Alignment.topCenter,
-                child: const Icon(
-                  Icons.location_on,
-                  color: Colors.red,
-                  size: 40,
-                ),
+                child: const Icon(Icons.location_on, color: Colors.red, size: 40),
               ),
             ]);
           },
@@ -126,45 +130,47 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
       );
     }).toList();
   }
-  Future<void> _checkAndRequestLocationPermission() async {
-    bool serviceEnabled;
-    LocationPermission permission;
 
-    // Verifica si el GPS está activado
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      // Opción: mostrar un diálogo informando al usuario que active el GPS
-      return;
-    }
-
-    // Verifica el permiso actual
-    permission = await Geolocator.checkPermission();
-
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        // El usuario sigue negando el permiso
-        return;
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      // El usuario bloqueó permanentemente el permiso, deberías mostrar una alerta
-      return;
-    }
-
-    // Permiso concedido
-  }
   Future<void> _centerToCurrentLocation() async {
+    if (isLoading) return;
+    setState(() => isLoading = true);
+
     await _checkAndRequestLocationPermission();
 
-    final position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
 
-    final newCenter = LatLng(position.latitude, position.longitude);
-    _mapController.move(newCenter, _mapController.zoom);
+      final newCenter = LatLng(position.latitude, position.longitude);
+      _mapController.move(newCenter, 16);
+
+      currentLocationMarker = Marker(
+        point: newCenter,
+        width: 60,
+        height: 60,
+        alignment: Alignment.center,
+        child: Image.asset('assets/icons/user_location.png'),  // Personaliza aquí tu ícono
+      );
+
+      setState(() {});
+    } catch (_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se pudo obtener la ubicación actual.')),
+      );
+    }
+
+    setState(() => isLoading = false);
   }
+
+  List<Marker> get allMarkers {
+    final list = [...markers];
+    if (currentLocationMarker != null) {
+      list.add(currentLocationMarker!);
+    }
+    return list;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -172,41 +178,52 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
 
     return Scaffold(
       appBar: CustomAppBar(title: title, items: widget.itemsStatus),
-      body: FlutterMap(
-        mapController: _mapController,
-        options: MapOptions(
-          center: LatLng(-0.305, -78.602),
-          zoom: 13,
-          onTap: (_, __) => _popupController.hideAllPopups(),
-        ),
+      body: Stack(
         children: [
-          TileLayer(
-            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-            userAgentPackageName: 'com.meetclic.meetclic',
-          ),
-          PopupMarkerLayer(
-            options: PopupMarkerLayerOptions(
-              markers: markers,
-              popupController: _popupController,
-              popupDisplayOptions: PopupDisplayOptions(
-                builder: (context, marker) {
-                  final business = businesses.firstWhere(
-                        (b) =>
-                    b.lat == marker.point.latitude &&
-                        b.lng == marker.point.longitude,
-                    orElse: () => businesses[0],
-                  );
-                  return _buildPopupCard(context, business);
-                },
+          AbsorbPointer(
+            absorbing: isLoading,
+            child: FlutterMap(
+              mapController: _mapController,
+              options: MapOptions(
+                center: LatLng(-0.305, -78.602),
+                zoom: 13,
+                onTap: (_, __) => _popupController.hideAllPopups(),
               ),
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.meetclic.meetclic',
+                ),
+                PopupMarkerLayer(
+                  options: PopupMarkerLayerOptions(
+                    markers: allMarkers,
+                    popupController: _popupController,
+                    popupDisplayOptions: PopupDisplayOptions(
+                      builder: (context, marker) {
+                        final business = businesses.firstWhere(
+                              (b) => b.lat == marker.point.latitude &&
+                              b.lng == marker.point.longitude,
+                          orElse: () => businesses.first,
+                        );
+                        return _buildPopupCard(context, business);
+                      },
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
+          if (isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.3),
+              child: const Center(child: CircularProgressIndicator()),
+            ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: theme.colorScheme.primary,
-        child:  Icon(Icons.my_location),
-        onPressed: _centerToCurrentLocation,
+        child: const Icon(Icons.my_location),
+        onPressed: isLoading ? null : _centerToCurrentLocation,
         tooltip: 'Ubicación actual',
       ),
     );
@@ -240,23 +257,18 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
               children: [
                 Text(
                   business.name,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 5),
                 Text(business.description, style: theme.textTheme.bodyMedium),
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Icon(
-                      Icons.star,
-                      color: theme.colorScheme.secondary,
-                      size: 20,
-                    ),
+                    const Icon(Icons.star, color: Colors.amber, size: 20),
                     const SizedBox(width: 4),
                     Text(
-                      '+${business.points} '+ AppLocalizations.of(context).translate('gamification.points'),
+                      '+${business.points} ' +
+                          AppLocalizations.of(context).translate('gamification.points'),
                       style: theme.textTheme.bodyMedium,
                     ),
                   ],
