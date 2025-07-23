@@ -91,7 +91,7 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
     businesses = businessList.map((b) => Business(
       id: b.id,
       name: b.businessName ?? b.title ?? 'Negocio',
-      description: b.description ?? '',
+      description:"Direccion:"+ b.street1 +" - "+ b.street2 ?? '',
       lat: b.streetLat ?? 0.0,
       lng: b.streetLng ?? 0.0,
       points: 0,
@@ -150,7 +150,7 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
         width: 60,
         height: 60,
         alignment: Alignment.center,
-        child: Image.asset('assets/icons/user_location.png'),  // Personaliza aquí tu ícono
+        child: Image.asset('icons/pututuMarker.png'),  // Personaliza aquí tu ícono
       );
 
       setState(() {});
@@ -200,12 +200,14 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
                     popupController: _popupController,
                     popupDisplayOptions: PopupDisplayOptions(
                       builder: (context, marker) {
+
                         final business = businesses.firstWhere(
                               (b) => b.lat == marker.point.latitude &&
                               b.lng == marker.point.longitude,
                           orElse: () => businesses.first,
                         );
-                        return _buildPopupCard(context, business);
+                       // _mapController.move(marker, _mapController.camera.zoom);
+                        return _buildPopupCard(context, business,marker);
                       },
                     ),
                   ),
@@ -229,8 +231,10 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
     );
   }
 
-  Widget _buildPopupCard(BuildContext context, Business business) {
+  Widget _buildPopupCard(BuildContext context, Business business,marker) {
     final theme = Theme.of(context);
+
+
 
     return GestureDetector(
       onTap: () {
@@ -261,6 +265,7 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
                 ),
                 const SizedBox(height: 5),
                 Text(business.description, style: theme.textTheme.bodyMedium),
+
                 const SizedBox(height: 8),
                 Row(
                   children: [
