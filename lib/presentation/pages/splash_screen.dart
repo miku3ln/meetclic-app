@@ -1,10 +1,6 @@
-
 import 'package:flutter/material.dart';
 import 'package:meetclic/presentation/pages/home/home_page.dart';
 import 'package:meetclic/data/data-sources/module_api_fake.dart';
-import '../../../domain/entities/status_item.dart';
-import 'package:app_links/app_links.dart'; // ✅ reemplaza uni_links
-import '../../shared/localization/app_localizations.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -13,32 +9,34 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   final ModuleApiFake api = ModuleApiFake();
-  late final AppLinks _appLinks;
+  late final AnimationController _controller;
+  late final Animation<double> _fadeIn;
 
   @override
   void initState() {
     super.initState();
 
+    // Configura la animación
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 100),
+      vsync: this,
+    );
+    _fadeIn = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
+
+    // Inicia carga de recursos después del primer frame
     WidgetsBinding.instance.addPostFrameCallback((_) => loadResources());
   }
-
-
 
   Future<void> loadResources() async {
     try {
       await precacheImage(const AssetImage('assets/images/splash_bg.png'), context);
-
+      _controller.forward(); // inicia animación
+      await Future.delayed(const Duration(seconds: 1)); // opcional pero elegante
       final modules = await api.getModules();
-      final itemsStatus = [
-        StatusItem(icon: Icons.local_fire_department, color: Colors.orange, value: '5'),
-        StatusItem(icon: Icons.diamond, color: Colors.cyan, value: '2480'),
-        StatusItem(icon: Icons.emoji_events, color: Colors.orange, value: '2'),
-      ];
-
       if (!mounted) return;
-
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -51,36 +49,38 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          Image.asset('assets/images/splash_bg.png', fit: BoxFit.contain),
-          Container(
-            color: colorScheme.background.withOpacity(0.4),
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(colorScheme.secondary),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    AppLocalizations.of(context).translate('loading')+'...',
-                    style: TextStyle(
-                      color: colorScheme.onBackground,
-                      fontSize: 18,
-                    ),
-                  ),
-                ],
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: colorScheme.background,
+        body: Stack(
+          children: [
+            Center(
+              child: FadeTransition(
+                opacity: _fadeIn,
+                child: Image.asset(
+                  'assets/images/splash_bg.png',
+                  width: 200,
+                  fit: BoxFit.contain,
+                ),
               ),
             ),
-          ),
-        ],
+            Container(
+              color: colorScheme.background.withOpacity(0.4),
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
