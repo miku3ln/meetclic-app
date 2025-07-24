@@ -1,3 +1,5 @@
+import 'package:meetclic/infrastructure/models/summary_model.dart';
+import 'dart:convert';
 class UserDataLogin {
   final int userId;
   final String userName;
@@ -25,9 +27,7 @@ class UserDataLogin {
   final int? age;
   final String? gender;
   final String accessToken;
-
-  final GamificationData? gamification;
-
+    MovementSummaryModel? summary;
   UserDataLogin({
     required this.userId,
     required this.userName,
@@ -54,12 +54,33 @@ class UserDataLogin {
     this.birthdate,
     this.age,
     this.gender,
-    this.gamification,
+    this.summary,
     required this.accessToken,
 
   });
 
   factory UserDataLogin.fromJson(Map<String, dynamic> json) {
+    const String movementSummaryJson = '''
+{
+  "yapitas": {
+    "total_input": 0,
+    "total_output": 0,
+    "current_balance": 0
+  },
+  "yapitas-premium": {
+    "total_input": 0,
+    "total_output": 0,
+    "current_balance": 0
+  },
+  "reputation": {
+    "total": 0
+  },
+   "trophies": {
+    "total": 0
+  }
+}
+''';
+    final Map<String, dynamic> jsonDataSummary = jsonDecode(movementSummaryJson);
     var userData = json;
     return UserDataLogin(
       userId: userData['user_id'] ?? 0,
@@ -88,9 +109,9 @@ class UserDataLogin {
       birthdate: userData['birthdate'],
       age: userData['age'],
       gender: userData['gender'],
-      gamification: userData['gamification'] != null
-          ? GamificationData.fromJson(userData['gamification'])
-          : null,
+      summary: userData['summary'] != null
+          ? MovementSummaryModel.fromJson(userData['summary'])
+          : MovementSummaryModel.fromJson(jsonDataSummary),
     );
   }
 
@@ -122,19 +143,8 @@ class UserDataLogin {
       'age': age,
       'gender': gender,
       'accessToken': accessToken,
-      'gamification': gamification?.toJson(),
+      'summary':summary,
     };
   }
 }
 
-class GamificationData {
-  GamificationData();
-
-  factory GamificationData.fromJson(Map<String, dynamic> json) {
-    return GamificationData();
-  }
-
-  Map<String, dynamic> toJson() {
-    return {};
-  }
-}

@@ -182,15 +182,12 @@ class HomeScreenState extends State<HomeScreen> {
 
   void _initializeMenu() {
     final user = session.currentSession;
-
-    final yapitasCount = session.isLoggedIn ? 100 : 0;
-    final yapitasPremiumCount = session.isLoggedIn ? 20 : 0;
-    final trofeosCount = session.isLoggedIn ? 3 : 0;
+    final yapitasCount = session.isLoggedIn ? user?.summary?.yapitas.currentBalance : 0;
+    final yapitasPremiumCount = session.isLoggedIn ? user?.summary?.yapitasPremium.currentBalance : 0;
+    final trofeosCount = session.isLoggedIn ? user?.summary?.trophies.total : 0;
     final cestaCount = 0;
     final idiomaCount = 3;
-
     final currentLocale = config.locale.languageCode;
-
     final itemLanguage = MenuTabUpItem(
       id: 1,
       name: 'idioma',
@@ -206,13 +203,13 @@ class HomeScreenState extends State<HomeScreen> {
 
     final menu = [
       itemLanguage,
-      _buildMenuItem('fuego', 'assets/appbar/yapitas.png', yapitasCount),
+      _buildMenuItem('fuego', 'assets/appbar/yapitas.png', yapitasCount!),
       _buildMenuItem(
         'diamante',
         'assets/appbar/yapitas-premium.png',
-        yapitasPremiumCount,
+        yapitasPremiumCount!,
       ),
-      _buildMenuItem('trofeo', 'assets/appbar/trophy-two.png', trofeosCount),
+      _buildMenuItem('trofeo', 'assets/appbar/trophy-two.png', trofeosCount!),
       _buildBasketItem(cestaCount),
     ];
 

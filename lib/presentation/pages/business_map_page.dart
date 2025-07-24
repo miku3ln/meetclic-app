@@ -11,6 +11,19 @@ import 'package:meetclic/domain/entities/menu_tab_up_item.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:meetclic/domain/usecases/get_nearby_businesses_usecase.dart';
 import 'package:meetclic/infrastructure/repositories/implementations/business_repository_impl.dart';
+import 'package:meetclic/domain/models/business_model.dart';
+
+class MapPosition {
+  final double latitude;
+  final double longitude;
+  final double zoom;
+
+  MapPosition({
+    required this.latitude,
+    required this.longitude,
+    required this.zoom,
+  });
+}
 
 class BusinessMapPage extends StatefulWidget {
   final DeepLinkInfo? info;
@@ -25,9 +38,13 @@ class BusinessMapPage extends StatefulWidget {
 class _BusinessMapPageState extends State<BusinessMapPage> {
   final PopupController _popupController = PopupController();
   final MapController _mapController = MapController();
-
+  Map<String, dynamic> currentPosition = {
+    'latitude': 0.2322591,
+    'longitude': -78.2590913,
+    'zoom': 5.0,
+  };
   bool isLoading = false;
-  List<Business> businesses = [];
+  List<BusinessModel> businesses = [];
   List<Marker> markers = [];
   Marker? currentLocationMarker;
 
@@ -39,11 +56,18 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
     });
   }
 
+  bool _isGpsEnabled = true;
+
   Future<void> _checkAndRequestLocationPermission() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    _isGpsEnabled = serviceEnabled; // Guardamos el estado actual
+
     if (!serviceEnabled) {
+      setState(() {}); // Redibujar para actualizar el ícono
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, activa el GPS para continuar.')),
+        const SnackBar(
+          content: Text('Por favor, activa el GPS para continuar.'),
+        ),
       );
       return;
     }
@@ -61,10 +85,17 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
 
     if (permission == LocationPermission.deniedForever) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Permiso de ubicación bloqueado permanentemente.')),
+        const SnackBar(
+          content: Text('Permiso de ubicación bloqueado permanentemente.'),
+        ),
       );
       return;
     }
+
+    // Si se activó durante la solicitud
+    setState(() {
+      _isGpsEnabled = true;
+    });
   }
 
   Future<void> _loadNearbyBusinesses() async {
@@ -72,33 +103,34 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
     setState(() => isLoading = true);
 
     await _checkAndRequestLocationPermission();
-    final position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
+    Position position;
+    double latitude = 0;
+    double longitude = 0;
+    if (_isGpsEnabled) {
+      position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      latitude = position.latitude;
+      longitude = position.longitude;
+    } else {
+      latitude = currentPosition["latitude"];
+      longitude = currentPosition["longitude"];
+    }
 
     final useCase = GetNearbyBusinessesUseCase(
       repository: BusinessRepositoryImpl(),
     );
-
+    final newCenter = LatLng(latitude, longitude);
+    _mapController.move(newCenter, 16);
     final response = await useCase.execute(
-      latitude: position.latitude,
-      longitude: position.longitude,
+      latitude: latitude,
+      longitude: longitude,
       radiusKm: 10,
     );
 
     final businessList = response.data ?? [];
 
-    businesses = businessList.map((b) => Business(
-      id: b.id,
-      name: b.businessName ?? b.title ?? 'Negocio',
-      description:"Direccion:"+ b.street1 +" - "+ b.street2 ?? '',
-      lat: b.streetLat ?? 0.0,
-      lng: b.streetLng ?? 0.0,
-      points: 0,
-      imageBackground: '',
-      imageLogo: '',
-      starCount: 0,
-    )).toList();
+    businesses = businessList;
 
     _generateMarkers();
     setState(() => isLoading = false);
@@ -106,7 +138,7 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
 
   void _generateMarkers() {
     markers = businesses.map((business) {
-      final markerPoint = LatLng(business.lat, business.lng);
+      final markerPoint = LatLng(business.streetLat, business.streetLng);
       return Marker(
         point: markerPoint,
         width: 40,
@@ -121,7 +153,11 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
                 width: 40,
                 height: 40,
                 alignment: Alignment.topCenter,
-                child: const Icon(Icons.location_on, color: Colors.red, size: 40),
+                child: const Icon(
+                  Icons.location_on,
+                  color: Colors.red,
+                  size: 40,
+                ),
               ),
             ]);
           },
@@ -150,13 +186,17 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
         width: 60,
         height: 60,
         alignment: Alignment.center,
-        child: Image.asset('icons/pututuMarker.png'),  // Personaliza aquí tu ícono
+        child: Image.asset(
+          'assets/icons/pututuMarker.png',
+        ), // Personaliza aquí tu ícono
       );
 
       setState(() {});
     } catch (_) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se pudo obtener la ubicación actual.')),
+        const SnackBar(
+          content: Text('No se pudo obtener la ubicación actual.'),
+        ),
       );
     }
 
@@ -174,7 +214,9 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final String title = AppLocalizations.of(context).translate('pages.business');
+    final String title = AppLocalizations.of(
+      context,
+    ).translate('pages.business');
 
     return Scaffold(
       appBar: CustomAppBar(title: title, items: widget.itemsStatus),
@@ -200,14 +242,14 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
                     popupController: _popupController,
                     popupDisplayOptions: PopupDisplayOptions(
                       builder: (context, marker) {
-
                         final business = businesses.firstWhere(
-                              (b) => b.lat == marker.point.latitude &&
-                              b.lng == marker.point.longitude,
+                          (b) =>
+                              b.streetLat == marker.point.latitude &&
+                              b.streetLng == marker.point.longitude,
                           orElse: () => businesses.first,
                         );
-                       // _mapController.move(marker, _mapController.camera.zoom);
-                        return _buildPopupCard(context, business,marker);
+                        // _mapController.move(marker, _mapController.camera.zoom);
+                        return _buildPopupCard(context, business, marker);
                       },
                     ),
                   ),
@@ -224,17 +266,19 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: theme.colorScheme.primary,
-        child: const Icon(Icons.my_location),
         onPressed: isLoading ? null : _centerToCurrentLocation,
-        tooltip: 'Ubicación actual',
+        tooltip: _isGpsEnabled ? 'Ubicación actual' : 'GPS desactivado',
+        child: Icon(
+          _isGpsEnabled
+              ? Icons.my_location
+              : Icons.location_off, // 👈 cambia dinámicamente
+        ),
       ),
     );
   }
 
-  Widget _buildPopupCard(BuildContext context, Business business,marker) {
+  Widget _buildPopupCard(BuildContext context, BusinessModel business, marker) {
     final theme = Theme.of(context);
-
-
 
     return GestureDetector(
       onTap: () {
@@ -260,11 +304,11 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  business.name,
+                  business.businessName,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 5),
-                Text(business.description, style: theme.textTheme.bodyMedium),
+                Text("Direccion:"+business.street1+" "+business.street2, style: theme.textTheme.bodyMedium),
 
                 const SizedBox(height: 8),
                 Row(
@@ -272,8 +316,9 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
                     const Icon(Icons.star, color: Colors.amber, size: 20),
                     const SizedBox(width: 4),
                     Text(
-                      '+${business.points} ' +
-                          AppLocalizations.of(context).translate('gamification.points'),
+                          AppLocalizations.of(
+                            context,
+                          ).translate('gamification.points'),
                       style: theme.textTheme.bodyMedium,
                     ),
                   ],

@@ -17,6 +17,7 @@ class BusinessModel {
   final String fiscalPosition;
   final double distance;
   final String distanceKmText;
+  final String sourceLogo;
 
   BusinessModel({
     required this.id,
@@ -37,6 +38,8 @@ class BusinessModel {
     required this.fiscalPosition,
     required this.distance,
     required this.distanceKmText,
+    required this.sourceLogo,
+
   });
 
   factory BusinessModel.fromJson(Map<String, dynamic> json) {
@@ -59,6 +62,8 @@ class BusinessModel {
       fiscalPosition: json['fiscal_position'] ?? '',
       distance: double.tryParse(json['distance'].toString()) ?? 0.0,
       distanceKmText: json['distance_km'] ?? '',
+      sourceLogo: json['sourceLogo'] ?? '',
+
     );
   }
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../domain/entities/business.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart'; // 👈 Importa esto
 import 'package:share_plus/share_plus.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
@@ -25,7 +24,7 @@ class HeaderBusinessSection extends StatelessWidget {
         final data = businessData;
         await Share.shareXFiles(
           [XFile(filePath)],
-          text: 'Mira esta empresa en MeetClic: https://meetclic.com/${data.business.name.replaceAll(" ", "").toLowerCase()} Descubre esta empresa en MeetClic',
+          text: 'Mira esta empresa en MeetClic: https://meetclic.com/${data.business.pageUrl.replaceAll(" ", "").toLowerCase()} Descubre esta empresa en MeetClic',
           subject: '',
         );
       }
@@ -60,13 +59,13 @@ class HeaderBusinessSection extends StatelessWidget {
               Row(
                 children: List.generate(5, (index) {
                   return Icon(
-                    index < businessData.business.starCount ? Icons.star : Icons.star_border,
+                    index < businessData.business.distance ? Icons.star : Icons.star_border,
                     color: theme.colorScheme.secondary,
                     size: 20,
                   );
                 }),
               ),
-              Text(business.name,
+              Text(business.businessName,
                 style: TextStyle(
                   color:  theme.colorScheme.secondary,
                   fontWeight: FontWeight.bold,
@@ -75,7 +74,7 @@ class HeaderBusinessSection extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                business.description,
+                business.phoneValue,
                 style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14),
               ),
               const SizedBox(height: 20),
@@ -92,7 +91,7 @@ class HeaderBusinessSection extends StatelessWidget {
               shape: BoxShape.circle,
               color: Colors.white,
               image: DecorationImage(
-                image: NetworkImage(businessData.business.imageLogo),
+                image: NetworkImage(businessData.business.sourceLogo),
                 fit: BoxFit.cover, // ✅ asegura que se vea bien sin distorsión
               ),
               boxShadow: [

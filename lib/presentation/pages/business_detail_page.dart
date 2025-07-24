@@ -7,9 +7,10 @@ import '../widgets/home-business/gamification_business_section.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../../../presentation/widgets/template/custom_app_bar.dart';
 import 'package:meetclic/shared/localization/app_localizations.dart';
+import 'package:meetclic/domain/models/business_model.dart';
 
 class BusinessDetailPage extends StatefulWidget {
-  final Business business;
+  final BusinessModel business;
 
   const BusinessDetailPage({super.key, required this.business});
 
@@ -18,13 +19,17 @@ class BusinessDetailPage extends StatefulWidget {
 }
 class _BusinessDetailPageState extends State<BusinessDetailPage> {
   int _selectedIndex = 0;
+
   late final BusinessData businessData;
   late final List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
-    businessData = BusinessData(business: widget.business);
+    final business = widget.business;
+    final businessData = BusinessData(
+      business: business,
+    );
     _pages = [
       HomeBusinessSection(businessData: businessData),
       const ShopBusinessSection(),

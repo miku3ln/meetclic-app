@@ -131,7 +131,10 @@ class _LoginModalContentState extends State<LoginModalContent> {
                 ),
                 child: isLoading
                     ? const CircularProgressIndicator()
-                    : Text(appLocalizations.translate('loginManagerTitle.singInButton')),
+                    : Text(appLocalizations.translate('loginManagerTitle.singInButton'),  style:TextStyle(
+                  color: theme.colorScheme.onPrimary,
+                  fontSize: 18,
+                )),
               ),
             ),
           ],

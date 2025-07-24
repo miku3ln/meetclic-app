@@ -1,3 +1,5 @@
+import 'package:meetclic/domain/models/business_model.dart';
+
 class Business {
   final int id;
   final String name;
@@ -23,7 +25,8 @@ class Business {
   });
 }
 class BusinessData {
-  final Business business ;
+
+  final BusinessModel business ;
   BusinessData({
     required this.business,
 

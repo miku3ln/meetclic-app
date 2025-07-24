@@ -21,6 +21,8 @@ import 'package:meetclic/aplication/services/user_login_service.dart';
 import 'package:meetclic/domain/usecases/login_user_usecase.dart';
 
 import 'package:meetclic/shared/models/api_response.dart';
+import 'package:meetclic/infrastructure/models/movement_model.dart';
+import 'package:meetclic/infrastructure/models/summary_model.dart';
 
 final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
 
@@ -152,7 +154,11 @@ class AccessManagerService {
           if (response.success) {
             Fluttertoast.showToast(msg: "Login exitoso");
             var userDataMap = response.data['userData'] as Map<String, dynamic>;
+            var summaryJson =
+                response.data['userData']['gamificationLogData']["summary"];
+            var summary = MovementSummaryModel.fromJson(summaryJson);
             final userDataMapManagement = UserDataLogin.fromJson(userDataMap);
+            userDataMapManagement.summary = summary;
             SessionService().saveSession(userDataMapManagement);
           } else {
             Fluttertoast.showToast(

@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import '../../domain/entities/business.dart';
 import 'business_detail_page.dart';
 import '../../../shared/utils/deep_link_type.dart';
+import 'package:meetclic/domain/models/business_model.dart';
 
 class DeepLinkPage extends StatefulWidget {
 
@@ -106,17 +107,7 @@ starCount: 2.5,
             options: PopupMarkerLayerOptions(
               markers: markers,
               popupController: _popupController,
-              popupDisplayOptions: PopupDisplayOptions(
-                builder: (context, marker) {
-                  final business = businesses.firstWhere(
-                    (b) =>
-                        b.lat == marker.point.latitude &&
-                        b.lng == marker.point.longitude,
-                    orElse: () => businesses[0],
-                  );
-                  return _buildPopupCard(context, business);
-                },
-              ),
+
             ),
           ),
         ],
@@ -124,7 +115,7 @@ starCount: 2.5,
     );
   }
 
-  Widget _buildPopupCard(BuildContext context, Business business) {
+  Widget _buildPopupCard(BuildContext context, BusinessModel business) {
     final theme = Theme.of(context);
 
     return GestureDetector(
@@ -151,7 +142,7 @@ starCount: 2.5,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  business.name,
+                  business.businessName,
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -168,7 +159,7 @@ starCount: 2.5,
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      '+${business.points} puntos',
+                      ' puntos',
                       style: theme.textTheme.bodyMedium,
                     ),
                   ],
