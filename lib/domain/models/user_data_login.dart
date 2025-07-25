@@ -143,7 +143,7 @@ class UserDataLogin {
       'age': age,
       'gender': gender,
       'accessToken': accessToken,
-      'summary':summary,
+      'summary':summary?.toJson(),
     };
   }
 }

@@ -8,15 +8,18 @@ class MovementAmountModel extends MovementAmount {
     totalOutput: json['total_output'],
     currentBalance: json['current_balance'],
   );
+
 }
 
 class ReputationSummaryModel extends ReputationSummary {
   ReputationSummaryModel.fromJson(Map<String, dynamic> json)
       : super(total: json['total']);
+
 }
 class TrophiesSummaryModel extends TrophiesSummary {
   TrophiesSummaryModel.fromJson(Map<String, dynamic> json)
       : super(total: json['total']);
+
 }
 class MovementSummaryModel extends MovementSummary {
 
@@ -29,4 +32,5 @@ class MovementSummaryModel extends MovementSummary {
     trophies: TrophiesSummaryModel.fromJson(json['trophies']),
 
   );
+
 }

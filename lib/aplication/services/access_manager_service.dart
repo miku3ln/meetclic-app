@@ -12,7 +12,7 @@ import 'package:meetclic/infrastructure/repositories/implementations/user_reposi
 import 'package:meetclic/domain/usecases/register_user_usecase.dart';
 import 'package:meetclic/aplication/services/user_service.dart';
 import 'package:meetclic/domain/models/user_registration_model.dart';
-import 'package:meetclic/domain/models/user_login.dart';
+
 import 'package:meetclic/domain/models/user_data_login.dart';
 
 import 'package:meetclic/domain/services/session_service.dart';
@@ -21,7 +21,8 @@ import 'package:meetclic/aplication/services/user_login_service.dart';
 import 'package:meetclic/domain/usecases/login_user_usecase.dart';
 
 import 'package:meetclic/shared/models/api_response.dart';
-import 'package:meetclic/infrastructure/models/movement_model.dart';
+import 'package:provider/provider.dart';
+
 import 'package:meetclic/infrastructure/models/summary_model.dart';
 
 final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
@@ -91,6 +92,14 @@ Future<ApiResponse<Map<String, dynamic>>> loginWithGoogle() async {
 }
 
 class AccessManagerService {
+  setDataByLoginRegister(
+    BuildContext contextCurrent,
+      UserDataLogin userDataMapManagement,
+  ) async {
+    final session = Provider.of<SessionService>(contextCurrent, listen: false);
+    await session.saveSession(userDataMapManagement);
+  }
+
   final BuildContext context;
 
   AccessManagerService(this.context);
@@ -159,7 +168,7 @@ class AccessManagerService {
             var summary = MovementSummaryModel.fromJson(summaryJson);
             final userDataMapManagement = UserDataLogin.fromJson(userDataMap);
             userDataMapManagement.summary = summary;
-            SessionService().saveSession(userDataMapManagement);
+            await setDataByLoginRegister(context, userDataMapManagement);
           } else {
             Fluttertoast.showToast(
               msg: response.message ?? "Error al iniciar sesión",
@@ -204,9 +213,15 @@ class AccessManagerService {
           );
           final response = await userService.register(userSend);
           if (response.success) {
+            var userDataMap = response.data['userData'] as Map<String, dynamic>;
+            var summaryJson =
+                response.data['userData']['gamificationLogData']["summary"];
+            var summary = MovementSummaryModel.fromJson(summaryJson);
+            final userDataMapManagement = UserDataLogin.fromJson(userDataMap);
+            userDataMapManagement.summary = summary;
+            await setDataByLoginRegister(context, userDataMapManagement);
             Fluttertoast.showToast(msg: "Registro exitoso");
-            //      Navigator.pop(ctxModal); // Cierra modal de registro
-            Navigator.pop(context); // Cierra modal principal
+            Navigator.pop(context);
           } else {
             Fluttertoast.showToast(msg: "Error al registrar");
           }

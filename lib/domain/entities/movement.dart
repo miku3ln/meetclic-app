@@ -43,6 +43,14 @@ class MovementSummary {
     required this.trophies,
 
   });
+  Map<String, dynamic> toJson() {
+    return {
+      'yapitas': yapitas.toJson(),
+      'yapitas-premium': yapitasPremium.toJson(),
+      'reputation': reputation.toJson(),
+      'trophies': trophies.toJson(),
+    };
+  }
 }
 
 class MovementAmount {
@@ -55,15 +63,33 @@ class MovementAmount {
     required this.totalOutput,
     required this.currentBalance,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'total_input': totalInput,
+      'total_output': totalOutput,
+      'current_balance': currentBalance,
+    };
+  }
 }
 
 class ReputationSummary {
   final int total;
 
   ReputationSummary({required this.total});
+  Map<String, dynamic> toJson() {
+    return {
+      'total': total,
+    };
+  }
 }
 class TrophiesSummary {
   final int total;
 
   TrophiesSummary({required this.total});
+  Map<String, dynamic> toJson() {
+    return {
+      'total': total,
+    };
+  }
 }
