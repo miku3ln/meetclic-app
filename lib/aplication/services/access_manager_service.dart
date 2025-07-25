@@ -162,13 +162,15 @@ class AccessManagerService {
           final response = await userService.loginUseCase(model);
 
           if (response.success) {
-            Fluttertoast.showToast(msg: "Login exitoso",
-              toastLength: Toast.LENGTH_LONG, // ✅ Dura más tiempo
-              gravity: ToastGravity.BOTTOM,
-              timeInSecForIosWeb: 15, // ✅ iOS/Web: duración personalizada (segundos)
-              backgroundColor: theme.colorScheme.primary,
-              textColor: Colors.white,
-              fontSize: 16.0);
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Login exitoso" ),
+                duration: Duration(seconds: 16), // ✅ Hasta 16 segundos
+                backgroundColor: Colors.black87,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
             var userDataMap = response.data['userData'] as Map<String, dynamic>;
             var summaryJson =
                 response.data['userData']['gamificationLogData']["summary"];
@@ -177,15 +179,14 @@ class AccessManagerService {
             userDataMapManagement.summary = summary;
             await setDataByLoginRegister(context, userDataMapManagement);
           } else {
-            Fluttertoast.showToast(
-              msg: response.message ?? "Error al iniciar sesión",
 
-                toastLength: Toast.LENGTH_LONG, // ✅ Dura más tiempo
-                gravity: ToastGravity.BOTTOM,
-                timeInSecForIosWeb: 15, // ✅ iOS/Web: duración personalizada (segundos)
-                backgroundColor: theme.colorScheme.primary,
-                textColor: Colors.white,
-                fontSize: 16.0
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(response.message ),
+                duration: Duration(seconds: 16), // ✅ Hasta 16 segundos
+                backgroundColor: Colors.black87,
+                behavior: SnackBarBehavior.floating,
+              ),
             );
           }
 
@@ -227,10 +228,26 @@ class AccessManagerService {
           );
           final response = await userService.register(userSend);
           if (response.success) {
-            Fluttertoast.showToast(msg: response.message);
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(response.message),
+                duration: Duration(seconds: 16), // ✅ Hasta 16 segundos
+                backgroundColor: Colors.black87,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
             Navigator.pop(context);
           } else {
-            Fluttertoast.showToast(msg: "Error al registrar");
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Error al registrar"),
+                duration: Duration(seconds: 16), // ✅ Hasta 16 segundos
+                backgroundColor: Colors.black87,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
           }
           completer.complete(
             ApiResponse(
