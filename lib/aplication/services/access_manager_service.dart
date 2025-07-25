@@ -92,21 +92,22 @@ Future<ApiResponse<Map<String, dynamic>>> loginWithGoogle() async {
 }
 
 class AccessManagerService {
+  var theme ;
   setDataByLoginRegister(
     BuildContext contextCurrent,
       UserDataLogin userDataMapManagement,
   ) async {
     final session = Provider.of<SessionService>(contextCurrent, listen: false);
     await session.saveSession(userDataMapManagement);
+    theme = Theme.of(contextCurrent);
   }
-
   final BuildContext context;
-
   AccessManagerService(this.context);
 
   Future<ApiResponse> handleAccess(
     FutureOr<void> Function() onLoggedInAction,
   ) async {
+
     if (!SessionService().isLoggedIn) {
       final result = await _showManagementLoginModalWithResult();
       if (result.success) {
@@ -161,7 +162,13 @@ class AccessManagerService {
           final response = await userService.loginUseCase(model);
 
           if (response.success) {
-            Fluttertoast.showToast(msg: "Login exitoso");
+            Fluttertoast.showToast(msg: "Login exitoso",
+              toastLength: Toast.LENGTH_LONG, // ✅ Dura más tiempo
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 15, // ✅ iOS/Web: duración personalizada (segundos)
+              backgroundColor: theme.colorScheme.primary,
+              textColor: Colors.white,
+              fontSize: 16.0);
             var userDataMap = response.data['userData'] as Map<String, dynamic>;
             var summaryJson =
                 response.data['userData']['gamificationLogData']["summary"];
@@ -172,6 +179,13 @@ class AccessManagerService {
           } else {
             Fluttertoast.showToast(
               msg: response.message ?? "Error al iniciar sesión",
+
+                toastLength: Toast.LENGTH_LONG, // ✅ Dura más tiempo
+                gravity: ToastGravity.BOTTOM,
+                timeInSecForIosWeb: 15, // ✅ iOS/Web: duración personalizada (segundos)
+                backgroundColor: theme.colorScheme.primary,
+                textColor: Colors.white,
+                fontSize: 16.0
             );
           }
 
@@ -213,14 +227,7 @@ class AccessManagerService {
           );
           final response = await userService.register(userSend);
           if (response.success) {
-            var userDataMap = response.data['userData'] as Map<String, dynamic>;
-            var summaryJson =
-                response.data['userData']['gamificationLogData']["summary"];
-            var summary = MovementSummaryModel.fromJson(summaryJson);
-            final userDataMapManagement = UserDataLogin.fromJson(userDataMap);
-            userDataMapManagement.summary = summary;
-            await setDataByLoginRegister(context, userDataMapManagement);
-            Fluttertoast.showToast(msg: "Registro exitoso");
+            Fluttertoast.showToast(msg: response.message);
             Navigator.pop(context);
           } else {
             Fluttertoast.showToast(msg: "Error al registrar");
