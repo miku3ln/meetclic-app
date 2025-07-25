@@ -13,7 +13,7 @@ enum Environment {
 class ServerConfig {
  // static const String baseUrl = 'http://192.168.137.1/meetclickmanager/api';
   //static const String baseUrl = 'http://192.168.0.101/meetclickmanager/api';
-  static Environment currentEnv = Environment.local;
+  static Environment currentEnv = Environment.production;
   static String get baseUrl {
     switch (currentEnv) {
       case Environment.production:

@@ -109,8 +109,15 @@ class _RegisterUserModalState extends State<_RegisterUserModal> {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+         // padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+          ),
           child: SingleChildScrollView(
+            reverse: true, // 👈 ayuda a que el scroll baje con el teclado
             child: Column(
               children: [
                 Text(

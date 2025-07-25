@@ -13,7 +13,7 @@ class UserDataLogin {
   final String? identificationDocument;
   final String? businessName;
   final String? businessReason;
-  final bool? hasRepresentative;
+  final int? hasRepresentative;
   final String? representativeFullname;
   final int? rucTypeId;
   final String? rucTypeName;
@@ -25,7 +25,7 @@ class UserDataLogin {
   final String? personName;
   final String? birthdate;
   final int? age;
-  final String? gender;
+  final int? gender;
   final String accessToken;
     MovementSummaryModel? summary;
   UserDataLogin({
@@ -102,7 +102,7 @@ class UserDataLogin {
       rucTypeName: userData['ruc_type_name'],
       peopleTypeId: userData['people_type_id'],
       peopleTypeName: userData['people_type_name'],
-      peopleTypeCode: userData['people_type_code'],
+      peopleTypeCode: userData['people_type_code']?? 'N',
       personId: userData['person_id'],
       lastName: userData['last_name'],
       personName: userData['person_name'],

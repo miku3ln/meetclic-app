@@ -4,14 +4,16 @@ import 'package:meetclic/presentation/widgets/atoms/intro_logo.dart';
 import 'package:meetclic/shared/themes/app_spacing.dart';
 import 'package:meetclic/presentation/widgets/atoms/input_text_atom.dart';
 import 'package:meetclic/domain/models/user_login.dart';
+
 /// Callback estándar: retorna bool indicando éxito del login
-typedef LoginActionCallback = Future<bool> Function(BuildContext context, UserLoginModel model);
+typedef LoginActionCallback =
+    Future<bool> Function(BuildContext context, UserLoginModel model);
 
 /// Modal que devuelve un bool (login exitoso o fallido)
 Future<bool> showLoginUserModal(
-    BuildContext context,
-    LoginActionCallback onLoginSubmit,
-    ) async {
+  BuildContext context,
+  LoginActionCallback onLoginSubmit,
+) async {
   final result = await showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
@@ -91,53 +93,75 @@ class _LoginModalContentState extends State<LoginModalContent> {
     final theme = Theme.of(context);
     final appLocalizations = AppLocalizations.of(context);
 
-    return Center(
-      child: Container(
-        margin: const EdgeInsets.all(16),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.onPrimary,
-          borderRadius: BorderRadius.circular(32),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IntroLogo(
-              assetPath: 'assets/login/init-login-register.png',
-              height: 200,
-            ),
-            AppSpacing.spaceBetweenInputs,
-            InputTextAtom(
-              label: appLocalizations.translate('loginManagerTitle.fieldEmail'),
-              controller: emailController,
-            ),
-            AppSpacing.spaceBetweenInputs,
-            InputTextAtom(
-              label: appLocalizations.translate('loginManagerTitle.fieldPassword'),
-              controller: passwordController,
-              obscureText: true,
-            ),
-            AppSpacing.spaceBetweenInputs,
-            SizedBox(
-              width: double.infinity,
-              height: 60,
-              child: ElevatedButton(
-                onPressed: isButtonEnabled && !isLoading ? handleLogin : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isButtonEnabled ? theme.colorScheme.primary : theme.disabledColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                ),
-                child: isLoading
-                    ? const CircularProgressIndicator()
-                    : Text(appLocalizations.translate('loginManagerTitle.singInButton'),  style:TextStyle(
-                  color: theme.colorScheme.onPrimary,
-                  fontSize: 18,
-                )),
+    return SingleChildScrollView(
+      reverse: true, // 👈 Asegura que al escribir se enfoque hacia abajo
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 32,
+        bottom:
+            MediaQuery.of(context).viewInsets.bottom +
+            32, // 👈 Espacio para el teclado
+      ),
+      child: Center(
+        child: Container(
+          margin: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.onPrimary,
+            borderRadius: BorderRadius.circular(32),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IntroLogo(
+                assetPath: 'assets/login/init-login-register.png',
+                height: 200,
               ),
-            ),
-          ],
+              AppSpacing.spaceBetweenInputs,
+              InputTextAtom(
+                label: appLocalizations.translate(
+                  'loginManagerTitle.fieldEmail',
+                ),
+                controller: emailController,
+              ),
+              AppSpacing.spaceBetweenInputs,
+              InputTextAtom(
+                label: appLocalizations.translate(
+                  'loginManagerTitle.fieldPassword',
+                ),
+                controller: passwordController,
+                obscureText: true,
+              ),
+              AppSpacing.spaceBetweenInputs,
+              SizedBox(
+                width: double.infinity,
+                height: 60,
+                child: ElevatedButton(
+                  onPressed: isButtonEnabled && !isLoading ? handleLogin : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isButtonEnabled
+                        ? theme.colorScheme.primary
+                        : theme.disabledColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                  child: isLoading
+                      ? const CircularProgressIndicator()
+                      : Text(
+                          appLocalizations.translate(
+                            'loginManagerTitle.singInButton',
+                          ),
+                          style: TextStyle(
+                            color: theme.colorScheme.onPrimary,
+                            fontSize: 18,
+                          ),
+                        ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
