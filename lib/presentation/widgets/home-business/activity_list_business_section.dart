@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'activity_item_business_section.dart';
 import '../../../domain/entities/business.dart';
+import 'package:meetclic/domain/entities/business_data.dart';
 
 class ActivityListBusiness extends StatelessWidget {
   final BusinessData businessData;

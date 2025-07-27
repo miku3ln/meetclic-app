@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../domain/entities/business.dart';
 import '../widgets/home-business/home_business_section.dart';
 import '../widgets/home-business/shop_business_section.dart';
 import '../widgets/home-business/news_business_section.dart';
@@ -8,6 +7,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import '../../../presentation/widgets/template/custom_app_bar.dart';
 import 'package:meetclic/shared/localization/app_localizations.dart';
 import 'package:meetclic/domain/models/business_model.dart';
+import 'package:meetclic/domain/entities/business_data.dart';
 
 class BusinessDetailPage extends StatefulWidget {
   final BusinessModel business;
@@ -31,10 +31,10 @@ class _BusinessDetailPageState extends State<BusinessDetailPage> {
       business: business,
     );
     _pages = [
-      HomeBusinessSection(businessData: businessData),
-      const ShopBusinessSection(),
-      const NewsBusinessSection(),
-      const GamificationBusinessSection(),
+      HomeBusinessSection(businessManagementData: businessData),
+       ShopBusinessSection(businessManagementData: businessData),
+       NewsBusinessSection(businessManagementData: businessData),
+       GamificationBusinessSection(businessManagementData: businessData),
     ];
   }
 

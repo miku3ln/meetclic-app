@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:meetclic/shared/localization/app_localizations.dart';
+import 'package:meetclic/domain/entities/business_data.dart';
 
 class ShopBusinessSection extends StatelessWidget {
-  const ShopBusinessSection();
 
+  final BusinessData businessManagementData;
+  const ShopBusinessSection({super.key, required this.businessManagementData});
   @override
   Widget build(BuildContext context) {
     final translationApi=AppLocalizations.of(context);

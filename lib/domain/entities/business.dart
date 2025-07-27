@@ -1,4 +1,3 @@
-import 'package:meetclic/domain/models/business_model.dart';
 
 class Business {
   final int id;
@@ -21,14 +20,6 @@ class Business {
     required this.imageLogo,
     required this.imageBackground,
     required this.starCount,
-
-  });
-}
-class BusinessData {
-
-  final BusinessModel business ;
-  BusinessData({
-    required this.business,
 
   });
 }

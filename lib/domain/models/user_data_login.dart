@@ -77,7 +77,14 @@ class UserDataLogin {
   },
    "trophies": {
     "total": 0
-  }
+  },
+   "visits": {
+    "total": 0
+  },
+   "rating": {
+    "positiveClients": 0,
+    "averageStars": 0,
+    "communityScore": 0}
 }
 ''';
     final Map<String, dynamic> jsonDataSummary = jsonDecode(movementSummaryJson);

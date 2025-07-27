@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-class GamificationBusinessSection extends StatelessWidget {
-  const GamificationBusinessSection();
+import 'package:meetclic/domain/entities/business_data.dart';
 
+class GamificationBusinessSection extends StatelessWidget {
+
+  final BusinessData businessManagementData;
+  const GamificationBusinessSection({super.key, required this.businessManagementData});
   @override
   Widget build(BuildContext context) {
     return const Center(

@@ -5,11 +5,12 @@ import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:meetclic/shared/localization/app_localizations.dart';
+import 'package:meetclic/domain/entities/business_data.dart';
 
 class HeaderBusinessSection extends StatelessWidget {
-  final BusinessData businessData;
+  final BusinessData businessManagementData;
   final double heightTotal ;
-  const HeaderBusinessSection({super.key,required this.businessData,required this.heightTotal});
+  const HeaderBusinessSection({super.key,required this.businessManagementData,required this.heightTotal});
 
   Future<void> shareData() async {
     try {
@@ -21,7 +22,7 @@ class HeaderBusinessSection extends StatelessWidget {
         // 3. Guardar archivo local
         final file = File(filePath);
         await file.writeAsBytes(response.bodyBytes);
-        final data = businessData;
+        final data = businessManagementData;
         await Share.shareXFiles(
           [XFile(filePath)],
           text: 'Mira esta empresa en MeetClic: https://meetclic.com/${data.business.pageUrl.replaceAll(" ", "").toLowerCase()} Descubre esta empresa en MeetClic',
@@ -39,7 +40,7 @@ class HeaderBusinessSection extends StatelessWidget {
     final theme = Theme.of(context);
     final appLocalizations = AppLocalizations.of(context);
 
-    final business=businessData.business;
+    final business=businessManagementData.business;
     return Stack(
       children: [
         Container(
@@ -59,7 +60,7 @@ class HeaderBusinessSection extends StatelessWidget {
               Row(
                 children: List.generate(5, (index) {
                   return Icon(
-                    index < businessData.business.distance ? Icons.star : Icons.star_border,
+                    index < businessManagementData.business.distance ? Icons.star : Icons.star_border,
                     color: theme.colorScheme.secondary,
                     size: 20,
                   );
@@ -91,7 +92,7 @@ class HeaderBusinessSection extends StatelessWidget {
               shape: BoxShape.circle,
               color: Colors.white,
               image: DecorationImage(
-                image: NetworkImage(businessData.business.sourceLogo),
+                image: NetworkImage(businessManagementData.business.sourceLogo),
                 fit: BoxFit.cover, // ✅ asegura que se vea bien sin distorsión
               ),
               boxShadow: [

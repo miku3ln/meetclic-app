@@ -35,12 +35,17 @@ class MovementSummary {
   final MovementAmount yapitasPremium;
   final ReputationSummary reputation;
   final TrophiesSummary trophies;
+  final VisitsSummary visits;
+  final RatingSummary rating;
 
   MovementSummary({
     required this.yapitas,
     required this.yapitasPremium,
     required this.reputation,
     required this.trophies,
+    required this.visits,
+    required this.rating,
+
 
   });
   Map<String, dynamic> toJson() {
@@ -49,6 +54,9 @@ class MovementSummary {
       'yapitas-premium': yapitasPremium.toJson(),
       'reputation': reputation.toJson(),
       'trophies': trophies.toJson(),
+      'visits': visits.toJson(),
+      'rating': visits.toJson(),
+
     };
   }
 }
@@ -90,6 +98,31 @@ class TrophiesSummary {
   Map<String, dynamic> toJson() {
     return {
       'total': total,
+    };
+  }
+}
+class VisitsSummary {
+  final int total;
+
+  VisitsSummary({required this.total});
+  Map<String, dynamic> toJson() {
+    return {
+      'total': total,
+    };
+  }
+}
+class RatingSummary {
+  final int positiveClients;
+  final double averageStars;
+  final double communityScore;
+
+  RatingSummary({required this.positiveClients,required this.averageStars,required this.communityScore});
+  Map<String, dynamic> toJson() {
+    return {
+      'positiveClients': positiveClients,
+      'averageStars': averageStars,
+      'communityScore': communityScore,
+
     };
   }
 }

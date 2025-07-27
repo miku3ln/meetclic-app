@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'task_card_business_section.dart';
 import '../../../domain/entities/business.dart';
+import 'package:meetclic/domain/entities/business_data.dart';
 
 class TaskListBusinessSection extends StatelessWidget {
   final BusinessData businessData;

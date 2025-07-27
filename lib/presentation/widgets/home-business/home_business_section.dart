@@ -1,10 +1,10 @@
-// Archivo: home_business_section.dart
+
 import 'package:flutter/material.dart';
 import 'header_business_section.dart';
-import '../../../domain/entities/business.dart';
+
 import '../../../shared/utils/util_common.dart'; // ajusta el import según tu estructura
 import 'package:meetclic/shared/localization/app_localizations.dart';
-
+import 'package:meetclic/domain/entities/business_data.dart';
 class _InfoTile extends StatelessWidget {
   final IconData icon;
   final String text;
@@ -60,42 +60,47 @@ class _SocialIcon extends StatelessWidget {
 }
 
 class HomeBusinessSection extends StatelessWidget {
-  final BusinessData businessData;
+  final BusinessData businessManagementData;
 
-  const HomeBusinessSection({super.key, required this.businessData});
+  const HomeBusinessSection({super.key, required this.businessManagementData});
 
   @override
   Widget build(BuildContext context) {
+    final businessManagementDataCurrent = businessManagementData;
+
     Widget _buildContactSection() {
+      var businessData=businessManagementDataCurrent.business;
+      var addressCurrent="${businessData.street1}, ${businessData.street2}";
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
-          children: const [
-            _InfoTile(icon: Icons.phone, text: '+593 985339457',type: "whatsapp"),
-            _InfoTile(icon: Icons.email, text: 'info@empresa.com',type: "email"),
-            _InfoTile(icon: Icons.public, text: 'www.empresa.com',type: "web"),
-            _InfoTile(icon: Icons.location_on, text: 'Otavalo, Imbabura',type: ""),
+          children:  [
+            _InfoTile(icon: Icons.phone, text: businessData.phoneValue,type: "whatsapp"),
+            _InfoTile(icon: Icons.email, text: businessData.email,type: "email"),
+            _InfoTile(icon: Icons.public, text: businessData.pageUrl,type: "web"),
+            _InfoTile(icon: Icons.location_on, text: addressCurrent,type: ""),
           ],
         ),
       );
     }
 
     Widget _buildSocialIcons() {
+      var businessData=businessManagementDataCurrent.business;
       return Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
+        children:  [
           _SocialIcon(icon: Icons.facebook,url:"https://www.instagram.com/ideas_bip?igsh=MXR2eWZqbjcwdXF2bw=="),
           _SocialIcon(icon: Icons.camera_alt,url:"https://www.instagram.com/ideas_bip?igsh=MXR2eWZqbjcwdXF2bw=="),
           _SocialIcon(
             icon: Icons.videocam, // temporal para TikTok
             url: 'https://www.tiktok.com/@ideasbip',
           ),
-          _SocialIcon(icon: Icons.business,url:"www.meetclic.com"),
+          _SocialIcon(icon: Icons.business,url:businessData.pageUrl),
         ],
       );
     }
     final theme = Theme.of(context);
-    final businessDataCurrent = businessData;
+
     final paddingContainer = MediaQuery.of(context).size.height * 0.38;
    final double heightCurrent=280;// MediaQuery.of(context).size.height * 0.32;
     final appLocalizations = AppLocalizations.of(context);
@@ -104,7 +109,7 @@ class HomeBusinessSection extends StatelessWidget {
       children: [
         SizedBox(
           height: heightCurrent,
-          child: HeaderBusinessSection(businessData: businessDataCurrent,heightTotal: heightCurrent),
+          child: HeaderBusinessSection(businessManagementData: businessManagementData,heightTotal: heightCurrent),
         ),
         // 🔵 Section Header (estático)
         Container(), // Header

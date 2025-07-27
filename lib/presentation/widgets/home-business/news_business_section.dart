@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-class NewsBusinessSection extends StatelessWidget {
-  const NewsBusinessSection();
+import 'package:meetclic/domain/entities/business_data.dart';
 
+class NewsBusinessSection extends StatelessWidget {
+
+  final BusinessData businessManagementData;
+  const NewsBusinessSection({super.key, required this.businessManagementData});
   @override
   Widget build(BuildContext context) {
     return const Center(
