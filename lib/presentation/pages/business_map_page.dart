@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_popup/flutter_map_marker_popup.dart';
 import 'package:latlong2/latlong.dart';
-import '../../domain/entities/business.dart';
+
 import 'business_detail_page.dart';
 import '../../../shared/utils/deep_link_type.dart';
 import 'package:meetclic/shared/localization/app_localizations.dart';
@@ -12,6 +12,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:meetclic/domain/usecases/get_nearby_businesses_usecase.dart';
 import 'package:meetclic/infrastructure/repositories/implementations/business_repository_impl.dart';
 import 'package:meetclic/domain/models/business_model.dart';
+
+import '../../aplication/usecases/check_location_permission_usecase.dart';
+import '../../infrastructure/services/geolocator_service.dart';
 
 class MapPosition {
   final double latitude;
@@ -56,84 +59,80 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
     });
   }
 
-  bool _isGpsEnabled = true;
-
-  Future<void> _checkAndRequestLocationPermission() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    _isGpsEnabled = serviceEnabled; // Guardamos el estado actual
-
-    if (!serviceEnabled) {
-      setState(() {}); // Redibujar para actualizar el ícono
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, activa el GPS para continuar.'),
-        ),
-      );
-      return;
-    }
-
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Permiso de ubicación denegado.')),
-        );
-        return;
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Permiso de ubicación bloqueado permanentemente.'),
-        ),
-      );
-      return;
-    }
-
-    // Si se activó durante la solicitud
-    setState(() {
-      _isGpsEnabled = true;
-    });
-  }
-
+  bool _isGpsEnabled = false;
   Future<void> _loadNearbyBusinesses() async {
     if (isLoading) return;
     setState(() => isLoading = true);
-
-    await _checkAndRequestLocationPermission();
-    Position position;
     double latitude = 0;
     double longitude = 0;
-    if (_isGpsEnabled) {
-      position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+    try {
+      final useCaseCheckLocation = CheckLocationPermissionUseCase(
+        GeolocatorService(),
       );
-      latitude = position.latitude;
-      longitude = position.longitude;
-    } else {
-      latitude = currentPosition["latitude"];
-      longitude = currentPosition["longitude"];
+      final resultPermission = await useCaseCheckLocation.execute();
+
+      setState(() => _isGpsEnabled = resultPermission.success);
+
+      if (!resultPermission.success) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(resultPermission.message)));
+
+        if (resultPermission.type == 'permission_denied_forever') {
+          try {
+            await Geolocator.openAppSettings();
+          } catch (e) {
+            debugPrint("No se pudo abrir configuración: $e");
+          }
+
+          // ✅ Usar fallback
+          latitude = currentPosition["latitude"];
+          longitude = currentPosition["longitude"];
+        } else {
+          // Otros errores sí detienen el proceso
+          setState(() => isLoading = false);
+          return;
+        }
+      }
+
+      if (_isGpsEnabled) {
+        try {
+          final position = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.high,
+          );
+          latitude = position.latitude;
+          longitude = position.longitude;
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No se pudo obtener tu ubicación actual.'),
+            ),
+          );
+          latitude = currentPosition["latitude"];
+          longitude = currentPosition["longitude"];
+        }
+      }
+      final useCase = GetNearbyBusinessesUseCase(
+        repository: BusinessRepositoryImpl(),
+      );
+      final newCenter = LatLng(latitude, longitude);
+      setMarkerCurrentPosition(newCenter);
+      _mapController.move(newCenter, 16);
+      final response = await useCase.execute(
+        latitude: latitude,
+        longitude: longitude,
+        radiusKm: 10,
+      );
+
+      businesses = response.data ?? [];
+      _generateMarkers();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al cargar negocios: ${e.toString()}')),
+      );
+    } finally {
+      setState(() => isLoading = false);
     }
-
-    final useCase = GetNearbyBusinessesUseCase(
-      repository: BusinessRepositoryImpl(),
-    );
-    final newCenter = LatLng(latitude, longitude);
-    _mapController.move(newCenter, 16);
-    final response = await useCase.execute(
-      latitude: latitude,
-      longitude: longitude,
-      radiusKm: 10,
-    );
-
-    final businessList = response.data ?? [];
-
-    businesses = businessList;
-
-    _generateMarkers();
-    setState(() => isLoading = false);
   }
 
   void _generateMarkers() {
@@ -167,31 +166,35 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
     }).toList();
   }
 
+  setMarkerCurrentPosition(LatLng newCenter) {
+    currentLocationMarker = Marker(
+      point: newCenter,
+      width: 60,
+      height: 60,
+      alignment: Alignment.center,
+      child: Image.asset('assets/icons/pututuMarker.png'),
+    );
+  }
+
   Future<void> _centerToCurrentLocation() async {
     if (isLoading) return;
     setState(() => isLoading = true);
-
-    await _checkAndRequestLocationPermission();
+    final useCaseCheckLocation = CheckLocationPermissionUseCase(
+      GeolocatorService(),
+    );
+    final resultPermission = await useCaseCheckLocation.execute();
+    setState(() => _isGpsEnabled = resultPermission.success);
 
     try {
-      final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-
-      final newCenter = LatLng(position.latitude, position.longitude);
-      _mapController.move(newCenter, 16);
-
-      currentLocationMarker = Marker(
-        point: newCenter,
-        width: 60,
-        height: 60,
-        alignment: Alignment.center,
-        child: Image.asset(
-          'assets/icons/pututuMarker.png',
-        ), // Personaliza aquí tu ícono
-      );
-
-      setState(() {});
+      if (_isGpsEnabled) {
+        final position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+        );
+        final newCenter = LatLng(position.latitude, position.longitude);
+        _mapController.move(newCenter, 16);
+        setMarkerCurrentPosition(newCenter);
+        setState(() {});
+      }
     } catch (_) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -308,7 +311,10 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 5),
-                Text("Direccion:"+business.street1+" "+business.street2, style: theme.textTheme.bodyMedium),
+                Text(
+                  "Direccion:" + business.street1 + " " + business.street2,
+                  style: theme.textTheme.bodyMedium,
+                ),
 
                 const SizedBox(height: 8),
                 Row(
@@ -316,9 +322,9 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
                     const Icon(Icons.star, color: Colors.amber, size: 20),
                     const SizedBox(width: 4),
                     Text(
-                          AppLocalizations.of(
-                            context,
-                          ).translate('gamification.points'),
+                      AppLocalizations.of(
+                        context,
+                      ).translate('gamification.points'),
                       style: theme.textTheme.bodyMedium,
                     ),
                   ],
