@@ -62,9 +62,9 @@ class MovementSummary {
 }
 
 class MovementAmount {
-  final int totalInput;
-  final int totalOutput;
-  final int currentBalance;
+  final double totalInput;
+  final double totalOutput;
+  final double currentBalance;
 
   MovementAmount({
     required this.totalInput,
@@ -74,9 +74,9 @@ class MovementAmount {
 
   Map<String, dynamic> toJson() {
     return {
-      'total_input': totalInput,
-      'total_output': totalOutput,
-      'current_balance': currentBalance,
+      'totalInput': totalInput,
+      'totalOutput': totalOutput,
+      'currentBalance': currentBalance,
     };
   }
 }
@@ -92,7 +92,7 @@ class ReputationSummary {
   }
 }
 class TrophiesSummary {
-  final int total;
+  final double total;
 
   TrophiesSummary({required this.total});
   Map<String, dynamic> toJson() {

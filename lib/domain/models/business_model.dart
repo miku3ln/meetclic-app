@@ -1,3 +1,6 @@
+import 'package:meetclic/infrastructure/models/summary_model.dart';
+import 'dart:convert';
+
 class BusinessModel {
   final int id;
   final String title;
@@ -18,7 +21,7 @@ class BusinessModel {
   final double distance;
   final String distanceKmText;
   final String sourceLogo;
-
+  MovementSummaryModel? summary;
   BusinessModel({
     required this.id,
     required this.title,
@@ -39,10 +42,42 @@ class BusinessModel {
     required this.distance,
     required this.distanceKmText,
     required this.sourceLogo,
+    required this.summary,
 
   });
 
   factory BusinessModel.fromJson(Map<String, dynamic> json) {
+    const String movementSummaryJson = '''
+{
+  "yapitas": {
+    "totalInput": 0,
+    "totalOutput": 0,
+    "currentBalance": 0
+  },
+  "yapitas-premium": {
+    "totalInput": 0,
+    "totalOutput": 0,
+    "currentBalance": 0
+  },
+  "reputation": {
+    "total": 0
+  },
+   "trophies": {
+    "total": 0
+  },
+   "visits": {
+    "total": 0
+  },
+   "rating": {
+    "positiveClients": 0,
+    "averageStars": 0,
+    "communityScore": 0}
+}
+''';
+    var sourceLogo=json['source'];
+     final Map<String, dynamic> jsonDataSummary = jsonDecode(movementSummaryJson);
+     var summaryCurrent= json['summary'] == null?jsonDataSummary:json['summary'];
+         var summary= MovementSummaryModel.fromJson(summaryCurrent);
     return BusinessModel(
       id: json['id'],
       title: json['title'] ?? '',
@@ -62,7 +97,8 @@ class BusinessModel {
       fiscalPosition: json['fiscal_position'] ?? '',
       distance: double.tryParse(json['distance'].toString()) ?? 0.0,
       distanceKmText: json['distance_km'] ?? '',
-      sourceLogo: json['sourceLogo'] ?? '',
+      sourceLogo: sourceLogo,
+      summary:summary,
 
     );
   }

@@ -16,15 +16,15 @@ class MenuTabUpController {
     final accessManager = AccessManagerService(context);
     final user = session.currentSession;
 
-    final yapitas = session.isLoggedIn
+    final double yapitas = session.isLoggedIn
         ? user?.summary?.yapitas.currentBalance ?? 0
         : 0;
-    final yapitasPremium = session.isLoggedIn
+    final double yapitasPremium = session.isLoggedIn
         ? user?.summary?.yapitasPremium.currentBalance ?? 0
         : 0;
-    final trofeos = session.isLoggedIn ? user?.summary?.trophies.total ?? 0 : 0;
-    final cesta = 0;
-    final idioma = 3;
+    final double trofeos = session.isLoggedIn ? user?.summary?.trophies.total ?? 0 : 0;
+    final double cesta = 0;
+    final  double idioma = 3;
     final locale = config.locale.languageCode;
 
     final itemLanguage = MenuTabUpItem(
@@ -71,7 +71,7 @@ class MenuTabUpController {
     BuildContext context,
     String name,
     String asset,
-    int count,
+    double count,
     AccessManagerService accessManager,
   ) {
     return MenuTabUpItem(

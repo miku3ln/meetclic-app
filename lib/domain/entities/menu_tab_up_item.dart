@@ -6,7 +6,7 @@ class MenuTabUpItem {
   final int id;
   final String name;
   final String asset;
-  final int number;
+  final double number;
   final VoidCallback? onTap;
   MenuTabUpItem({
     required this.id,

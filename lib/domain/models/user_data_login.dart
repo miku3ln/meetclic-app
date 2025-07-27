@@ -63,14 +63,14 @@ class UserDataLogin {
     const String movementSummaryJson = '''
 {
   "yapitas": {
-    "total_input": 0,
-    "total_output": 0,
-    "current_balance": 0
+    "totalInput": 0,
+    "totalOutput": 0,
+    "currentBalance": 0
   },
   "yapitas-premium": {
-    "total_input": 0,
-    "total_output": 0,
-    "current_balance": 0
+    "totalInput": 0,
+    "totalOutput": 0,
+    "currentBalance": 0
   },
   "reputation": {
     "total": 0
