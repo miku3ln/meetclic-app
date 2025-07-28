@@ -6,6 +6,7 @@ import 'package:meetclic/presentation/pages/home/modals/language_modal.dart';
 import 'package:meetclic/aplication/services/access_manager_service.dart';
 import 'package:meetclic/presentation/pages/home/modals/show_view_components.dart';
 import 'package:meetclic/shared/models/language_modal_config.dart';
+import 'package:meetclic/infrastructure/assets/app_images.dart';
 
 class MenuTabUpController {
   static List<MenuTabUpItem> buildMenu({
@@ -23,10 +24,14 @@ class MenuTabUpController {
     final double yapitasPremium = session.isLoggedIn
         ? user?.summary?.yapitasPremium.currentBalance ?? 0
         : 0;
-    final double trofeos = session.isLoggedIn ? user?.summary?.trophies.total ?? 0 : 0;
+    final double trofeos = session.isLoggedIn
+        ? user?.summary?.trophies.total ?? 0
+        : 0;
     final double cesta = 0;
-    final  double idioma = 3;
-    final locale = config.locale.languageCode!='it'?config.locale.languageCode:"ki";
+    final double idioma = 3;
+    final locale = config.locale.languageCode != 'it'
+        ? config.locale.languageCode
+        : "ki";
 
     final itemLanguage = MenuTabUpItem(
       id: 1,
@@ -48,25 +53,25 @@ class MenuTabUpController {
       _item(
         context,
         'fuego',
-        'assets/appbar/yapitas.png',
+        AppImages.coinTypeYapitas,
         yapitas,
         accessManager,
       ),
       _item(
         context,
         'diamante',
-        'assets/appbar/yapitas-premium.png',
+        AppImages.coinTypeYapitasPremium,
         yapitasPremium,
         accessManager,
       ),
       _item(
         context,
         'trofeo',
-        'assets/appbar/trophy-two.png',
+        AppImages.rewardTypeTrophy,
         trofeos,
         accessManager,
       ),
-      _item(context, 'cesta', 'assets/appbar/basket.png', cesta, accessManager),
+      _item(context, 'cesta', AppImages.basketEcommerce, cesta, accessManager),
     ];
   }
 

@@ -15,6 +15,7 @@ import 'package:meetclic/domain/models/business_model.dart';
 
 import '../../aplication/usecases/check_location_permission_usecase.dart';
 import '../../infrastructure/services/geolocator_service.dart';
+import 'package:meetclic/infrastructure/assets/app_images.dart';
 
 class MapPosition {
   final double latitude;
@@ -172,7 +173,7 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
       width: 60,
       height: 60,
       alignment: Alignment.center,
-      child: Image.asset('assets/icons/pututuMarker.png'),
+      child: Image.asset( AppImages.pageBusinessMapMarkerPosition),
     );
   }
 

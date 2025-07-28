@@ -9,7 +9,6 @@ class UtilCommon {
     required String text,
   }) async {
     Uri url;
-
     try {
       switch (type) {
         case 'whatsapp':

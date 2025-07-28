@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
+import 'package:meetclic/shared/localization/app_localizations.dart';
 
 /// Fondo semitransparente detrás del modal
 Widget buildBackdrop(VoidCallback onTap, Size screenSize) {
@@ -54,7 +55,7 @@ Widget buildLanguageModal({
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Selecciona el idioma',
+                      AppLocalizations.of(context).translate('language.select'),
                       style: TextStyle(
                         color: colorScheme.primary,
                         fontSize: 18,
@@ -94,8 +95,6 @@ Widget buildLanguageModal({
     ),
   );
 }
-
-/// Widget para cada opción de idioma
 Widget buildLanguageOption({
   required BuildContext context,
   required String langCode,

@@ -7,6 +7,7 @@ import 'package:meetclic/shared/localization/app_localizations.dart';
 import 'package:meetclic/presentation/pages/profile-page/molecules/counter-reward-earned.dart';
 import 'package:meetclic/presentation/widgets/atoms/title_widget.dart';
 import '../../../../shared/providers_session.dart';
+import 'package:meetclic/infrastructure/assets/app_images.dart';
 
 class UserProfileHeader extends StatelessWidget {
   const UserProfileHeader({super.key});
@@ -36,20 +37,20 @@ class UserProfileHeader extends StatelessWidget {
           items: [
             CounterInfoItem(
               count: 3,
-              imageAsset: 'assets/pages/profile/business.png',
+              imageAsset: AppImages.pageLoginInit,
               label: appLocalizations.translate('profileDataTitle.business'),
               lineColor: theme.colorScheme.primary,
             ),
             CounterInfoItem(
               count: 6,
-              imageAsset: 'assets/pages/profile/following.png',
+              imageAsset: AppImages.pageProfileFollowing,
               label: appLocalizations.translate('profileDataTitle.following'),
               lineColor: theme.colorScheme.primary,
             ),
 
             CounterInfoItem(
               count: 11,
-              imageAsset: 'assets/pages/profile/followers.png',
+              imageAsset:  AppImages.pageProfileFollowers,
               label: appLocalizations.translate('profileDataTitle.followers'),
               lineColor: theme.colorScheme.primary,
             ),
@@ -67,28 +68,28 @@ class UserProfileHeader extends StatelessWidget {
           items: [
             CounterRewardEarned(
               count: 5699,
-              imageAsset: 'assets/appbar/yapitas.png',
+              imageAsset:AppImages.coinTypeYapitas,
               label: 'Total XP',
               lineColor: Colors.yellow,
               onTap: () => print('Total XP tapped'),
             ),
             CounterRewardEarned(
               count: 120,
-              imageAsset: 'assets/appbar/yapitas.png',
+              imageAsset: AppImages.coinTypeYapitas,
               label: 'Yapitas',
               lineColor: Colors.orange,
               onTap: () => print('Yapitas tapped'),
             ),
             CounterRewardEarned(
               count: 450,
-              imageAsset: 'assets/appbar/yapitas-premium.png',
+              imageAsset: AppImages.coinTypeYapitasPremium,
               label: 'Suma Yapitas',
               lineColor: Colors.purple,
               onTap: () => print('Suma Yapitas tapped'),
             ),
             CounterRewardEarned(
               count: 5,
-              imageAsset: 'assets/appbar/trophy.png',
+              imageAsset: AppImages.rewardTypeTrophy,
               label: 'Trofeos',
               lineColor: Colors.amber,
               onTap: () => print('Trofeos tapped'),

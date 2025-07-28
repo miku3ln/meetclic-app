@@ -81,11 +81,11 @@ flutter:
     - assets/rewards.riv
     - assets/rocket.riv
     - assets/skins_demo.riv
-    - assets/login/init-login-register.png
     - assets/lang/
     - assets/flags/
     - assets/appbar/
     - assets/pages/profile/
+    - assets/pages/login/
     - assets/icons/pututuMarker.png
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

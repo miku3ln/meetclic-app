@@ -4,6 +4,7 @@ import 'package:meetclic/presentation/widgets/atoms/social_icon.dart';
 import 'package:meetclic/shared/localization/app_localizations.dart';
 import 'package:meetclic/presentation/widgets/atoms/intro_logo.dart';
 import 'package:meetclic/shared/themes/app_spacing.dart';
+import 'package:meetclic/infrastructure/assets/app_images.dart';
 
 void showManagementLoginModal(
   BuildContext context,
@@ -33,7 +34,7 @@ void showManagementLoginModal(
           mainAxisSize: MainAxisSize.min,
           children: [
             IntroLogo(
-              assetPath: 'assets/login/init-login-register.png',
+              assetPath:  AppImages.pageLoginInit,
               height: 250,
             ),
             AppSpacing.spaceBetweenInputs,

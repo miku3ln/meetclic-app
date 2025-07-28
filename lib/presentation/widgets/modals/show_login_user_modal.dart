@@ -4,6 +4,7 @@ import 'package:meetclic/presentation/widgets/atoms/intro_logo.dart';
 import 'package:meetclic/shared/themes/app_spacing.dart';
 import 'package:meetclic/presentation/widgets/atoms/input_text_atom.dart';
 import 'package:meetclic/domain/models/user_login.dart';
+import 'package:meetclic/infrastructure/assets/app_images.dart';
 
 /// Callback estándar: retorna bool indicando éxito del login
 typedef LoginActionCallback =
@@ -115,7 +116,7 @@ class _LoginModalContentState extends State<LoginModalContent> {
             mainAxisSize: MainAxisSize.min,
             children: [
               IntroLogo(
-                assetPath: 'assets/login/init-login-register.png',
+                assetPath:AppImages.pageLoginInit,
                 height: 200,
               ),
               AppSpacing.spaceBetweenInputs,
