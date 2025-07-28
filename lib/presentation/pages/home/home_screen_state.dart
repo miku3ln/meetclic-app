@@ -54,7 +54,7 @@ class HomeScreenState extends State<HomeScreen> {
       context: context,
       config: config,
       session: session,
-      setStateCallback: setState,
+      setFlagCallback: setState,
     );
 
     return [

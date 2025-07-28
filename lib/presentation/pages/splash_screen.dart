@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meetclic/presentation/pages/home/home_page.dart';
 import 'package:meetclic/data/data-sources/module_api_fake.dart';
+import 'package:meetclic/infrastructure/assets/app_images.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -32,15 +33,14 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> loadResources() async {
     try {
-      await precacheImage(const AssetImage('assets/images/splash_bg.png'), context);
+      await precacheImage(const AssetImage(AppImages.splashBackground), context);
       _controller.forward(); // inicia animación
-      await Future.delayed(const Duration(seconds: 1)); // opcional pero elegante
-      final modules = await api.getModules();
+
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => HomeScreen(modules: modules),
+          builder: (_) => HomeScreen(modules: []),
         ),
       );
     } catch (e) {
@@ -67,7 +67,7 @@ class _SplashScreenState extends State<SplashScreen>
               child: FadeTransition(
                 opacity: _fadeIn,
                 child: Image.asset(
-                  'assets/images/splash_bg.png',
+                  AppImages.splashBackground,
                   width: 200,
                   fit: BoxFit.contain,
                 ),

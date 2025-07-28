@@ -5,12 +5,13 @@ import 'package:meetclic/shared/models/app_config.dart';
 import 'package:meetclic/presentation/pages/home/modals/language_modal.dart';
 import 'package:meetclic/aplication/services/access_manager_service.dart';
 import 'package:meetclic/presentation/pages/home/modals/show_view_components.dart';
+import 'package:meetclic/shared/models/language_modal_config.dart';
 
 class MenuTabUpController {
   static List<MenuTabUpItem> buildMenu({
     required BuildContext context,
     required AppConfig config,
-    required void Function(void Function()) setStateCallback,
+    required void Function(void Function()) setFlagCallback,
     required SessionService session,
   }) {
     final accessManager = AccessManagerService(context);
@@ -25,7 +26,7 @@ class MenuTabUpController {
     final double trofeos = session.isLoggedIn ? user?.summary?.trophies.total ?? 0 : 0;
     final double cesta = 0;
     final  double idioma = 3;
-    final locale = config.locale.languageCode;
+    final locale = config.locale.languageCode!='it'?config.locale.languageCode:"ki";
 
     final itemLanguage = MenuTabUpItem(
       id: 1,
@@ -33,10 +34,12 @@ class MenuTabUpController {
       asset: 'assets/flags/$locale.png',
       number: idioma,
       onTap: () => showTopLanguageModal(
-        context,
-        (newLocale) => config.setLocale(Locale(newLocale)),
-        [],
-        setStateCallback,
+        LanguageModalConfig(
+          context: context,
+          onChanged: (newLocale) => config.setLocale(Locale(newLocale)),
+          menuTabUpItems: [], // ✅ Se pasa la lista real
+          setStateFn: setFlagCallback,
+        ),
       ),
     );
 

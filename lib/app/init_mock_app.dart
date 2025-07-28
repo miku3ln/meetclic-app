@@ -13,12 +13,12 @@ class InitMockApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(                              // ✅ Cambio aquí
+    return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AppConfig()),           // 🔵 Ya lo tienes
-        ChangeNotifierProvider(create: (_) => SessionService()),      // 🟢 Agregar este provider
+        ChangeNotifierProvider(create: (_) => AppConfig()),
+        ChangeNotifierProvider(create: (_) => SessionService()),
       ],
-      child: Consumer<AppConfig>(                       // ✅ Tu bloque actual permanece igual
+      child: Consumer<AppConfig>(
         builder: (context, config, _) {
           return MaterialApp(
             title: 'Meetclic',
