@@ -155,7 +155,7 @@ class MovementSummaryModel extends MovementSummary {
 
       return MovementSummaryModel(
         yapitas: MovementAmountModel.fromJson(json['yapitas']),
-        yapitasPremium: MovementAmountModel.fromJson(json['yapitas-premium']),
+        yapitasPremium: MovementAmountModel.fromJson(json['yapitasPremium']),
         reputation: ReputationSummaryModel.fromJson(json['reputation']),
         trophies: TrophiesSummaryModel.fromJson(json['trophies']),
         visits: VisitsSummaryModel.fromJson(json['visits']),

@@ -51,7 +51,7 @@ class MovementSummary {
   Map<String, dynamic> toJson() {
     return {
       'yapitas': yapitas.toJson(),
-      'yapitas-premium': yapitasPremium.toJson(),
+      'yapitasPremium': yapitasPremium.toJson(),
       'reputation': reputation.toJson(),
       'trophies': trophies.toJson(),
       'visits': visits.toJson(),

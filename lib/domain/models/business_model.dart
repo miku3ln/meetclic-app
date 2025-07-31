@@ -54,7 +54,7 @@ class BusinessModel {
     "totalOutput": 0,
     "currentBalance": 0
   },
-  "yapitas-premium": {
+  "yapitasPremium": {
     "totalInput": 0,
     "totalOutput": 0,
     "currentBalance": 0

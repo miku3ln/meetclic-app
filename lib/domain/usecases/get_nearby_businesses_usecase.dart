@@ -21,3 +21,15 @@ class GetNearbyBusinessesUseCase {
     );
   }
 }
+class BusinessesDetailsUseCase {
+  final BusinessDetailsRepository repository;
+  BusinessesDetailsUseCase({required this.repository});
+  Future<ApiResponseModel<List<BusinessModel>>> execute({
+    required int businessId,
+  }) async {
+    return await repository.getBusinessesDetails(
+      businessId: businessId,
+
+    );
+  }
+}

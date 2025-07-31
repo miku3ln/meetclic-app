@@ -9,3 +9,8 @@ abstract class BusinessRepository {
     List<int>? subcategoryIds,
   });
 }
+abstract class BusinessDetailsRepository {
+  Future<ApiResponseModel<List<BusinessModel>>> getBusinessesDetails({
+    required int businessId
+  });
+}

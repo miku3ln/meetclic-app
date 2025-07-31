@@ -118,13 +118,12 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
       );
       final newCenter = LatLng(latitude, longitude);
       setMarkerCurrentPosition(newCenter);
-      _mapController.move(newCenter, 16);
       final response = await useCase.execute(
         latitude: latitude,
         longitude: longitude,
         radiusKm: 10,
       );
-
+      _mapController.move(newCenter, 16);
       businesses = response.data ?? [];
       _generateMarkers();
     } catch (e) {

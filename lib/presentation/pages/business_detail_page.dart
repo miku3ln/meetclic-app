@@ -9,6 +9,21 @@ import 'package:meetclic/shared/localization/app_localizations.dart';
 import 'package:meetclic/domain/models/business_model.dart';
 import 'package:meetclic/domain/entities/business_data.dart';
 
+import 'package:meetclic/domain/usecases/get_nearby_businesses_usecase.dart';
+import 'package:meetclic/infrastructure/repositories/implementations/business_repository_impl.dart';
+import 'package:meetclic/domain/models/api_response_model.dart';
+
+Future<ApiResponseModel<List<BusinessModel>>> _loadBusinessesDetails(
+  businessId,
+) async {
+  final useCase = BusinessesDetailsUseCase(
+    repository: BusinessDetailsRepositoryImpl(),
+  );
+
+  final response = await useCase.execute(businessId: businessId);
+  return response;
+}
+
 class BusinessDetailPage extends StatefulWidget {
   final BusinessModel business;
 
@@ -17,25 +32,37 @@ class BusinessDetailPage extends StatefulWidget {
   @override
   State<BusinessDetailPage> createState() => _BusinessDetailPageState();
 }
+
 class _BusinessDetailPageState extends State<BusinessDetailPage> {
   int _selectedIndex = 0;
 
   late final BusinessData businessData;
   late final List<Widget> _pages;
+  Future<void> _loadData() async {
+    final businessId = widget.business.id;
+    final responseCurrent = await _loadBusinessesDetails(businessId);
+
+    BusinessModel business = widget.business;
+    if (responseCurrent.success && responseCurrent.data.isNotEmpty) {
+      business = responseCurrent.data[0];
+    }
+
+    final businessData = BusinessData(business: business);
+
+    setState(() {
+      _pages = [
+        HomeBusinessSection(businessManagementData: businessData),
+        ShopBusinessSection(businessManagementData: businessData),
+        NewsBusinessSection(businessManagementData: businessData),
+        GamificationBusinessSection(businessManagementData: businessData),
+      ];
+    });
+  }
 
   @override
-  void initState() {
+  void initState() async {
     super.initState();
-    final business = widget.business;
-    final businessData = BusinessData(
-      business: business,
-    );
-    _pages = [
-      HomeBusinessSection(businessManagementData: businessData),
-       ShopBusinessSection(businessManagementData: businessData),
-       NewsBusinessSection(businessManagementData: businessData),
-       GamificationBusinessSection(businessManagementData: businessData),
-    ];
+    _loadData();
   }
 
   void _onNavTap(int index) {
@@ -45,18 +72,12 @@ class _BusinessDetailPageState extends State<BusinessDetailPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final  appLocalizations= AppLocalizations.of(context);
+    final appLocalizations = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: CustomAppBar(title: '', items: []),
       backgroundColor: theme.scaffoldBackgroundColor,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            _pages[_selectedIndex],
-          ],
-        ),
-      ),
+      body: SafeArea(child: Stack(children: [_pages[_selectedIndex]])),
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
         notchMargin: 8.0,
@@ -65,11 +86,31 @@ class _BusinessDetailPageState extends State<BusinessDetailPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavIcon(icon: Icons.info_outline, index: 0,label:  appLocalizations .translate('pages.businessSection.information')),
-              _buildNavIcon(icon: Icons.shopping_bag, index: 1,label:  appLocalizations .translate('pages.businessSection.shop')),
+              _buildNavIcon(
+                icon: Icons.info_outline,
+                index: 0,
+                label: appLocalizations.translate(
+                  'pages.businessSection.information',
+                ),
+              ),
+              _buildNavIcon(
+                icon: Icons.shopping_bag,
+                index: 1,
+                label: appLocalizations.translate('pages.businessSection.shop'),
+              ),
               const SizedBox(width: 40), // espacio para botón central
-              _buildNavIcon(icon: Icons.newspaper, index: 2,label:  appLocalizations .translate('pages.businessSection.news')),
-              _buildNavIcon(icon: Icons.emoji_events, index: 3,label:  appLocalizations .translate('pages.businessSection.gaming')),
+              _buildNavIcon(
+                icon: Icons.newspaper,
+                index: 2,
+                label: appLocalizations.translate('pages.businessSection.news'),
+              ),
+              _buildNavIcon(
+                icon: Icons.emoji_events,
+                index: 3,
+                label: appLocalizations.translate(
+                  'pages.businessSection.gaming',
+                ),
+              ),
             ],
           ),
         ),
@@ -95,7 +136,7 @@ class _BusinessDetailPageState extends State<BusinessDetailPage> {
   Widget _buildNavIcon({
     required IconData icon,
     required int index,
-    required String label,  // Añadido: etiqueta del texto
+    required String label, // Añadido: etiqueta del texto
   }) {
     final theme = Theme.of(context);
     final isSelected = _selectedIndex == index;
@@ -128,5 +169,3 @@ class _BusinessDetailPageState extends State<BusinessDetailPage> {
     );
   }
 }
-
-

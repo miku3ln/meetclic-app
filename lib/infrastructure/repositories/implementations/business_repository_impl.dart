@@ -41,3 +41,30 @@ class BusinessRepositoryImpl implements BusinessRepository {
     );
   }
 }
+class BusinessDetailsRepositoryImpl implements BusinessDetailsRepository {
+  @override
+  Future<ApiResponseModel<List<BusinessModel>>> getBusinessesDetails({
+    required int businessId
+  }) async {
+    final url = Uri.parse('${ServerConfig.baseUrl}/business/businessDetails');
+    final body = {
+      'businessId': businessId,
+    };
+    return NetworkHelper.safeRequest<List<BusinessModel>>(
+      requestFunction: () {
+        return http.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(body),
+        );
+      },
+      parseData: (data) {
+        if (data is List) {
+          return data.map((item) => BusinessModel.fromJson(item)).toList();
+        }
+        return [];
+      },
+      emptyData: [],  // Si falla, devuelves lista vacía segura
+    );
+  }
+}

@@ -23,7 +23,9 @@ class ServerConfig {
       case Environment.test:
         return 'http://192.168.137.1/meetclickmanager/api';
       case Environment.local:
-       return 'http://192.168.137.1/meetclickmanager/api';
+      // return 'http://192.168.137.1/meetclickmanager/api';
+    return 'http://172.23.32.1/meetclickmanager/api';
+
        // return 'http://192.168.0.102/meetclickmanager/api';
     }
   }
