@@ -3,12 +3,17 @@ import 'package:meetclic/domain/models/business_model.dart';
 import 'package:meetclic/domain/entities/business_data.dart';
 import 'package:meetclic/domain/usecases/get_nearby_businesses_usecase.dart';
 import 'package:meetclic/infrastructure/repositories/implementations/business_repository_impl.dart';
-import 'package:meetclic/domain/models/api_response_model.dart';
+
 
 import '../../../shared/utils/util_common.dart';
 import '../../../shared/localization/app_localizations.dart';
 import 'header_business_section.dart';
 import 'package:meetclic/presentation/widgets/atoms/info_tile_schedule_atom.dart';
+import 'package:meetclic/presentation/widgets/modals/scheduling_modal.dart';
+import 'package:meetclic/domain/models/business_day.dart';
+
+import 'package:meetclic/domain/models/day_schedule.dart';
+
 // InfoTile
 class _InfoTile extends StatelessWidget {
   final IconData icon;
@@ -59,6 +64,28 @@ class _SocialIcon extends StatelessWidget {
       ),
     );
   }
+}
+List<DaySchedule> convertToDaySchedule(List<BusinessDay> days) {
+  final now = DateTime.now();
+  final todayIndex = now.weekday % 7; // Flutter: Lunes = 1
+
+  return days.map((day) {
+    final openRanges = day.configTypeSchedule.data;
+    final isOpen = day.configTypeSchedule.type && openRanges.isNotEmpty;
+
+    final timeRange = isOpen
+        ? openRanges
+        .map((r) => "${r.startTime.modelBreakdown} - ${r.endTime.modelBreakdown}")
+        .join(" / ")
+        : "";
+
+    return DaySchedule(
+      day: day.text,
+      isToday: day.weightDay == todayIndex,
+      isOpen: isOpen,
+      timeRange: timeRange,
+    );
+  }).toList();
 }
 
 // MAIN COMPONENT
@@ -113,6 +140,16 @@ class _HomeBusinessSectionState extends State<HomeBusinessSection> {
 
 
   Widget _buildSchedule() {
+    List<DaySchedule> schedule = [
+      DaySchedule(day: "Lunes", isToday: false, isOpen: false, timeRange: ""),
+      DaySchedule(day: "Martes", isToday: false, isOpen: false, timeRange: ""),
+      DaySchedule(day: "Miércoles", isToday: false, isOpen: true, timeRange: "8:00 AM - 2:00 PM"),
+      DaySchedule(day: "Jueves", isToday: false, isOpen: true, timeRange: "8:00 AM - 2:00 PM"),
+      DaySchedule(day: "Viernes", isToday: true, isOpen: true, timeRange: "8:00 AM - 2:00 PM"),
+      DaySchedule(day: "Sábado", isToday: false, isOpen: true, timeRange: "8:00 AM - 12:00 PM"),
+      DaySchedule(day: "Domingo", isToday: false, isOpen: false, timeRange: ""),
+    ];
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
@@ -125,6 +162,16 @@ class _HomeBusinessSectionState extends State<HomeBusinessSection> {
             onTap: () {
               // Aquí puedes navegar, mostrar modal, etc.
               print("Horario clicado");
+              showModalBottomSheet(
+                context: context,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                ),
+                isScrollControlled: true,
+                builder: (context) {
+                  return ScheduleModalOrganism(schedule: schedule); // Envías la lista ya armada
+                },
+              );
             },
           ),
 
