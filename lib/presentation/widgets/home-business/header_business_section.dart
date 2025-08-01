@@ -59,11 +59,14 @@ class HeaderBusinessSection extends StatelessWidget {
 
               Row(
                 children: List.generate(5, (index) {
-                  return Icon(
-                    index < businessManagementData.business.distance ? Icons.star : Icons.star_border,
-                    color: theme.colorScheme.secondary,
-                    size: 20,
-                  );
+                  double rating =business.summary!.rating.averageStars;
+                  if (index < rating.floor()) {
+                    return Icon(Icons.star, color: theme.colorScheme.secondary, size: 20);
+                  } else if (index < rating && rating - index >= 0.5) {
+                    return Icon(Icons.star_half, color: theme.colorScheme.secondary, size: 20);
+                  } else {
+                    return Icon(Icons.star_border, color: theme.colorScheme.secondary, size: 20);
+                  }
                 }),
               ),
               Text(business.businessName,

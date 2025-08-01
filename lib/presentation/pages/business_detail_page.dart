@@ -14,8 +14,8 @@ import 'package:meetclic/infrastructure/repositories/implementations/business_re
 import 'package:meetclic/domain/models/api_response_model.dart';
 
 Future<ApiResponseModel<List<BusinessModel>>> _loadBusinessesDetails(
-  businessId,
-) async {
+    businessId,
+    ) async {
   final useCase = BusinessesDetailsUseCase(
     repository: BusinessDetailsRepositoryImpl(),
   );
@@ -32,37 +32,33 @@ class BusinessDetailPage extends StatefulWidget {
   @override
   State<BusinessDetailPage> createState() => _BusinessDetailPageState();
 }
-
 class _BusinessDetailPageState extends State<BusinessDetailPage> {
+  late BusinessModel business; // Se usará para almacenar los datos actualizados
+  late BusinessData businessData;
+  late List<Widget> _pages;
   int _selectedIndex = 0;
 
-  late final BusinessData businessData;
-  late final List<Widget> _pages;
-  Future<void> _loadData() async {
-    final businessId = widget.business.id;
-    final responseCurrent = await _loadBusinessesDetails(businessId);
-
-    BusinessModel business = widget.business;
-    if (responseCurrent.success && responseCurrent.data.isNotEmpty) {
-      business = responseCurrent.data[0];
-    }
-
-    final businessData = BusinessData(business: business);
-
-    setState(() {
-      _pages = [
-        HomeBusinessSection(businessManagementData: businessData),
-        ShopBusinessSection(businessManagementData: businessData),
-        NewsBusinessSection(businessManagementData: businessData),
-        GamificationBusinessSection(businessManagementData: businessData),
-      ];
-    });
-  }
 
   @override
-  void initState() async {
+  void initState() {
     super.initState();
-    _loadData();
+    business = widget.business; // inicializamos con el business recibido
+    _loadData(); // luego lo actualizamos
+  }
+
+  Future<void> _loadData() async {
+
+    businessData = BusinessData(business: business);
+    _pages = [
+      HomeBusinessSection(businessManagementData: businessData),
+      ShopBusinessSection(businessManagementData: businessData),
+      NewsBusinessSection(businessManagementData: businessData),
+      GamificationBusinessSection(businessManagementData: businessData),
+    ];
+
+    setState(() {
+
+    });
   }
 
   void _onNavTap(int index) {
@@ -73,6 +69,8 @@ class _BusinessDetailPageState extends State<BusinessDetailPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final appLocalizations = AppLocalizations.of(context);
+
+
 
     return Scaffold(
       appBar: CustomAppBar(title: '', items: []),
@@ -98,7 +96,7 @@ class _BusinessDetailPageState extends State<BusinessDetailPage> {
                 index: 1,
                 label: appLocalizations.translate('pages.businessSection.shop'),
               ),
-              const SizedBox(width: 40), // espacio para botón central
+              const SizedBox(width: 40),
               _buildNavIcon(
                 icon: Icons.newspaper,
                 index: 2,
@@ -136,7 +134,7 @@ class _BusinessDetailPageState extends State<BusinessDetailPage> {
   Widget _buildNavIcon({
     required IconData icon,
     required int index,
-    required String label, // Añadido: etiqueta del texto
+    required String label,
   }) {
     final theme = Theme.of(context);
     final isSelected = _selectedIndex == index;

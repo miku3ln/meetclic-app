@@ -19,9 +19,9 @@ class MovementAmountModel extends MovementAmount {
       if (json == null) throw const FormatException("JSON nulo");
 
       return MovementAmountModel(
-        totalInput: (json['totalInput']),
-        totalOutput: (json['totalOutput']),
-        currentBalance: (json['currentBalance']),
+        totalInput: (json['totalInput'] as num).toDouble(),
+        totalOutput: (json['totalOutput'] as num).toDouble(),
+        currentBalance: (json['currentBalance'] as num).toDouble(),
       );
     } catch (e, stacktrace) {
       print('❌ Error al parsear MovementAmountModel: $e');
@@ -53,7 +53,7 @@ class ReputationSummaryModel extends ReputationSummary {
 
   factory ReputationSummaryModel.fromJson(Map<String, dynamic>? json) {
     try {
-      return ReputationSummaryModel(total: json?['total'] ?? 0);
+      return ReputationSummaryModel(total: (json?['total']) ?? 0);
     } catch (e) {
       print('❌ Error en ReputationSummaryModel: $e');
       return ReputationSummaryModel.empty();
@@ -69,7 +69,9 @@ class TrophiesSummaryModel extends TrophiesSummary {
 
   factory TrophiesSummaryModel.fromJson(Map<String, dynamic>? json) {
     try {
-      return TrophiesSummaryModel(total: json?['total'] ?? 0);
+      final totalValue = (json?['total'] as num?)?.toDouble() ?? 0.0;
+
+      return TrophiesSummaryModel(total: totalValue);
     } catch (e) {
       print('❌ Error en TrophiesSummaryModel: $e');
       return TrophiesSummaryModel.empty();
@@ -85,7 +87,9 @@ class VisitsSummaryModel extends VisitsSummary {
 
   factory VisitsSummaryModel.fromJson(Map<String, dynamic>? json) {
     try {
-      return VisitsSummaryModel(total: json?['total'] ?? 0);
+      final totalValue = (json?['total'] as num?)?.toInt() ?? 0;
+
+      return VisitsSummaryModel(total:totalValue);
     } catch (e) {
       print('❌ Error en VisitsSummaryModel: $e');
       return VisitsSummaryModel.empty();
@@ -112,10 +116,15 @@ class RatingSummaryModel extends RatingSummary {
 
   factory RatingSummaryModel.fromJson(Map<String, dynamic>? json) {
     try {
+
+      final positiveClients = (json?['positiveClients'] as num?)?.toInt() ?? 0;
+      final averageStars = (json?['averageStars'] as num?)?.toDouble() ?? 0.0;
+      final communityScore = (json?['communityScore'] as num?)?.toDouble() ?? 0.0;
+
       return RatingSummaryModel(
-        positiveClients: json?['positiveClients'] ?? 0,
-        averageStars: json?['averageStars'] ?? 0,
-        communityScore: json?['communityScore'] ?? 0,
+        positiveClients: positiveClients,
+        averageStars: averageStars,
+        communityScore: communityScore,
       );
     } catch (e) {
       print('❌ Error en RatingSummaryModel: $e');
