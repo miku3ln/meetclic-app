@@ -145,9 +145,10 @@ class HeaderBusinessSection extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children:  [
-                _MetricItem(icon: Icons.person, label:       appLocalizations.translate('gamingDataTitle.newsRegisterCount'), value: 5),
-                _MetricItem(icon: Icons.emoji_people, label:appLocalizations.translate('gamingDataTitle.customerCount'), value: 10),
-                _MetricItem(icon: Icons.emoji_events, label: appLocalizations.translate('gamingDataTitle.rewardsWonCount'), value: 2),
+                _MetricItem(icon: Icons.person, label:       appLocalizations.translate('gamingDataTitle.newsRegisterCount'), value: business.summary!.visits.total.toDouble()),
+                _MetricItem(icon: Icons.emoji_people, label:appLocalizations.translate('gamingDataTitle.customerCount'), value: business.summary!.visits.total.toDouble()),
+                _MetricItem(icon: Icons.emoji_events, label: appLocalizations.translate('gamingDataTitle.rewardsWonCount'), value:business.summary!.trophies.total
+                ),
               ],
             ),
           ),
@@ -159,7 +160,7 @@ class HeaderBusinessSection extends StatelessWidget {
 class _MetricItem extends StatelessWidget {
   final IconData icon;
   final String label;
-  final int value;
+  final double value;
 
   const _MetricItem({
     required this.icon,

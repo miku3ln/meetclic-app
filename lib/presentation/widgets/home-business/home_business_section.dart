@@ -8,7 +8,7 @@ import 'package:meetclic/domain/models/api_response_model.dart';
 import '../../../shared/utils/util_common.dart';
 import '../../../shared/localization/app_localizations.dart';
 import 'header_business_section.dart';
-
+import 'package:meetclic/presentation/widgets/atoms/info_tile_schedule_atom.dart';
 // InfoTile
 class _InfoTile extends StatelessWidget {
   final IconData icon;
@@ -111,6 +111,28 @@ class _HomeBusinessSectionState extends State<HomeBusinessSection> {
     }
   }
 
+
+  Widget _buildSchedule() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        children: [
+          InfoTileScheduleAtom(
+            title: "Horario",
+            subtitle: "Verified 1 month ago",
+            description: "Abierto 8:00 a.m. - 2:00 p.m. EDT",
+            icon: Icons.access_time,
+            onTap: () {
+              // Aquí puedes navegar, mostrar modal, etc.
+              print("Horario clicado");
+            },
+          ),
+
+        ],
+      ),
+    );
+  }
+
   Widget _buildContactSection() {
     final address = "${business.street1}, ${business.street2}";
 
@@ -175,6 +197,7 @@ class _HomeBusinessSectionState extends State<HomeBusinessSection> {
                     fontSize: theme.textTheme.titleLarge?.fontSize,
                   ),
                 ),
+                _buildSchedule(),
                 _buildContactSection(),
                 const SizedBox(height: 12),
                 Text(
