@@ -1,5 +1,7 @@
 import 'package:meetclic/infrastructure/models/summary_model.dart';
 import 'dart:convert';
+import 'package:meetclic/domain/models/business_day.dart';
+import 'package:meetclic/domain/models/social_network.dart';
 
 class BusinessModel {
   final int id;
@@ -22,6 +24,9 @@ class BusinessModel {
   final String distanceKmText;
   final String sourceLogo;
   MovementSummaryModel? summary;
+  List<BusinessDay>? schedulingData;
+  List<SocialNetwork>? socialNetworksData;
+
   BusinessModel({
     required this.id,
     required this.title,
@@ -43,7 +48,8 @@ class BusinessModel {
     required this.distanceKmText,
     required this.sourceLogo,
     required this.summary,
-
+    this.schedulingData,
+    this.socialNetworksData,
   });
 
   factory BusinessModel.fromJson(Map<String, dynamic> json) {
@@ -74,10 +80,28 @@ class BusinessModel {
     "communityScore": 0}
 }
 ''';
-    var sourceLogo=json['source'];
-     final Map<String, dynamic> jsonDataSummary = jsonDecode(movementSummaryJson);
-     var summaryCurrent= json['summary'] == null?jsonDataSummary:json['summary'];
-         var summary= MovementSummaryModel.fromJson(summaryCurrent);
+    var sourceLogo = json['source'];
+    final Map<String, dynamic> jsonDataSummary = jsonDecode(
+      movementSummaryJson,
+    );
+    var summaryCurrent = json['summary'] == null
+        ? jsonDataSummary
+        : json['summary'];
+    var schedules = json['schedules'];
+    var socialNetworksDataJson =
+        json['socialNetworksData']; //TODO INVIOCAR fromMap
+    List<SocialNetwork> socialNetworksData = [];
+    if (socialNetworksDataJson != null) {
+      socialNetworksData = SocialNetwork.fromMap(socialNetworksDataJson);
+    }
+
+    var summary = MovementSummaryModel.fromJson(summaryCurrent);
+    List<BusinessDay> schedulingData = [];
+    if (schedules != null) {
+      schedulingData = (schedules as List<dynamic>)
+          .map((e) => BusinessDay.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
     return BusinessModel(
       id: json['id'],
       title: json['title'] ?? '',
@@ -98,8 +122,9 @@ class BusinessModel {
       distance: double.tryParse(json['distance'].toString()) ?? 0.0,
       distanceKmText: json['distance_km'] ?? '',
       sourceLogo: sourceLogo,
-      summary:summary,
-
+      summary: summary,
+      schedulingData: schedulingData,
+      socialNetworksData: socialNetworksData,
     );
   }
 }

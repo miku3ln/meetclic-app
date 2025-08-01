@@ -13,6 +13,7 @@ import 'package:meetclic/presentation/widgets/modals/scheduling_modal.dart';
 import 'package:meetclic/domain/models/business_day.dart';
 
 import 'package:meetclic/domain/models/day_schedule.dart';
+import 'package:meetclic/domain/models/social_network.dart';
 
 // InfoTile
 class _InfoTile extends StatelessWidget {
@@ -38,6 +39,31 @@ class _InfoTile extends StatelessWidget {
       ),
     );
   }
+}
+List<_SocialIcon> buildSocialIcons(List<SocialNetwork> networks, String pageUrl) {
+  final List<_SocialIcon> icons = [];
+
+  final Map<String, IconData> iconMapping = {
+    'facebook': Icons.facebook,
+    'instagram': Icons.camera_alt,
+    'twitter': Icons.alternate_email,
+    'youtube': Icons.ondemand_video,
+    'whatsapp': Icons.chat,
+    'tiktok': Icons.videocam, // Asumiendo que tiktok vendría con otro name
+  };
+
+  for (final net in networks) {
+    if (iconMapping.containsKey(net.typeSocial.toLowerCase())) {
+      icons.add(_SocialIcon(icon: iconMapping[net.typeSocial.toLowerCase()]!, url: net.value));
+    }
+  }
+
+  // Página Web principal (agregas fuera de la lista)
+  if (pageUrl.isNotEmpty) {
+    icons.add(_SocialIcon(icon: Icons.business, url: pageUrl));
+  }
+
+  return icons;
 }
 
 // SocialIcon
@@ -140,15 +166,8 @@ class _HomeBusinessSectionState extends State<HomeBusinessSection> {
 
 
   Widget _buildSchedule() {
-    List<DaySchedule> schedule = [
-      DaySchedule(day: "Lunes", isToday: false, isOpen: false, timeRange: ""),
-      DaySchedule(day: "Martes", isToday: false, isOpen: false, timeRange: ""),
-      DaySchedule(day: "Miércoles", isToday: false, isOpen: true, timeRange: "8:00 AM - 2:00 PM"),
-      DaySchedule(day: "Jueves", isToday: false, isOpen: true, timeRange: "8:00 AM - 2:00 PM"),
-      DaySchedule(day: "Viernes", isToday: true, isOpen: true, timeRange: "8:00 AM - 2:00 PM"),
-      DaySchedule(day: "Sábado", isToday: false, isOpen: true, timeRange: "8:00 AM - 12:00 PM"),
-      DaySchedule(day: "Domingo", isToday: false, isOpen: false, timeRange: ""),
-    ];
+     List<BusinessDay>? days=business.schedulingData!;
+    List<DaySchedule> schedule =convertToDaySchedule(days);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -160,8 +179,6 @@ class _HomeBusinessSectionState extends State<HomeBusinessSection> {
             description: "Abierto 8:00 a.m. - 2:00 p.m. EDT",
             icon: Icons.access_time,
             onTap: () {
-              // Aquí puedes navegar, mostrar modal, etc.
-              print("Horario clicado");
               showModalBottomSheet(
                 context: context,
                 shape: const RoundedRectangleBorder(
@@ -197,14 +214,13 @@ class _HomeBusinessSectionState extends State<HomeBusinessSection> {
   }
 
   Widget _buildSocialIcons() {
+    final List<_SocialIcon> icons = buildSocialIcons(
+      business.socialNetworksData ?? [],
+      business.pageUrl,
+    );
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _SocialIcon(icon: Icons.facebook, url: "https://facebook.com"),
-        _SocialIcon(icon: Icons.camera_alt, url: "https://instagram.com"),
-        _SocialIcon(icon: Icons.videocam, url: 'https://tiktok.com'),
-        _SocialIcon(icon: Icons.business, url: business.pageUrl),
-      ],
+      children:icons,
     );
   }
 
