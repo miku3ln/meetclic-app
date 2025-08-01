@@ -42,7 +42,6 @@ class _InfoTile extends StatelessWidget {
 }
 List<_SocialIcon> buildSocialIcons(List<SocialNetwork> networks, String pageUrl) {
   final List<_SocialIcon> icons = [];
-
   final Map<String, IconData> iconMapping = {
     'facebook': Icons.facebook,
     'instagram': Icons.camera_alt,
@@ -51,14 +50,11 @@ List<_SocialIcon> buildSocialIcons(List<SocialNetwork> networks, String pageUrl)
     'whatsapp': Icons.chat,
     'tiktok': Icons.videocam, // Asumiendo que tiktok vendría con otro name
   };
-
   for (final net in networks) {
     if (iconMapping.containsKey(net.typeSocial.toLowerCase())) {
       icons.add(_SocialIcon(icon: iconMapping[net.typeSocial.toLowerCase()]!, url: net.value));
     }
   }
-
-  // Página Web principal (agregas fuera de la lista)
   if (pageUrl.isNotEmpty) {
     icons.add(_SocialIcon(icon: Icons.business, url: pageUrl));
   }
