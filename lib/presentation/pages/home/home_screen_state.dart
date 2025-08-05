@@ -20,6 +20,8 @@ import 'package:meetclic/presentation/widgets/template/custom_app_bar.dart';
 import '../../../../shared/providers_session.dart';
 import 'home_page.dart';
 import 'package:meetclic/presentation/controllers/menu_tab_up_controller.dart';
+import 'package:meetclic/presentation/pages/project_lake_page.dart';
+import 'package:meetclic/presentation/widgets/grid-custome/templates/customer_gridview_page.dart';
 
 class HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -28,8 +30,6 @@ class HomeScreenState extends State<HomeScreen> {
 
   int _currentIndex = 0;
   DeepLinkInfo? _pendingDeepLink;
-
-
 
   late AppConfig config;
   late AccessManagerService accessManager;
@@ -56,8 +56,7 @@ class HomeScreenState extends State<HomeScreen> {
       session: session,
       setFlagCallback: setState,
     );
-
-    return [
+    var pages = [
       _buildHomeContent(menuItems),
       BusinessMapPage(info: _pendingDeepLink, itemsStatus: menuItems),
       FullScreenPage(
@@ -68,15 +67,17 @@ class HomeScreenState extends State<HomeScreen> {
         title: AppLocalizations.of(context).translate('pages.aboutUs'),
         itemsStatus: menuItems,
       ),
-      ProfilePage(
-        title: AppLocalizations.of(context).translate('pages.profile'),
-        itemsStatus: menuItems,
-      ),
-      FullScreenPage(
-        title: AppLocalizations.of(context).translate('pages.gaming'),
-        itemsStatus: menuItems,
-      ),
+      CustomerGridViewPage(),
     ];
+    if (session.isLoggedIn) {
+      pages.add(
+        ProfilePage(
+          title: AppLocalizations.of(context).translate('pages.profile'),
+          itemsStatus: menuItems,
+        ),
+      );
+    }
+    return pages;
   }
 
   void _setupListeners() {
@@ -128,7 +129,6 @@ class HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-
   Widget _buildHomeContent(List<MenuTabUpItem> menuItems) {
     final theme = Theme.of(context);
     return Scaffold(
@@ -166,12 +166,19 @@ class HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.emoji_events),
             label: appLocalizations.translate('pages.gaming'),
           ),
-          if (session.isLoggedIn)
+          BottomNavigationBarItem(
+            icon: Icon(Icons.emoji_events),
+            label: appLocalizations.translate('pages.projects'),
+          ),
+        ];
+        if (session.isLoggedIn) {
+          itemsMenu.add(
             BottomNavigationBarItem(
               icon: Icon(Icons.person),
               label: appLocalizations.translate('pages.profile'),
             ),
-        ];
+          );
+        }
 
         return Scaffold(
           key: _scaffoldKey,
@@ -191,6 +198,4 @@ class HomeScreenState extends State<HomeScreen> {
       },
     );
   }
-
-
 }
