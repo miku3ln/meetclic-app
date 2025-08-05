@@ -22,6 +22,10 @@ class _CustomerGridRowState extends State<CustomerGridRow> {
   late TextEditingController documentController;
   late TextEditingController ageController;
 
+  bool isNameTouched = false;
+  bool isDocumentTouched = false;
+  bool isAgeTouched = false;
+
   @override
   void initState() {
     super.initState();
@@ -38,23 +42,40 @@ class _CustomerGridRowState extends State<CustomerGridRow> {
     super.dispose();
   }
 
+  bool isNotEmpty(String value) => value.trim().isNotEmpty;
+  bool isValidAge(String value) {
+    int? age = int.tryParse(value);
+    return age != null && age > 0 && age <= 120;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-
-        Expanded(
-          child: InputTextField(
-            hintText: 'Document',
-            controller: documentController,
-            onChanged: (value) => widget.onUpdate(widget.customer.copyWith(documentNumber: value)),
-          ),
-        ),
         Expanded(
           child: InputTextField(
             hintText: 'Full Name',
             controller: fullNameController,
-            onChanged: (value) => widget.onUpdate(widget.customer.copyWith(fullName: value)),
+            onChanged: (value) {
+              setState(() => isNameTouched = true);
+              widget.onUpdate(widget.customer.copyWith(fullName: value));
+            },
+            isTouched: isNameTouched,
+            isValid: isNotEmpty(fullNameController.text),
+            errorMessage: 'Name is required',
+          ),
+        ),
+        Expanded(
+          child: InputTextField(
+            hintText: 'Document',
+            controller: documentController,
+            onChanged: (value) {
+              setState(() => isDocumentTouched = true);
+              widget.onUpdate(widget.customer.copyWith(documentNumber: value));
+            },
+            isTouched: isDocumentTouched,
+            isValid: isNotEmpty(documentController.text),
+            errorMessage: 'Document is required',
           ),
         ),
         Expanded(
@@ -68,7 +89,13 @@ class _CustomerGridRowState extends State<CustomerGridRow> {
           child: InputTextField(
             hintText: 'Age',
             controller: ageController,
-            onChanged: (value) => widget.onUpdate(widget.customer.copyWith(age: int.tryParse(value) ?? 0)),
+            onChanged: (value) {
+              setState(() => isAgeTouched = true);
+              widget.onUpdate(widget.customer.copyWith(age: int.tryParse(value) ?? 0));
+            },
+            isTouched: isAgeTouched,
+            isValid: isValidAge(ageController.text),
+            errorMessage: 'Enter valid age',
             keyboardType: TextInputType.number,
           ),
         ),

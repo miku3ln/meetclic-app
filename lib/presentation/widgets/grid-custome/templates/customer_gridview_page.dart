@@ -3,8 +3,6 @@ import '../../../../domain/models/customer_model.dart';
 import '../../grid-custome/gridview_header.dart';
 import '../../grid-custome/organisms/customer_grid_row.dart';
 
-
-
 class CustomerGridViewPage extends StatefulWidget {
   @override
   _CustomerGridViewPageState createState() => _CustomerGridViewPageState();
@@ -30,19 +28,17 @@ class _CustomerGridViewPageState extends State<CustomerGridViewPage> {
       customers[index] = updatedCustomer;
     });
   }
-
-  bool validateFields() {
+  bool allFieldsValid() {
     for (var customer in customers) {
       if (customer.fullName.isEmpty || customer.documentNumber.isEmpty || customer.age == 0) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('All fields are mandatory.')));
         return false;
       }
     }
     return true;
   }
-
   @override
   Widget build(BuildContext context) {
+    bool isValid = allFieldsValid();
     return Scaffold(
       appBar: AppBar(title: Text('Customer Data Entry')),
       body: Padding(
@@ -67,12 +63,29 @@ class _CustomerGridViewPageState extends State<CustomerGridViewPage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: addCustomerRow,
-        child: Icon(Icons.add),
-        tooltip: 'Add Row',
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            onPressed: addCustomerRow,
+            heroTag: 'addRow',
+            tooltip: 'Add Row',
+            child: Icon(Icons.add),
+          ),
+          const SizedBox(height: 16),
+          FloatingActionButton.extended(
+            onPressed: isValid ? () {
+              // Acción al presionar "Guardar"
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Datos guardados')));
+            } : null,
+            label: Text('Guardar'),
+            icon: Icon(Icons.save),
+            heroTag: 'saveButton',
+            backgroundColor: isValid ? Colors.blue : Colors.grey,
+          ),
+        ],
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
     );
   }
 }
