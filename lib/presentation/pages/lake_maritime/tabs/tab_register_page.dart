@@ -40,8 +40,7 @@ class _TabRegisterPageState extends State<TabRegisterPage> {
     if (customers.isEmpty) return false;
     for (var customer in customers) {
       if (customer.fullName.isEmpty ||
-          customer.documentNumber.isEmpty ||
-          customer.age == 0) {
+          customer.documentNumber.isEmpty ) {
         return false;
       }
     }
@@ -64,7 +63,7 @@ class _TabRegisterPageState extends State<TabRegisterPage> {
     final data = await sendUseCase.execute(payload);
 
     if (data.success) {
-      setState(() => customers = [CustomerModel.empty()]);
+      setState(() => customers.clear());
     }
 
     ScaffoldMessenger.of(context)

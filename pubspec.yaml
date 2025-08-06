@@ -86,7 +86,7 @@ flutter:
     - assets/flags/
     - assets/appbar/
     - assets/pages/profile/
-    - assets/pages/login/
+    - assets/pages/login/init-login-register.png
     - assets/icons/pututuMarker.png
     - assets/data/
   # The following line ensures that the Material Icons font is

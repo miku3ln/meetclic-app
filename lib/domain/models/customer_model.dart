@@ -15,7 +15,7 @@ class CustomerModel {
     fullName: '',
     documentNumber: '',
     type: 'A',
-    age: 0,
+    age: 1,
   );
 
   CustomerModel copyWith({

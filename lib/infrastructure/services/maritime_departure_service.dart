@@ -66,14 +66,20 @@ class MaritimeDepartureService {
       MaritimeDepartureModel departureData,
       ) {
 
-
+    String getPassengerTypeFromAge(int age) {
+      if (age < 18) {
+        return 'CHILD';
+      } else {
+        return 'ADULT';
+      }
+    }
     final customersData = customers.map((c) {
       final nameParts = splitFullName(c.fullName);
       return {
         "full_name": c.fullName,
         "last_name": nameParts['last_name'],
         "name": nameParts['name'],
-        "type": c.type == 'A' ? 'ADULT' : "CHILD",
+        "type": getPassengerTypeFromAge(c.age),
         //"type": c.type,
         "age": c.age,
         "document_number": c.documentNumber,

@@ -28,7 +28,7 @@ class AppImages {
   static const pageProfileAvatar= 'assets/pages/profile/profile.png';
 
 
-  static const pageLoginInit= 'pages/login/init-login-register.png';
+  static const pageLoginInit= 'assets/pages/login/init-login-register.png';
   static const pageBusinessMapMarkerPosition= 'assets/icons/pututuMarker.png';
 
   // Puedes agrupar por tipo si deseas más orden

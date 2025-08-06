@@ -145,7 +145,7 @@ class _CustomerGridRowState extends State<CustomerGridRow> {
             errorMessage: 'Name is required',
           ),
         ),
-        Expanded(
+      /*  Expanded(
           child: DropdownSelector(
             width: 2,
             options: ['A', 'NI'],
@@ -153,7 +153,7 @@ class _CustomerGridRowState extends State<CustomerGridRow> {
             onChanged: (value) =>
                 widget.onUpdate(widget.customer.copyWith(type: value)),
           ),
-        ),
+        ),*/
         Expanded(
           child: InputTextField(
             hintText: 'Age',
