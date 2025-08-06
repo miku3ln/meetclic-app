@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import '../../../../domain/models/maritime_departure_model.dart';
 import '../reports/bar_chart_passengers_by_date.dart';
+import '../reports/avg_age_line_chart.dart';
+
 import 'package:intl/intl.dart';
 
 Map<String, Map<String, int>> getPassengersByDateAndType(List<MaritimeDepartureModel> data) {
@@ -25,28 +27,49 @@ Map<String, Map<String, int>> getPassengersByDateAndType(List<MaritimeDepartureM
 
   return result;
 }
-Map<String, Map<String, double>> getAgeStatsByDate(List<MaritimeDepartureModel> data) {
+Map<String, double> getAvgAgeByDate(List<MaritimeDepartureModel> data) {
   final Map<String, List<int>> ageByDate = {};
 
   for (final departure in data) {
-    final date = departure.arrivalTime.split("T").first;
+    final date = DateFormat('dd-MM-yyyy')
+        .format(DateTime.parse(departure.arrivalTime));
     final ages = departure.customers?.map((c) => c.age).toList() ?? [];
-
     if (ages.isNotEmpty) {
       ageByDate.putIfAbsent(date, () => []);
       ageByDate[date]!.addAll(ages);
     }
   }
 
-  final Map<String, Map<String, double>> result = {};
+  final Map<String, double> avgByDate = {};
   for (final entry in ageByDate.entries) {
     final ages = entry.value;
-    result[entry.key] = {
-      "avg": ages.reduce((a, b) => a + b) / ages.length,
-      "min": ages.reduce((a, b) => a < b ? a : b).toDouble(),
-      "max": ages.reduce((a, b) => a > b ? a : b).toDouble(),
-    };
+    final avg = ages.reduce((a, b) => a + b) / ages.length;
+    avgByDate[entry.key] = avg;
   }
+
+  return Map.fromEntries(avgByDate.entries.toList()
+    ..sort((a, b) => a.key.compareTo(b.key)));
+}
+
+Map<String, Map<String, double>> getAgeStatsByDate(List<MaritimeDepartureModel> data) {
+  final Map<String, List<int>> ageByDate = {};
+  final DateFormat formatter = DateFormat('dd-MM-yyyy');
+
+  for (final departure in data) {
+    final date = formatter.format(DateTime.parse(departure.arrivalTime));
+    final ages = departure.customers?.map((c) => c.age).whereType<int>().toList() ?? [];
+
+    if (ages.isNotEmpty) {
+      ageByDate.putIfAbsent(date, () => []);
+      ageByDate[date]!.addAll(ages);
+    }
+  }
+  final Map<String, Map<String, double>> result = {};
+  ageByDate.forEach((date, ages) {
+    final total = ages.fold<int>(0, (sum, age) => sum + age);
+    final average = total / ages.length;
+    result[date] = {"averageAge": average};
+  });
 
   return result;
 }
@@ -119,6 +142,7 @@ class TabHomePage extends StatefulWidget {
 }
 class _TabHomePageState extends State<TabHomePage> {
   Map<String, Map<String, int>> passengersData = {};
+  late Map<String, double> avgAgeData;
   bool isLoading = true;
 
   @override
@@ -130,9 +154,11 @@ class _TabHomePageState extends State<TabHomePage> {
   Future<void> _load() async {
     final data = await _loadAndProcessData();
     final chartData = getPassengersByDateAndType(data);
+    final processed = getAvgAgeByDate(data);
 
     setState(() {
       passengersData = chartData;
+      avgAgeData = processed;
       isLoading = false;
     });
   }
@@ -141,9 +167,24 @@ class _TabHomePageState extends State<TabHomePage> {
   Widget build(BuildContext context) {
     return isLoading
         ? const Center(child: CircularProgressIndicator())
-        : Padding(
-      padding: const EdgeInsets.all(12.0),
-      child: PassengerBarChart(dataByDate: passengersData),
+        : SingleChildScrollView( // 👈 ESTE
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("Pasajeros por Fecha (Niños vs Adultos)", style: TextStyle(fontWeight: FontWeight.bold)),
+          SizedBox(
+            height: 300,
+            child: PassengerBarChart(dataByDate: passengersData),
+          ),
+          const SizedBox(height: 24),
+          const Text("Edad Promedio por Fecha", style: TextStyle(fontWeight: FontWeight.bold)),
+          SizedBox(
+            height: 300,
+            child: AvgAgeLineChart(dataByDate: avgAgeData),
+          ),
+        ],
+      ),
     );
   }
 }
