@@ -12,14 +12,22 @@ class CustomerGridViewPage extends StatefulWidget {
 class _CustomerGridViewPageState extends State<CustomerGridViewPage> {
   List<CustomerModel> customers = [CustomerModel.empty()];
   final MaritimeDepartureService maritimeDepartureService = MaritimeDepartureService();
+
   void addCustomerRow() {
     setState(() {
       customers.add(CustomerModel.empty());
     });
   }
-  Future<void> saveRegisters() async {
 
-    final payload = maritimeDepartureService.buildMaritimeDeparturePayloadObject(customers);
+  Future<void> saveRegisters() async {
+    final payload = maritimeDepartureService
+        .buildMaritimeDeparturePayloadObject(customers, {
+      "business_id": 1,
+      "user_id": 1,
+      "user_management_id": 5,
+      "arrival_time": "2025-08-06 10:00:00",
+      "responsible_name": "Alex Alba"
+    });
 
     final SendMaritimeDepartureUseCase sendMaritimeDepartureUseCase = SendMaritimeDepartureUseCase(
       MaritimeDepartureService(),
@@ -32,8 +40,8 @@ class _CustomerGridViewPageState extends State<CustomerGridViewPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(data.message)),
     );
-
   }
+
   void deleteCustomerRow(int index) {
     setState(() {
       customers.removeAt(index);
@@ -45,14 +53,17 @@ class _CustomerGridViewPageState extends State<CustomerGridViewPage> {
       customers[index] = updatedCustomer;
     });
   }
+
   bool allFieldsValid() {
     for (var customer in customers) {
-      if (customer.fullName.isEmpty || customer.documentNumber.isEmpty || customer.age == 0) {
+      if (customer.fullName.isEmpty || customer.documentNumber.isEmpty ||
+          customer.age == 0) {
         return false;
       }
     }
     return true;
   }
+
   @override
   Widget build(BuildContext context) {
     bool isValid = allFieldsValid();
@@ -71,7 +82,8 @@ class _CustomerGridViewPageState extends State<CustomerGridViewPage> {
                 itemBuilder: (context, index) {
                   return CustomerGridRow(
                     customer: customers[index],
-                    onUpdate: (updatedCustomer) => updateCustomer(index, updatedCustomer),
+                    onUpdate: (updatedCustomer) =>
+                        updateCustomer(index, updatedCustomer),
                     onDelete: () => deleteCustomerRow(index),
                   );
                 },

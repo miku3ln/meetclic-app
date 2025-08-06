@@ -5,10 +5,10 @@ class GridViewHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: const [
-        Expanded(child: Text('Document', style: TextStyle(fontWeight: FontWeight.bold))),
-        Expanded(child: Text('Full Name', style: TextStyle(fontWeight: FontWeight.bold))),
-        Expanded(child: Text('Adult/Child', style: TextStyle(fontWeight: FontWeight.bold))),
-        Expanded(child: Text('Age', style: TextStyle(fontWeight: FontWeight.bold))),
+        Expanded(child: Text('Identificación', style: TextStyle(fontWeight: FontWeight.bold))),
+        Expanded(child: Text('Nombres', style: TextStyle(fontWeight: FontWeight.bold))),
+        Expanded(child: Text('Adulto/Niño', style: TextStyle(fontWeight: FontWeight.bold))),
+        Expanded(child: Text('Edad', style: TextStyle(fontWeight: FontWeight.bold))),
       ],
     );
   }

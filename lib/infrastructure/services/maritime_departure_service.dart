@@ -61,14 +61,10 @@ class MaritimeDepartureService {
   final String baseUrl = '${ServerConfig.baseUrl}';
 
   Map<String, dynamic> buildMaritimeDeparturePayloadObject(
-      List<CustomerModel> customers) {
-    final departureData = {
-      "business_id": 1,
-      "user_id": 999,
-      "user_management_id": 5,
-      "arrival_time": "2025-08-06 10:00:00",
-      "responsible_name": "Alex Alba"
-    };
+      List<CustomerModel> customers,
+      Map<String, dynamic> departureData,
+      ) {
+
 
     final customersData = customers.map((c) {
       final nameParts = splitFullName(c.fullName);
