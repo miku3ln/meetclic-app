@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:rive/rive.dart';
-import '../../../domain/entities/status_item.dart';
 import '../../../presentation/widgets/template/custom_app_bar.dart';
 import '../../../shared/themes/app_colors.dart';
 import '../../../shared/utils/rive_util_common.dart';

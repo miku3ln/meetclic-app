@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../domain/models/customer_model.dart';
 import '../../grid-custome/gridview_header.dart';
 import '../../grid-custome/organisms/customer_grid_row.dart';
+import '../../../../infrastructure/services/maritime_departure_service.dart';
 
 class CustomerGridViewPage extends StatefulWidget {
   @override
@@ -10,13 +11,29 @@ class CustomerGridViewPage extends StatefulWidget {
 
 class _CustomerGridViewPageState extends State<CustomerGridViewPage> {
   List<CustomerModel> customers = [CustomerModel.empty()];
-
+  final MaritimeDepartureService maritimeDepartureService = MaritimeDepartureService();
   void addCustomerRow() {
     setState(() {
       customers.add(CustomerModel.empty());
     });
   }
+  Future<void> saveRegisters() async {
 
+    final payload = maritimeDepartureService.buildMaritimeDeparturePayloadObject(customers);
+
+    final SendMaritimeDepartureUseCase sendMaritimeDepartureUseCase = SendMaritimeDepartureUseCase(
+      MaritimeDepartureService(),
+    );
+
+    final data = await sendMaritimeDepartureUseCase.execute(payload);
+    if (data.success) {
+      customers = [CustomerModel.empty()];
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(data.message)),
+    );
+
+  }
   void deleteCustomerRow(int index) {
     setState(() {
       customers.removeAt(index);
@@ -70,16 +87,13 @@ class _CustomerGridViewPageState extends State<CustomerGridViewPage> {
           FloatingActionButton(
             onPressed: addCustomerRow,
             heroTag: 'addRow',
-            tooltip: 'Add Row',
+            tooltip: 'Agregar Persona',
             child: Icon(Icons.add),
           ),
           const SizedBox(height: 16),
           FloatingActionButton.extended(
-            onPressed: isValid ? () {
-              // Acción al presionar "Guardar"
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Datos guardados')));
-            } : null,
-            label: Text('Guardar'),
+            onPressed: isValid ? saveRegisters : null,
+            label: Text('Enviar Registro Embarque'),
             icon: Icon(Icons.save),
             heroTag: 'saveButton',
             backgroundColor: isValid ? Colors.blue : Colors.grey,

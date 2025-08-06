@@ -14,7 +14,7 @@ class CustomerModel {
   factory CustomerModel.empty() => CustomerModel(
     fullName: '',
     documentNumber: '',
-    type: 'ADULT',
+    type: 'A',
     age: 0,
   );
 

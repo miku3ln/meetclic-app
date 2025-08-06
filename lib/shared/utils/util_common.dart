@@ -61,4 +61,12 @@ class UtilCommon {
       SnackBar(content: Text(message)),
     );
   }
+  static final RegExp _ecuadorianCedulaRegex =
+  RegExp(r'^(0[1-9]|1[0-9]|2[0-4])[0-6]\d{6}\d$');
+
+  /// Valida si el número ingresado es una cédula ecuatoriana válida (solo por patrón)
+  static bool isValidCedulaEcuatoriana(String cedula) {
+    if (cedula.length != 10) return false;
+    return _ecuadorianCedulaRegex.hasMatch(cedula);
+  }
 }

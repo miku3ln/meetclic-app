@@ -7,7 +7,7 @@ class InputTextField extends StatelessWidget {
   final bool isValid;
   final String? errorMessage;
   final TextInputType keyboardType;
-
+  final FocusNode? focusNode; // <-- Añadido
   InputTextField({
     required this.hintText,
     required this.controller,
@@ -16,6 +16,7 @@ class InputTextField extends StatelessWidget {
     this.isValid = true,
     this.errorMessage,
     this.keyboardType = TextInputType.text,
+    this.focusNode, // <-- Añadido
   });
 
   @override
@@ -29,6 +30,7 @@ class InputTextField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TextField(
+          focusNode: focusNode, // <-- Añadido
           controller: controller,
           onChanged: onChanged,
           decoration: InputDecoration(

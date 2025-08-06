@@ -21,7 +21,7 @@ import '../../../../shared/providers_session.dart';
 import 'home_page.dart';
 import 'package:meetclic/presentation/controllers/menu_tab_up_controller.dart';
 import 'package:meetclic/presentation/pages/project_lake_page.dart';
-import 'package:meetclic/presentation/widgets/grid-custome/templates/customer_gridview_page.dart';
+
 
 class HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -67,7 +67,11 @@ class HomeScreenState extends State<HomeScreen> {
         title: AppLocalizations.of(context).translate('pages.aboutUs'),
         itemsStatus: menuItems,
       ),
-      CustomerGridViewPage(),
+      ProjectLakePage(
+        title: AppLocalizations.of(context).translate('pages.projects'),
+        itemsStatus: menuItems,
+
+      ),
     ];
     if (session.isLoggedIn) {
       pages.add(
