@@ -4,6 +4,8 @@ import '../../../../infrastructure/services/maritime_departure_service.dart';
 import '../../../widgets/grid-custome/gridview_header.dart';
 import '../../../widgets/grid-custome/organisms/customer_grid_row.dart';
 import '../../lake_maritime/lake_maritime_view_header.dart';
+import '../../../../domain/models/maritime_departure_model.dart';
+
 class TabRegisterPage extends StatefulWidget {
   const TabRegisterPage({super.key});
 
@@ -47,14 +49,15 @@ class _TabRegisterPageState extends State<TabRegisterPage> {
   }
 
   Future<void> saveRegisters() async {
+    var model = MaritimeDepartureModel(
+      businessId: 1,
+      userId: 1,
+      userManagementId: 5,
+      arrivalTime: "2025-08-06T10:00:00",
+      responsibleName: "Alex Alba",
+    );
     final payload = maritimeDepartureService
-        .buildMaritimeDeparturePayloadObject(customers, {
-      "business_id": 1,
-      "user_id": 999,
-      "user_management_id": 5,
-      "arrival_time": "2025-08-06 10:00:00",
-      "responsible_name": "Alex Alba"
-    });
+        .buildMaritimeDeparturePayloadObject(customers, model);
 
     final sendUseCase =
     SendMaritimeDepartureUseCase(MaritimeDepartureService());

@@ -51,6 +51,7 @@ dependencies:
   easy_localization: ^3.0.3
   geolocator: ^10.1.0
   google_sign_in: ^6.2.1
+  fl_chart: ^0.64.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -87,6 +88,7 @@ flutter:
     - assets/pages/profile/
     - assets/pages/login/
     - assets/icons/pututuMarker.png
+    - assets/data/
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

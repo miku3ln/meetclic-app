@@ -31,4 +31,12 @@ class CustomerModel {
       age: age ?? this.age,
     );
   }
+  factory CustomerModel.fromJson(Map<String, dynamic> json) {
+    return CustomerModel(
+      fullName: json['fullName'],
+      documentNumber: json['documentNumber'],
+      type: json['type'],
+      age: json['age'],
+    );
+  }
 }

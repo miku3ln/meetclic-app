@@ -2,6 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../../domain/models/customer_model.dart';
 import '../config/server_config.dart';
+import '../../../domain/models/maritime_departure_model.dart';
 
 class MaritimeDepartureResult {
   final bool success;
@@ -62,7 +63,7 @@ class MaritimeDepartureService {
 
   Map<String, dynamic> buildMaritimeDeparturePayloadObject(
       List<CustomerModel> customers,
-      Map<String, dynamic> departureData,
+      MaritimeDepartureModel departureData,
       ) {
 
 
@@ -81,41 +82,12 @@ class MaritimeDepartureService {
 
     return {
       "data": {
-        "MaritimeDepartures": departureData,
+        "MaritimeDepartures": departureData.toJson(),
         "Customers": customersData
       }
     };
   }
 
-  Map<String, dynamic> buildMaritimeDeparturePayloadString(
-      List<CustomerModel> customers) {
-    final departureData = {
-      "business_id": 1,
-      "user_id": 1,
-      "arrival_time": "2025-08-06 10:00:00",
-      "responsible_name": "Alex Alba"
-    };
-
-    final customersData = customers.map((c) {
-      final nameParts = splitFullName(c.fullName);
-      return {
-        "full_name": c.fullName,
-        "last_name": nameParts['last_name'],
-        "name": nameParts['name'],
-        "type": c.type,
-        "age": c.age,
-        "document_number": c.documentNumber,
-
-      };
-    }).toList();
-
-    return {
-      "data": jsonEncode({
-        "MaritimeDepartures": departureData,
-        "Customers": customersData
-      })
-    };
-  }
 
   Future<MaritimeDepartureResult> sendMaritimeDeparture(
       Map<String, dynamic> payload) async {
