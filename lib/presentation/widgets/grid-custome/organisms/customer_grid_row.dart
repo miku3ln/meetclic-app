@@ -147,6 +147,7 @@ class _CustomerGridRowState extends State<CustomerGridRow> {
         ),
         Expanded(
           child: DropdownSelector(
+            width: 2,
             options: ['A', 'NI'],
             selectedValue: widget.customer.type,
             onChanged: (value) =>

@@ -72,7 +72,9 @@ class _ProjectLakePageState extends State<ProjectLakePage>
 
   void resetGrid() {
     setState(() {
-      customers = [CustomerModel.empty()];
+      customers.clear();
+
+
     });
   }
 
@@ -146,6 +148,7 @@ class _ProjectLakePageState extends State<ProjectLakePage>
                           separatorBuilder: (context, index) => Divider(),
                           itemBuilder: (context, index) {
                             return CustomerGridRow(
+
                               customer: customers[index],
                               onUpdate: (updatedCustomer) =>
                                   updateCustomer(index, updatedCustomer),
