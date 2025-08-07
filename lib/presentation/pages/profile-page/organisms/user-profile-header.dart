@@ -22,7 +22,17 @@ class UserProfileHeader extends StatelessWidget {
     final appLocalizations = AppLocalizations.of(context);
     return Column(
       children: [
-        AvatarImage(size: 50),
+        AvatarCard(
+          width: double.infinity,
+          height: 350,
+          backgroundColor: Colors.green,
+          image: const AssetImage(AppImages.pageProfileAvatar), // Usa tu imagen local o NetworkImage
+          onSettingsTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Configuración disponible próximamente')),
+            );
+          },
+        ),
         SizedBox(height: 12),
         UserInfoBlock(),
         SizedBox(height: 12),
@@ -69,7 +79,7 @@ class UserProfileHeader extends StatelessWidget {
             CounterRewardEarned(
               count: 5699,
               imageAsset:AppImages.coinTypeYapitas,
-              label: 'Total XP',
+              label: 'Total Reputación',
               lineColor: Colors.yellow,
               onTap: () => print('Total XP tapped'),
             ),

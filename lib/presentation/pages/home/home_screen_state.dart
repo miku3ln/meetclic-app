@@ -73,7 +73,7 @@ class HomeScreenState extends State<HomeScreen> {
 
       ),
     ];
-    if (session.isLoggedIn) {
+    if (!session.isLoggedIn) {
       pages.add(
         ProfilePage(
           title: AppLocalizations.of(context).translate('pages.profile'),
@@ -175,7 +175,7 @@ class HomeScreenState extends State<HomeScreen> {
             label: appLocalizations.translate('pages.projects'),
           ),
         ];
-        if (session.isLoggedIn) {
+        if (!session.isLoggedIn) {
           itemsMenu.add(
             BottomNavigationBarItem(
               icon: Icon(Icons.person),

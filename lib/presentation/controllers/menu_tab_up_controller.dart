@@ -52,6 +52,13 @@ class MenuTabUpController {
       itemLanguage,
       _item(
         context,
+        'trofeo',
+        AppImages.rewardTypeReputation,
+        trofeos,
+        accessManager,
+      ),
+      _item(
+        context,
         'fuego',
         AppImages.coinTypeYapitas,
         yapitas,
@@ -64,13 +71,7 @@ class MenuTabUpController {
         yapitasPremium,
         accessManager,
       ),
-      _item(
-        context,
-        'trofeo',
-        AppImages.rewardTypeTrophy,
-        trofeos,
-        accessManager,
-      ),
+
       _item(context, 'cesta', AppImages.basketEcommerce, cesta, accessManager),
     ];
   }

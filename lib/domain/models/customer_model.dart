@@ -35,7 +35,7 @@ class CustomerModel {
     return CustomerModel(
       fullName: json['fullName'],
       documentNumber: json['documentNumber'],
-      type: json['type'],
+      type: json['type']=='ADULT'?'A':'C',
       age: json['age'],
     );
   }

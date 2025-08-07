@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../domain/models/maritime_departure_model.dart';
 import '../../../../domain/models/customer_model.dart';
-
+import '../../../../infrastructure/services/maritime_departure_service.dart';
 
 class TabListRegistersPage extends StatefulWidget {
   const TabListRegistersPage({super.key});
@@ -24,7 +24,7 @@ class _TabListRegistersPageState extends State<TabListRegistersPage> {
 
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
-          _scrollController.position.maxScrollExtent - 200 &&
+              _scrollController.position.maxScrollExtent - 200 &&
           !_isLoading &&
           _hasMore) {
         _fetchData();
@@ -37,31 +37,18 @@ class _TabListRegistersPageState extends State<TabListRegistersPage> {
       _isLoading = true;
     });
 
-    // Simula una llamada al backend con datos reales
-    await Future.delayed(const Duration(seconds: 1));
-
-    List<MaritimeDepartureModel> newItems = List.generate(10, (i) {
-      return MaritimeDepartureModel(
-        businessId: 1,
-        userId: 999,
-        userManagementId: 5,
-        arrivalTime: "2025-08-06 10:00:00",
-        responsibleName: "Alex Alba ${(_page - 1) * 10 + i + 1}",
-        customers: [
-          CustomerModel(
-            fullName: "Cliente A",
-            documentNumber: "0102030405",
-            type: "ADULT",
-            age: 30,
-          ),
-          CustomerModel(
-            fullName: "Cliente B",
-            documentNumber: "0912345678",
-            type: "CHILDREN",
-            age: 28,
-          ),
-        ],
-      );
+    final sendUseCase = GetDeparturesWithCustomersUseCase(
+      MaritimeDepartureService(),
+    );
+    final data = await sendUseCase.execute(businessId: 1);
+    List<MaritimeDepartureModel> newItems = [];
+    if (data.success) {
+      setState(() {
+        newItems = data.data;
+      });
+    }
+    setState(() {
+      _isLoading = false;
     });
 
     setState(() {

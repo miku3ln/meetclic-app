@@ -89,6 +89,12 @@ flutter:
     - assets/pages/login/init-login-register.png
     - assets/icons/pututuMarker.png
     - assets/data/
+    - assets/gamification/reputation.png
+    - assets/gamification/trophy-two.png
+    - assets/gamification/yapitas.png
+    - assets/gamification/yapitas-premium.png
+    - assets/gamification/reputation.png
+
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

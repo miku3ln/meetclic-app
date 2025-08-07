@@ -21,7 +21,7 @@ class MaritimeDepartureModel {
     return MaritimeDepartureModel(
       businessId: json['business_id'],
       userId: json['user_id'],
-      userManagementId: json['user_management_id'],
+      userManagementId: json['user_management_id'] ?? 1,
       arrivalTime: json['arrival_time'],
       responsibleName: json['responsible_name'],
       customers: (json['customers'] as List<dynamic>?)

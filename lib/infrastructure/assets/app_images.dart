@@ -16,9 +16,9 @@ class AppImages {
   static const flagLanguageKi = 'assets/flags/ki.png';
   static const flagLanguageEs = 'assets/flags/es.png';
   static const flagLanguageEn= 'assets/flags/en.png';
-  static const coinTypeYapitas= 'assets/appbar/yapitas.png';
-  static const coinTypeYapitasPremium= 'assets/appbar/yapitas-premium.png';
-  static const rewardTypeTrophy= 'assets/appbar/trophy-two.png';
+  static const coinTypeYapitas= 'assets/gamification/yapitas.png';
+  static const coinTypeYapitasPremium= 'assets/gamification/yapitas-premium.png';
+  static const rewardTypeTrophy= 'assets/gamification/trophy.png';
   static const basketEcommerce= 'assets/appbar/basket.png';
 
 
@@ -27,10 +27,9 @@ class AppImages {
   static const pageProfileFollowing= 'assets/pages/profile/following.png';
   static const pageProfileAvatar= 'assets/pages/profile/profile.png';
 
-
   static const pageLoginInit= 'assets/pages/login/init-login-register.png';
   static const pageBusinessMapMarkerPosition= 'assets/icons/pututuMarker.png';
-
+  static const rewardTypeReputation= 'assets/gamification/reputation.png';
   // Puedes agrupar por tipo si deseas más orden
   static const illustrations = [
     onboarding1,

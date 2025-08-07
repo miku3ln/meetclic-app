@@ -115,6 +115,36 @@ class MaritimeDepartureService {
       return MaritimeDepartureResult.empty();
     }
   }
+  Future<DeparturesWithCustomersResult> getDeparturesWithCustomers({
+    required int businessId,
+    DateTime? from,
+    DateTime? to
+  }) async {
+
+    final uri = Uri.parse('$baseUrl/getDeparturesWithCustomers').replace(
+      queryParameters: {
+        'businessId': businessId.toString(), // si es requerido en URL
+        if (from != null) 'from': from.toIso8601String().substring(0, 10),
+        if (to != null) 'to': to.toIso8601String().substring(0, 10),
+      },
+    );
+
+    final response = await http.get(
+      uri,
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> jsonData = json.decode(response.body);
+      return DeparturesWithCustomersResult.fromJson(jsonData);
+    } else {
+      return DeparturesWithCustomersResult.empty();
+    }
+  }
 }
 
 class SendMaritimeDepartureUseCase {
@@ -140,12 +170,83 @@ class SendMaritimeViewModel {
 
   });
 }
+class DeparturesWithCustomersResult {
+  final bool success;
+  final String message;
+  final List<MaritimeDepartureModel>  data;
 
+  DeparturesWithCustomersResult({
+    required this.success,
+    required this.message,
+    required this.data,
+  });
+
+  factory DeparturesWithCustomersResult.fromJson(Map<String, dynamic> json) {
+    return DeparturesWithCustomersResult(
+      success: json['success'],
+      message: json['message'],
+      data: (json['data'] as List<dynamic>)
+          .map((item) => MaritimeDepartureModel.fromJson(item))
+          .toList(),
+    );
+  }
+
+  factory DeparturesWithCustomersResult.empty() {
+    return DeparturesWithCustomersResult(
+      success: false,
+      message: 'No existe Información!',
+      data: [],
+    );
+  }
+}
 class MaritimeDepartureMapper {
   static SendMaritimeViewModel toViewModel(MaritimeDepartureResult response) {
     return SendMaritimeViewModel(
       success: response.success,
       message: response.message,
     );
+  }
+  static GetDeparturesWithCustomersViewModel toViewModelDeparturesWithCustomers(DeparturesWithCustomersResult response) {
+    return GetDeparturesWithCustomersViewModel(
+      success: response.success,
+      message: response.message,
+      data: response.data,
+
+    );
+  }
+}
+
+
+class GetDeparturesWithCustomersViewModel {
+
+
+  final bool success;
+  final String message;
+  final List<MaritimeDepartureModel> data;
+
+  GetDeparturesWithCustomersViewModel({
+    required this.success,
+    required this.message,
+    required this.data,
+
+  });
+}
+class GetDeparturesWithCustomersUseCase {
+  final MaritimeDepartureService apiService;
+
+  GetDeparturesWithCustomersUseCase(this.apiService);
+
+  Future<GetDeparturesWithCustomersViewModel> execute({
+    required int businessId,
+    DateTime? from,
+    DateTime? to,
+  }) async {
+    final response = await apiService.getDeparturesWithCustomers(
+      businessId: businessId,
+      from: from,
+      to: to,
+    );
+
+    return MaritimeDepartureMapper.toViewModelDeparturesWithCustomers(response);
   }
 }
