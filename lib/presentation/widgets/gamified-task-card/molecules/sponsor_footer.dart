@@ -19,11 +19,14 @@ class SponsorFooter extends StatelessWidget {
   });
 
   @override
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Wrap(
+      spacing: 8, // Espacio horizontal entre elementos
+      runSpacing: 4, // Espacio vertical entre filas si se desborda
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         Text(
           sponsorTitle,
