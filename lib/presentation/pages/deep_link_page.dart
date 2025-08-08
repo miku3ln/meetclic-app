@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_popup/flutter_map_marker_popup.dart';
 import 'package:latlong2/latlong.dart';
-import '../../domain/entities/business.dart';
-import 'business_detail_page.dart';
-import '../../../shared/utils/deep_link_type.dart';
 import 'package:meetclic/domain/models/business_model.dart';
 
-class DeepLinkPage extends StatefulWidget {
+import '../../../shared/utils/deep_link_type.dart';
+import '../../domain/entities/business.dart';
+import 'business_detail_page.dart';
 
+class DeepLinkPage extends StatefulWidget {
   final DeepLinkInfo info;
-  const DeepLinkPage({super.key,required this.info});
+  const DeepLinkPage({super.key, required this.info});
 
   @override
   State<DeepLinkPage> createState() => _DeepLinkPageState();
@@ -28,9 +28,11 @@ class _DeepLinkPageState extends State<DeepLinkPage> {
       lat: -0.3000,
       lng: -78.6000,
       points: 15,
-      imageBackground:  "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
-      imageLogo:  "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
-starCount: 2.5,
+      imageBackground:
+          "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
+      imageLogo:
+          "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
+      starCount: 2.5,
     ),
     Business(
       id: 2,
@@ -42,7 +44,7 @@ starCount: 2.5,
       imageBackground:
           "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
       imageLogo:
-      "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
+          "https://meetclic.com/public/uploads/frontend/templateBySource/1750454099_logo-one.png",
       starCount: 3,
     ),
   ];
@@ -107,7 +109,6 @@ starCount: 2.5,
             options: PopupMarkerLayerOptions(
               markers: markers,
               popupController: _popupController,
-
             ),
           ),
         ],
@@ -122,7 +123,7 @@ starCount: 2.5,
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => BusinessDetailPage(business: business),
+            builder: (_) => BusinessDetailPage(businessId: business.id),
           ),
         );
       },
@@ -158,10 +159,7 @@ starCount: 2.5,
                       size: 20,
                     ),
                     const SizedBox(width: 4),
-                    Text(
-                      ' puntos',
-                      style: theme.textTheme.bodyMedium,
-                    ),
+                    Text(' puntos', style: theme.textTheme.bodyMedium),
                   ],
                 ),
               ],

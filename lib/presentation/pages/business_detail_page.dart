@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
-import '../widgets/home-business/home_business_section.dart';
-import '../widgets/home-business/shop_business_section.dart';
-import '../widgets/home-business/news_business_section.dart';
-import '../widgets/home-business/gamification_business_section.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import '../../../presentation/widgets/template/custom_app_bar.dart';
-import 'package:meetclic/shared/localization/app_localizations.dart';
-import 'package:meetclic/domain/models/business_model.dart';
 import 'package:meetclic/domain/entities/business_data.dart';
-
+import 'package:meetclic/domain/models/api_response_model.dart';
+import 'package:meetclic/domain/models/business_model.dart';
 import 'package:meetclic/domain/usecases/get_nearby_businesses_usecase.dart';
 import 'package:meetclic/infrastructure/repositories/implementations/business_repository_impl.dart';
-import 'package:meetclic/domain/models/api_response_model.dart';
+import 'package:meetclic/shared/localization/app_localizations.dart';
+
+import '../../../presentation/widgets/template/custom_app_bar.dart';
+import '../widgets/home-business/gamification_business_section.dart';
+import '../widgets/home-business/home_business_section.dart';
+import '../widgets/home-business/news_business_section.dart';
+import '../widgets/home-business/shop_business_section.dart';
 
 Future<ApiResponseModel<List<BusinessModel>>> _loadBusinessesDetails(
-    businessId,
-    ) async {
+  businessId,
+) async {
   final useCase = BusinessesDetailsUseCase(
     repository: BusinessDetailsRepositoryImpl(),
   );
@@ -25,29 +25,29 @@ Future<ApiResponseModel<List<BusinessModel>>> _loadBusinessesDetails(
 }
 
 class BusinessDetailPage extends StatefulWidget {
-  final BusinessModel business;
+  final int businessId;
 
-  const BusinessDetailPage({super.key, required this.business});
+  const BusinessDetailPage({super.key, required this.businessId});
 
   @override
   State<BusinessDetailPage> createState() => _BusinessDetailPageState();
 }
+
 class _BusinessDetailPageState extends State<BusinessDetailPage> {
   late BusinessModel business; // Se usará para almacenar los datos actualizados
   late BusinessData businessData;
   late List<Widget> _pages;
   int _selectedIndex = 0;
 
-
   @override
   void initState() {
     super.initState();
-    business = widget.business; // inicializamos con el business recibido
+    business = BusinessModel.empty(widget.businessId);
+    // inicializamos con el business recibido
     _loadData(); // luego lo actualizamos
   }
 
   Future<void> _loadData() async {
-
     businessData = BusinessData(business: business);
     _pages = [
       HomeBusinessSection(businessManagementData: businessData),
@@ -56,9 +56,7 @@ class _BusinessDetailPageState extends State<BusinessDetailPage> {
       GamificationBusinessSection(businessManagementData: businessData),
     ];
 
-    setState(() {
-
-    });
+    setState(() {});
   }
 
   void _onNavTap(int index) {
@@ -69,8 +67,6 @@ class _BusinessDetailPageState extends State<BusinessDetailPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final appLocalizations = AppLocalizations.of(context);
-
-
 
     return Scaffold(
       appBar: CustomAppBar(title: '', items: []),

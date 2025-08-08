@@ -8,15 +8,18 @@ class CarouselSection extends StatelessWidget {
     final List<Map<String, String>> shoes = [
       {
         'title': 'Air Max Plus',
-        'image': 'https://assets.adidas.com/images/w_1880,f_auto,q_auto/dc9953df47e443a79524adc50177d71e_9366/GY5427_01_standard.jpg',
+        'image':
+            'https://assets.adidas.com/images/w_1880,f_auto,q_auto/dc9953df47e443a79524adc50177d71e_9366/GY5427_01_standard.jpg',
       },
       {
         'title': 'Nike Jordan',
-        'image': 'https://m.media-amazon.com/images/I/71UpvHftX6L._AC_SL1500_.jpg',
+        'image':
+            'https://m.media-amazon.com/images/I/71UpvHftX6L._AC_SL1500_.jpg',
       },
       {
         'title': 'Adidas Ultra',
-        'image': 'https://assets.adidas.com/images/w_1880,f_auto,q_auto/4a46e180c40643c8b436af9c017a4615_9366/ID2054_01_standard.jpg',
+        'image':
+            'https://assets.adidas.com/images/w_1880,f_auto,q_auto/4a46e180c40643c8b436af9c017a4615_9366/ID2054_01_standard.jpg',
       },
     ];
 
@@ -47,9 +50,12 @@ class CarouselSection extends StatelessWidget {
                         fit: BoxFit.cover,
                         loadingBuilder: (context, child, progress) {
                           if (progress == null) return child;
-                          return const Center(child: CircularProgressIndicator());
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
                         },
-                        errorBuilder: (context, _, __) => const Icon(Icons.broken_image),
+                        errorBuilder: (context, _, __) =>
+                            const Icon(Icons.broken_image),
                       ),
                     ),
                     const SizedBox(height: 10),

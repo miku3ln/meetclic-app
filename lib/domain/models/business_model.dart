@@ -1,7 +1,8 @@
-import 'package:meetclic/infrastructure/models/summary_model.dart';
 import 'dart:convert';
+
 import 'package:meetclic/domain/models/business_day.dart';
 import 'package:meetclic/domain/models/social_network.dart';
+import 'package:meetclic/infrastructure/models/summary_model.dart';
 
 class BusinessModel {
   final int id;
@@ -125,6 +126,47 @@ class BusinessModel {
       summary: summary,
       schedulingData: schedulingData,
       socialNetworksData: socialNetworksData,
+    );
+  }
+  factory BusinessModel.empty([int businessId = 1]) {
+    return BusinessModel(
+      id: businessId,
+      title: '',
+      description: '',
+      businessName: '',
+      email: '',
+      phoneValue: '',
+      pageUrl: '',
+      street1: '',
+      street2: '',
+      streetLat: 0.0,
+      streetLng: 0.0,
+      status: '',
+      qualification: 0.0,
+      businessSubcategoryId: 0,
+      subcategoryName: '',
+      fiscalPosition: '',
+      distance: 0.0,
+      distanceKmText: '',
+      sourceLogo: '',
+      summary: MovementSummaryModel.fromJson({
+        "yapitas": {"totalInput": 0, "totalOutput": 0, "currentBalance": 0},
+        "yapitasPremium": {
+          "totalInput": 0,
+          "totalOutput": 0,
+          "currentBalance": 0,
+        },
+        "reputation": {"total": 0},
+        "trophies": {"total": 0},
+        "visits": {"total": 0},
+        "rating": {
+          "positiveClients": 0,
+          "averageStars": 0,
+          "communityScore": 0,
+        },
+      }),
+      schedulingData: [],
+      socialNetworksData: [],
     );
   }
 }

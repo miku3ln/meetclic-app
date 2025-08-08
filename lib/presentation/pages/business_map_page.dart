@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_popup/flutter_map_marker_popup.dart';
-import 'package:latlong2/latlong.dart';
-
-import 'business_detail_page.dart';
-import '../../../shared/utils/deep_link_type.dart';
-import 'package:meetclic/shared/localization/app_localizations.dart';
-import 'package:meetclic/presentation/widgets/template/custom_app_bar.dart';
-import 'package:meetclic/domain/entities/menu_tab_up_item.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:meetclic/domain/usecases/get_nearby_businesses_usecase.dart';
-import 'package:meetclic/infrastructure/repositories/implementations/business_repository_impl.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:meetclic/domain/entities/menu_tab_up_item.dart';
 import 'package:meetclic/domain/models/business_model.dart';
+import 'package:meetclic/domain/usecases/get_nearby_businesses_usecase.dart';
+import 'package:meetclic/infrastructure/assets/app_images.dart';
+import 'package:meetclic/infrastructure/repositories/implementations/business_repository_impl.dart';
+import 'package:meetclic/presentation/widgets/template/custom_app_bar.dart';
+import 'package:meetclic/shared/localization/app_localizations.dart';
 
+import '../../../shared/utils/deep_link_type.dart';
 import '../../aplication/usecases/check_location_permission_usecase.dart';
 import '../../infrastructure/services/geolocator_service.dart';
-import 'package:meetclic/infrastructure/assets/app_images.dart';
+import 'business_detail_page.dart';
 
 class MapPosition {
   final double latitude;
@@ -172,7 +171,7 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
       width: 60,
       height: 60,
       alignment: Alignment.center,
-      child: Image.asset( AppImages.pageBusinessMapMarkerPosition),
+      child: Image.asset(AppImages.pageBusinessMapMarkerPosition),
     );
   }
 
@@ -287,7 +286,7 @@ class _BusinessMapPageState extends State<BusinessMapPage> {
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => BusinessDetailPage(business: business),
+            builder: (_) => BusinessDetailPage(businessId: business.id),
           ),
         );
       },
