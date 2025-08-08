@@ -135,30 +135,44 @@ class _BusinessDetailPageState extends State<BusinessDetailPage> {
     final theme = Theme.of(context);
     final isSelected = _selectedIndex == index;
 
-    return GestureDetector(
-      onTap: () => _onNavTap(index),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            color: isSelected
-                ? theme.colorScheme.secondary
-                : theme.colorScheme.onPrimary,
+    return Expanded(
+      child: InkWell(
+        onTap: () => _onNavTap(index),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 4.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 24,
+                color: isSelected
+                    ? theme.colorScheme.secondary
+                    : theme.colorScheme.onPrimary,
+              ),
+              const SizedBox(height: 4),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: isSelected
+                        ? theme.colorScheme.secondary
+                        : theme.colorScheme.onPrimary,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              color: isSelected
-                  ? theme.colorScheme.secondary
-                  : theme.colorScheme.onPrimary,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
