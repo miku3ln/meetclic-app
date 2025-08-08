@@ -20,12 +20,18 @@ class UserProfileHeader extends StatelessWidget {
     ); // ✅ Reactivo: escucha cambios
     var userData = session.currentSession;
     final appLocalizations = AppLocalizations.of(context);
+    var gradient=      LinearGradient(
+    colors: [Color(0xFF4C4CFF), Color(0xFF5C5CFF)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    );
     return Column(
       children: [
         AvatarCard(
           width: double.infinity,
           height: 350,
-          backgroundColor: Colors.green,
+         // backgroundColor: Colors.green,
+
           image: const AssetImage(AppImages.pageProfileAvatar), // Usa tu imagen local o NetworkImage
           onSettingsTap: () {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -78,7 +84,7 @@ class UserProfileHeader extends StatelessWidget {
           items: [
             CounterRewardEarned(
               count: 5699,
-              imageAsset:AppImages.coinTypeYapitas,
+              imageAsset:AppImages.rewardTypeReputation,
               label: 'Total Reputación',
               lineColor: Colors.yellow,
               onTap: () => print('Total XP tapped'),

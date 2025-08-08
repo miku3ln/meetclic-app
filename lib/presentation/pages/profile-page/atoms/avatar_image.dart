@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 
-
-
 class AvatarCard extends StatelessWidget {
   final double width;
   final double height;
-  final Color backgroundColor;
+  final Color? backgroundColor; // opcional si se usa gradient
+  final Gradient? gradient; // nuevo parámetro opcional
   final ImageProvider image;
   final VoidCallback onSettingsTap;
 
@@ -13,7 +12,8 @@ class AvatarCard extends StatelessWidget {
     super.key,
     this.width = double.infinity,
     this.height = 200,
-    required this.backgroundColor,
+    this.backgroundColor, // opcional
+    this.gradient, // opcional
     required this.image,
     required this.onSettingsTap,
   });
@@ -22,22 +22,23 @@ class AvatarCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Fondo con imagen rectangular
+        // Fondo con imagen y decoración
         Container(
           width: width,
           height: height,
           decoration: BoxDecoration(
-            color: backgroundColor,
+            color: gradient == null
+                ? backgroundColor
+                : null, // solo si no hay gradient
+            gradient: gradient, // si se pasa, se usa
             image: DecorationImage(
               image: image,
-          //    fit: BoxFit.cover,
-
               fit: BoxFit.contain,
               alignment: Alignment.topCenter,
             ),
           ),
         ),
-        // Botón configuración flotante, estilo circular
+        // Botón de configuración flotante
         Positioned(
           top: 12,
           right: 12,
