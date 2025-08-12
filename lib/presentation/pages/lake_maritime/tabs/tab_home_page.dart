@@ -7,6 +7,9 @@ import '../reports/avg_age_line_chart.dart';
 
 import 'package:intl/intl.dart';
 
+import '../../../../infrastructure/kichwa-ecuador/g2p/g2p_kichwa_mapper.dart';
+import '../../../../infrastructure/kichwa-ecuador/g2p/segmenter.dart';
+import '../../../../infrastructure/kichwa-ecuador/audio/local_audio_bank.dart';
 Map<String, Map<String, int>> getPassengersByDateAndType(List<MaritimeDepartureModel> data) {
   final Map<String, Map<String, int>> result = {};
   final DateFormat formatter = DateFormat('dd-MM-yyyy'); // Formato: día-mes-año
@@ -141,6 +144,9 @@ class TabHomePage extends StatefulWidget {
   State<TabHomePage> createState() => _TabHomePageState();
 }
 class _TabHomePageState extends State<TabHomePage> {
+  final _ctrl = TextEditingController(text: "pakcha");
+  // V1: sin audio -> quita audioBank; V2: pásalo para rutas
+  late final _g2p = G2PKichwaMapper(Segmenter(), audioBank: LocalAudioBank());
   Map<String, Map<String, int>> passengersData = {};
   late Map<String, double> avgAgeData;
   bool isLoading = true;
@@ -162,9 +168,116 @@ class _TabHomePageState extends State<TabHomePage> {
       isLoading = false;
     });
   }
-
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final word = _ctrl.text.trim();
+    final result = _g2p.analyze(word);        // tokens + fonémico base
+    final options = _g2p.analyzeSmart(word);  // variantes auto (preKichwa/amazónico/etc.)
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: _ctrl,
+            decoration: const InputDecoration(labelText: "Ingresa palabra"),
+            onSubmitted: (_) => setState((){}),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Text("Tokens: ", style: TextStyle(fontWeight: FontWeight.bold)),
+              Flexible(child: Text(result.tokens.join(" · "))),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Text("Fonémico: ", style: TextStyle(fontWeight: FontWeight.bold)),
+              Text(result.phonemic, style: const TextStyle(fontSize: 22, fontFamily: 'NotoSans')),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Align(
+            alignment: Alignment.centerLeft,
+            child: Text("Opciones lingüísticas (con plan de audio):",
+                style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          const SizedBox(height: 8),
+
+          if (options.isEmpty)
+            const Text("Sin resultados"),
+          if (options.isNotEmpty)
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: options.length,
+              separatorBuilder: (_, __) => const Divider(height: 1),
+              itemBuilder: (_, i) {
+                final v = options[i];
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(v.form, style: const TextStyle(fontSize: 20, fontFamily: 'NotoSans')),
+                    if (v.note.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2, bottom: 6),
+                        child: Text(v.note, style: const TextStyle(color: Colors.grey)),
+                      ),
+                    if (v.audioPlan.isNotEmpty)
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: v.audioPlan.length,
+                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        itemBuilder: (_, j) {
+                          final a = v.audioPlan[j];
+                          return ListTile(
+                            dense: true,
+                            leading: Text(a.grapheme),
+                            title: Text(a.ipa),
+                            subtitle: Text(a.assetPath),
+                          );
+                        },
+                      ),
+                  ],
+                );
+              },
+            ),
+
+          // Si estos charts no existen en tu proyecto, coméntalos:
+          const SizedBox(height: 16),
+          const Text("Pasajeros por Fecha (Niños vs Adultos)",
+              style: TextStyle(fontWeight: FontWeight.bold)),
+          SizedBox(
+            height: 300,
+            child: PassengerBarChart(dataByDate: passengersData),
+          ),
+          const SizedBox(height: 24),
+          const Text("Edad Promedio por Fecha",
+              style: TextStyle(fontWeight: FontWeight.bold)),
+          SizedBox(
+            height: 300,
+            child: AvgAgeLineChart(dataByDate: avgAgeData),
+          ),
+        ],
+      ),
+    );
+  }
+
+/*
+  @override
+  Widget build(BuildContext context) {
+    final result = _g2p.analyze(_ctrl.text);
+
+
+
     return isLoading
         ? const Center(child: CircularProgressIndicator())
         : SingleChildScrollView( // 👈 ESTE
@@ -172,6 +285,7 @@ class _TabHomePageState extends State<TabHomePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+
           const Text("Pasajeros por Fecha (Niños vs Adultos)", style: TextStyle(fontWeight: FontWeight.bold)),
           SizedBox(
             height: 300,
@@ -186,5 +300,5 @@ class _TabHomePageState extends State<TabHomePage> {
         ],
       ),
     );
-  }
+  }*/
 }
