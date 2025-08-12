@@ -1,16 +1,19 @@
-import 'package:flutter/material.dart';
 import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
-import '../../../../domain/models/maritime_departure_model.dart';
-import '../reports/bar_chart_passengers_by_date.dart';
-import '../reports/avg_age_line_chart.dart';
 
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:intl/intl.dart';
 
+import '../../../../domain/models/maritime_departure_model.dart';
+import '../../../../infrastructure/kichwa-ecuador/audio/local_audio_bank.dart';
 import '../../../../infrastructure/kichwa-ecuador/g2p/g2p_kichwa_mapper.dart';
 import '../../../../infrastructure/kichwa-ecuador/g2p/segmenter.dart';
-import '../../../../infrastructure/kichwa-ecuador/audio/local_audio_bank.dart';
-Map<String, Map<String, int>> getPassengersByDateAndType(List<MaritimeDepartureModel> data) {
+import '../reports/avg_age_line_chart.dart';
+import '../reports/bar_chart_passengers_by_date.dart';
+
+Map<String, Map<String, int>> getPassengersByDateAndType(
+  List<MaritimeDepartureModel> data,
+) {
   final Map<String, Map<String, int>> result = {};
   final DateFormat formatter = DateFormat('dd-MM-yyyy'); // Formato: día-mes-año
 
@@ -30,12 +33,14 @@ Map<String, Map<String, int>> getPassengersByDateAndType(List<MaritimeDepartureM
 
   return result;
 }
+
 Map<String, double> getAvgAgeByDate(List<MaritimeDepartureModel> data) {
   final Map<String, List<int>> ageByDate = {};
 
   for (final departure in data) {
-    final date = DateFormat('dd-MM-yyyy')
-        .format(DateTime.parse(departure.arrivalTime));
+    final date = DateFormat(
+      'dd-MM-yyyy',
+    ).format(DateTime.parse(departure.arrivalTime));
     final ages = departure.customers?.map((c) => c.age).toList() ?? [];
     if (ages.isNotEmpty) {
       ageByDate.putIfAbsent(date, () => []);
@@ -50,17 +55,21 @@ Map<String, double> getAvgAgeByDate(List<MaritimeDepartureModel> data) {
     avgByDate[entry.key] = avg;
   }
 
-  return Map.fromEntries(avgByDate.entries.toList()
-    ..sort((a, b) => a.key.compareTo(b.key)));
+  return Map.fromEntries(
+    avgByDate.entries.toList()..sort((a, b) => a.key.compareTo(b.key)),
+  );
 }
 
-Map<String, Map<String, double>> getAgeStatsByDate(List<MaritimeDepartureModel> data) {
+Map<String, Map<String, double>> getAgeStatsByDate(
+  List<MaritimeDepartureModel> data,
+) {
   final Map<String, List<int>> ageByDate = {};
   final DateFormat formatter = DateFormat('dd-MM-yyyy');
 
   for (final departure in data) {
     final date = formatter.format(DateTime.parse(departure.arrivalTime));
-    final ages = departure.customers?.map((c) => c.age).whereType<int>().toList() ?? [];
+    final ages =
+        departure.customers?.map((c) => c.age).whereType<int>().toList() ?? [];
 
     if (ages.isNotEmpty) {
       ageByDate.putIfAbsent(date, () => []);
@@ -76,6 +85,7 @@ Map<String, Map<String, double>> getAgeStatsByDate(List<MaritimeDepartureModel> 
 
   return result;
 }
+
 Map<String, int> getPassengersByHourRange(List<MaritimeDepartureModel> data) {
   final Map<String, int> ranges = {"Mañana": 0, "Tarde": 0, "Noche": 0};
 
@@ -94,13 +104,13 @@ Map<String, int> getPassengersByHourRange(List<MaritimeDepartureModel> data) {
 
   return ranges;
 }
+
 Map<String, int> getTopPassengers(List<MaritimeDepartureModel> data) {
   final Map<String, int> freq = {};
 
   for (final departure in data) {
     for (final customer in departure.customers ?? []) {
-      freq[customer.documentNumber] =
-          (freq[customer.documentNumber] ?? 0) + 1;
+      freq[customer.documentNumber] = (freq[customer.documentNumber] ?? 0) + 1;
     }
   }
 
@@ -109,7 +119,10 @@ Map<String, int> getTopPassengers(List<MaritimeDepartureModel> data) {
 
   return Map.fromEntries(sorted.take(5)); // Top 5
 }
-Map<String, Map<String, double>> getPercentageByDate(List<MaritimeDepartureModel> data) {
+
+Map<String, Map<String, double>> getPercentageByDate(
+  List<MaritimeDepartureModel> data,
+) {
   final Map<String, Map<String, int>> raw = getPassengersByDateAndType(data);
   final Map<String, Map<String, double>> result = {};
 
@@ -125,9 +138,11 @@ Map<String, Map<String, double>> getPercentageByDate(List<MaritimeDepartureModel
 
   return result;
 }
+
 Future<List<MaritimeDepartureModel>> _loadAndProcessData() async {
-  final jsonString =
-  await rootBundle.loadString('assets/data/maritime_departures_data.json');
+  final jsonString = await rootBundle.loadString(
+    'assets/data/maritime_departures_data.json',
+  );
   final List<dynamic> jsonList = jsonDecode(jsonString);
 
   final List<MaritimeDepartureModel> departures = jsonList
@@ -137,16 +152,28 @@ Future<List<MaritimeDepartureModel>> _loadAndProcessData() async {
 
   return departures;
 }
+
 class TabHomePage extends StatefulWidget {
   const TabHomePage({super.key});
 
   @override
   State<TabHomePage> createState() => _TabHomePageState();
 }
+
 class _TabHomePageState extends State<TabHomePage> {
   final _ctrl = TextEditingController(text: "pakcha");
+  final _ctrlResult = TextEditingController(text: "");
+
   // V1: sin audio -> quita audioBank; V2: pásalo para rutas
-  late final _g2p = G2PKichwaMapper(Segmenter(), audioBank: LocalAudioBank());
+  late final _g2p = G2PKichwaMapper(
+    Segmenter(),
+    audioBank: LocalAudioBank(),
+    enableNarrowPhonology: true, // n→ŋ ok
+    kVoicingAfterNasal: false,
+    kIntervocalicVoicing: false,
+    kSpirantizeBeforeT: false,
+    kSpirantizeBeforeCH: false,
+  );
   Map<String, Map<String, int>> passengersData = {};
   late Map<String, double> avgAgeData;
   bool isLoading = true;
@@ -168,6 +195,7 @@ class _TabHomePageState extends State<TabHomePage> {
       isLoading = false;
     });
   }
+
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
@@ -175,8 +203,14 @@ class _TabHomePageState extends State<TabHomePage> {
     }
 
     final word = _ctrl.text.trim();
-    final result = _g2p.analyze(word);        // tokens + fonémico base
-    final options = _g2p.analyzeSmart(word);  // variantes auto (preKichwa/amazónico/etc.)
+
+    final options = _g2p.analyzeSmart(
+      word,
+    ); // variantes auto (preKichwa/amazónico/etc.)
+    final result = _g2p.analyze(word); // tokens + fonémico base
+    final forms = options.map((v) => v.form).toList().join(", ");
+    _ctrlResult.clear();
+    _ctrlResult.text = forms;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(12),
@@ -186,12 +220,19 @@ class _TabHomePageState extends State<TabHomePage> {
           TextField(
             controller: _ctrl,
             decoration: const InputDecoration(labelText: "Ingresa palabra"),
-            onSubmitted: (_) => setState((){}),
+            onSubmitted: (_) => setState(() {}),
+          ),
+          TextField(
+            controller: _ctrlResult,
+            decoration: const InputDecoration(labelText: "Fonemas"),
           ),
           const SizedBox(height: 16),
           Row(
             children: [
-              const Text("Tokens: ", style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                "Tokens: ",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               Flexible(child: Text(result.tokens.join(" · "))),
             ],
           ),
@@ -199,20 +240,27 @@ class _TabHomePageState extends State<TabHomePage> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Text("Fonémico: ", style: TextStyle(fontWeight: FontWeight.bold)),
-              Text(result.phonemic, style: const TextStyle(fontSize: 22, fontFamily: 'NotoSans')),
+              const Text(
+                "Fonémico: ",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Text(
+                result.phonemic,
+                style: const TextStyle(fontSize: 22, fontFamily: 'NotoSans'),
+              ),
             ],
           ),
           const SizedBox(height: 12),
           const Align(
             alignment: Alignment.centerLeft,
-            child: Text("Opciones lingüísticas (con plan de audio):",
-                style: TextStyle(fontWeight: FontWeight.bold)),
+            child: Text(
+              "Opciones lingüísticas (con plan de audio):",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
           const SizedBox(height: 8),
 
-          if (options.isEmpty)
-            const Text("Sin resultados"),
+          if (options.isEmpty) const Text("Sin resultados"),
           if (options.isNotEmpty)
             ListView.separated(
               shrinkWrap: true,
@@ -224,11 +272,20 @@ class _TabHomePageState extends State<TabHomePage> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(v.form, style: const TextStyle(fontSize: 20, fontFamily: 'NotoSans')),
+                    Text(
+                      v.form,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontFamily: 'NotoSans',
+                      ),
+                    ),
                     if (v.note.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 2, bottom: 6),
-                        child: Text(v.note, style: const TextStyle(color: Colors.grey)),
+                        child: Text(
+                          v.note,
+                          style: const TextStyle(color: Colors.grey),
+                        ),
                       ),
                     if (v.audioPlan.isNotEmpty)
                       ListView.separated(
@@ -253,25 +310,26 @@ class _TabHomePageState extends State<TabHomePage> {
 
           // Si estos charts no existen en tu proyecto, coméntalos:
           const SizedBox(height: 16),
-          const Text("Pasajeros por Fecha (Niños vs Adultos)",
-              style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text(
+            "Pasajeros por Fecha (Niños vs Adultos)",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
           SizedBox(
             height: 300,
             child: PassengerBarChart(dataByDate: passengersData),
           ),
           const SizedBox(height: 24),
-          const Text("Edad Promedio por Fecha",
-              style: TextStyle(fontWeight: FontWeight.bold)),
-          SizedBox(
-            height: 300,
-            child: AvgAgeLineChart(dataByDate: avgAgeData),
+          const Text(
+            "Edad Promedio por Fecha",
+            style: TextStyle(fontWeight: FontWeight.bold),
           ),
+          SizedBox(height: 300, child: AvgAgeLineChart(dataByDate: avgAgeData)),
         ],
       ),
     );
   }
 
-/*
+  /*
   @override
   Widget build(BuildContext context) {
     final result = _g2p.analyze(_ctrl.text);
