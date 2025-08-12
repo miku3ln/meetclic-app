@@ -165,15 +165,7 @@ class _TabHomePageState extends State<TabHomePage> {
   final _ctrlResult = TextEditingController(text: "");
 
   // V1: sin audio -> quita audioBank; V2: pásalo para rutas
-  late final _g2p = G2PKichwaMapper(
-    Segmenter(),
-    audioBank: LocalAudioBank(),
-    enableNarrowPhonology: true, // n→ŋ ok
-    kVoicingAfterNasal: false,
-    kIntervocalicVoicing: false,
-    kSpirantizeBeforeT: false,
-    kSpirantizeBeforeCH: false,
-  );
+  late final _g2p = G2PKichwaMapper(Segmenter(), audioBank: LocalAudioBank());
   Map<String, Map<String, int>> passengersData = {};
   late Map<String, double> avgAgeData;
   bool isLoading = true;
@@ -196,20 +188,29 @@ class _TabHomePageState extends State<TabHomePage> {
     });
   }
 
+  // Llama esto en onChanged o en el onPressed de un botón:
+  _runG2P() {}
+
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
+    var resultManagement = _runG2P();
     final word = _ctrl.text.trim();
-
-    final options = _g2p.analyzeSmart(
-      word,
-    ); // variantes auto (preKichwa/amazónico/etc.)
     final result = _g2p.analyze(word); // tokens + fonémico base
-    final forms = options.map((v) => v.form).toList().join(", ");
     _ctrlResult.clear();
+    final options = _g2p.analyzeSmartWithOverrides(
+      word,
+      opts: G2PRunOptions(
+        // ejemplo: mostrar “ly” SOLO cuando la palabra tenga ll
+        emitLyForLl: word.contains("ll"),
+        // ejemplo: no permitir k→∅ (conservador)
+        allowKDeletionBeforeApproximants: false,
+      ),
+    );
+    final forms = options.map((v) => v.form).toList().join(", ");
     _ctrlResult.text = forms;
 
     return SingleChildScrollView(
