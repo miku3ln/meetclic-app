@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-
-import '../../../presentation/widgets/template/custom_app_bar.dart';
 import 'package:meetclic/domain/entities/menu_tab_up_item.dart';
 import 'package:meetclic/presentation/pages/profile-page/organisms/user-profile-header.dart';
-import '../../../../shared/providers_session.dart';
+
+import '../../../presentation/widgets/template/custom_app_bar.dart';
 
 class ProfilePage extends StatefulWidget {
   final String title;
@@ -58,14 +57,16 @@ class _ProfilePageState extends State<ProfilePage> {
       }
 
       // 6. Porcentaje del scroll
-      final double scrollPercent = (position.pixels / position.maxScrollExtent).clamp(0.0, 1.0);
+      final double scrollPercent = (position.pixels / position.maxScrollExtent)
+          .clamp(0.0, 1.0);
       print('📊 Scroll: ${(scrollPercent * 100).toStringAsFixed(1)}%');
     });
 
     // 7. Inicio / fin de arrastre
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollController.position.isScrollingNotifier.addListener(() {
-        final isScrolling = _scrollController.position.isScrollingNotifier.value;
+        final isScrolling =
+            _scrollController.position.isScrollingNotifier.value;
         if (isScrolling) {
           print('👆 Usuario está arrastrando el scroll');
         } else {
@@ -96,7 +97,9 @@ class _ProfilePageState extends State<ProfilePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               UserProfileHeader(),
-              SizedBox(height:  screenHeight *0.10), // Solo para permitir scroll de prueba
+              SizedBox(
+                height: screenHeight * 0.10,
+              ), // Solo para permitir scroll de prueba
             ],
           ),
         ),

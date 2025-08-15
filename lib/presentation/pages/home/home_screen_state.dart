@@ -7,6 +7,7 @@ import 'package:meetclic/domain/entities/menu_tab_up_item.dart';
 import 'package:meetclic/infrastructure/deep_links/deep_link_handler.dart';
 import 'package:meetclic/presentation/controllers/menu_tab_up_controller.dart';
 import 'package:meetclic/presentation/pages/business_map_page.dart';
+import 'package:meetclic/presentation/pages/dictionary_page.dart';
 import 'package:meetclic/presentation/pages/home/home_infinity.dart';
 import 'package:meetclic/presentation/pages/profile_page.dart';
 import 'package:meetclic/presentation/pages/project_lake_page.dart';
@@ -57,6 +58,7 @@ class HomeScreenState extends State<HomeScreen> {
     var pages = [
       _buildHomeContent(menuItems),
       BusinessMapPage(info: _pendingDeepLink, itemsStatus: menuItems),
+
       /*  FullScreenPage(
         title: AppLocalizations.of(context).translate('pages.shop'),
         itemsStatus: menuItems,
@@ -70,6 +72,7 @@ class HomeScreenState extends State<HomeScreen> {
         title: AppLocalizations.of(context).translate('pages.projects'),
         itemsStatus: menuItems,
       ),
+      DictionaryPage(title: "Diccionario", itemsStatus: menuItems),
     ];
     if (!session.isLoggedIn) {
       pages.add(
@@ -171,6 +174,10 @@ class HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.emoji_events),
             label: appLocalizations.translate('pages.projects'),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dangerous),
+            label: "Diccionario",
           ),
         ];
         if (!session.isLoggedIn) {
