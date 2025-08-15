@@ -18,7 +18,7 @@ class DictionaryController extends ChangeNotifier {
   bool scrollLocked = false;
 
   // ---------- criterios ----------
-  String language = 'ES';
+  String language = 'KI';
   int selectedCategory = 0;
   String query = '';
 
@@ -87,14 +87,16 @@ class DictionaryController extends ChangeNotifier {
     isInitialLoading = true;
     _resetPagination();
     notifyListeners();
-
-    final data = await _repo.getPage(
-      page: _page,
-      pageSize: _pageSize,
-      language: language,
-      query: query,
+    int entityManagerId = language == "KI" ? 1 : 2;
+    final dataManager = await _repo.getDataDictionaryByLanguage(
+      current: _page,
+      rowCount: _pageSize,
+      entity_manager_id: entityManagerId,
+      searchPhrase: query,
       categoryIndex: selectedCategory,
     );
+    final dataResult = dataManager.data;
+    List<WordItem> data = [];
 
     items.addAll(data);
     hasMore = data.length == _pageSize;
@@ -106,15 +108,17 @@ class DictionaryController extends ChangeNotifier {
     isRefreshing = true;
     _resetPagination();
     notifyListeners();
+    int entityManagerId = language == "EN" ? 1 : 2;
 
-    final data = await _repo.getPage(
-      page: 1,
-      pageSize: _pageSize,
-      language: language,
-      query: query,
+    final dataManager = await _repo.getDataDictionaryByLanguage(
+      current: 1,
+      rowCount: _pageSize,
+      entity_manager_id: entityManagerId,
+      searchPhrase: query,
       categoryIndex: selectedCategory,
     );
-
+    final dataResult = dataManager.data;
+    List<WordItem> data = [];
     items.addAll(data);
     hasMore = data.length == _pageSize;
     _page = 1;
@@ -128,16 +132,19 @@ class DictionaryController extends ChangeNotifier {
 
     isLoadingMore = true;
     notifyListeners();
+    int entityManagerId = language == "EN" ? 1 : 2;
 
     final nextPage = _page + 1;
-    final data = await _repo.getPage(
-      page: nextPage,
-      pageSize: _pageSize,
-      language: language,
-      query: query,
+    final dataManager = await _repo.getDataDictionaryByLanguage(
+      current: nextPage,
+      rowCount: _pageSize,
+      entity_manager_id: entityManagerId,
+      searchPhrase: query,
       categoryIndex: selectedCategory,
     );
+    final dataResult = dataManager.data;
 
+    List<WordItem> data = [];
     _page = nextPage;
     items.addAll(data);
     hasMore = data.length == _pageSize;
