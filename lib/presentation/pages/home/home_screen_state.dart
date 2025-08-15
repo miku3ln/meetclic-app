@@ -1,27 +1,25 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:meetclic/domain/entities/menu_tab_up_item.dart';
-import 'package:meetclic/shared/models/app_config.dart';
-import 'package:meetclic/shared/utils/deep_link_type.dart';
-import 'package:meetclic/shared/localization/app_localizations.dart';
 import 'package:meetclic/aplication/services/access_manager_service.dart';
+import 'package:meetclic/domain/entities/menu_tab_up_item.dart';
 import 'package:meetclic/infrastructure/deep_links/deep_link_handler.dart';
-
-import 'package:meetclic/presentation/pages/full_screen_page.dart';
+import 'package:meetclic/presentation/controllers/menu_tab_up_controller.dart';
+import 'package:meetclic/presentation/pages/business_map_page.dart';
 import 'package:meetclic/presentation/pages/home/home_infinity.dart';
 import 'package:meetclic/presentation/pages/profile_page.dart';
+import 'package:meetclic/presentation/pages/project_lake_page.dart';
 import 'package:meetclic/presentation/pages/rive-example/vehicles_page.dart';
-import 'package:meetclic/presentation/pages/business_map_page.dart';
-
 import 'package:meetclic/presentation/widgets/home_drawer_widget.dart';
 import 'package:meetclic/presentation/widgets/template/custom_app_bar.dart';
+import 'package:meetclic/shared/localization/app_localizations.dart';
+import 'package:meetclic/shared/models/app_config.dart';
+import 'package:meetclic/shared/utils/deep_link_type.dart';
 
 import '../../../../shared/providers_session.dart';
+import '../kichwa_rec_page.dart';
 import 'home_page.dart';
-import 'package:meetclic/presentation/controllers/menu_tab_up_controller.dart';
-import 'package:meetclic/presentation/pages/project_lake_page.dart';
-
 
 class HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -59,10 +57,11 @@ class HomeScreenState extends State<HomeScreen> {
     var pages = [
       _buildHomeContent(menuItems),
       BusinessMapPage(info: _pendingDeepLink, itemsStatus: menuItems),
-      FullScreenPage(
+      /*  FullScreenPage(
         title: AppLocalizations.of(context).translate('pages.shop'),
         itemsStatus: menuItems,
-      ),
+      ),*/
+      StreamingPage(),
       VehiclesScreenPage(
         title: AppLocalizations.of(context).translate('pages.aboutUs'),
         itemsStatus: menuItems,
@@ -70,7 +69,6 @@ class HomeScreenState extends State<HomeScreen> {
       ProjectLakePage(
         title: AppLocalizations.of(context).translate('pages.projects'),
         itemsStatus: menuItems,
-
       ),
     ];
     if (!session.isLoggedIn) {

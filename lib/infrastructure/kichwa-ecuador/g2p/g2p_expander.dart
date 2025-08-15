@@ -123,6 +123,7 @@ class G2PExpander {
     required int maxPerSegment,
     required int maxVariants,
     bool conservative = true,
+    bool allowFinalGAtEnd = false, // ← nuevo
   }) {
     if (out.length >= maxVariants) return;
     if (i == toks.length) {
