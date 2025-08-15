@@ -5,10 +5,18 @@
 // infrastructure/config/server_config.dart
 enum Environment { production, developer, test, local }
 
+abstract class Config {
+  static const socket = '192.168.137.1';
+  static const port = 3000;
+}
+
 class ServerConfig {
   // static const String baseUrl = 'http://192.168.137.1/meetclickmanager/api';
   //static const String baseUrl = 'http://192.168.0.101/meetclickmanager/api';
   static Environment currentEnv = Environment.production;
+  static String get getSocketServer {
+    return 'ws://${Config.socket}:${Config.port}/audio';
+  }
 
   static String get baseUrl {
     switch (currentEnv) {

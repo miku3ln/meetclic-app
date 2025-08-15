@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+import '../../infrastructure/config/server_config.dart';
+
 // =================== Streaming Controller ===================
 // Controla la grabación (record) y el envío por WebSocket (comentarios en español).
 class AudioStreamingController {
@@ -120,7 +122,7 @@ class _StreamingPageState extends State<StreamingPage> {
   // - Android Emulator: ws://10.0.2.2:3000/audio
   // - iOS Simulator:  ws://localhost:3000/audio
   // - Dispositivo real: ws://<TU_IP_LAN>:3000/audio
-  static const String wsUrl = 'ws://172.22.80.1:3000/audio';
+  static String wsUrl = ServerConfig.getSocketServer;
 
   final controller = AudioStreamingController();
 
