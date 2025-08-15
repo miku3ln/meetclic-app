@@ -1,12 +1,14 @@
+// pages/dictionary_page/word_tile.dart
 import 'package:flutter/material.dart';
-import 'package:meetclic/shared/themes/app_colors.dart'; // ajusta si tu ruta es distinta
+import 'package:meetclic/shared/themes/app_colors.dart';
 
-/// -------------------- Tile de palabra --------------------
+import 'models/word_item.dart';
+
 class WordTile extends StatelessWidget {
   final WordItem item;
   final VoidCallback onPlay;
 
-  const WordTile({required this.item, required this.onPlay});
+  const WordTile({super.key, required this.item, required this.onPlay});
 
   @override
   Widget build(BuildContext context) {
@@ -70,19 +72,4 @@ class WordTile extends StatelessWidget {
       ),
     );
   }
-}
-
-/// -------------------- Modelo auxiliar --------------------
-class WordItem {
-  final String image;
-  final String title;
-  final String subtitle;
-  final String description;
-
-  const WordItem({
-    required this.image,
-    required this.title,
-    required this.subtitle,
-    required this.description,
-  });
 }
