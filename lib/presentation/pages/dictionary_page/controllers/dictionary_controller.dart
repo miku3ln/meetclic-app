@@ -98,6 +98,7 @@ class DictionaryController extends ChangeNotifier {
       });
       final WordItem setPush = WordItem(
         classes: classData,
+        phoneme: row.phoneme,
         title: row.value,
         subtitle: row.translationRaw,
         description: row.description,

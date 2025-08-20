@@ -131,6 +131,7 @@ class ApiDictionaryWordDto {
   final int diccionaryLanguageId; // (sic) typo del backend
   final List<ApiDictionaryTagDto> dictionary;
   final List<ApiPronunciationDto> pronunciations;
+  final String phoneme;
 
   ApiDictionaryWordDto({
     required this.id,
@@ -142,6 +143,7 @@ class ApiDictionaryWordDto {
     required this.diccionaryLanguageId,
     required this.dictionary,
     required this.pronunciations,
+    required this.phoneme,
   });
 
   factory ApiDictionaryWordDto.fromJson(Map<String, dynamic> json) {
@@ -152,6 +154,8 @@ class ApiDictionaryWordDto {
       value: json['value'] as String,
       description: json['description'] as String,
       status: json['status'] as String,
+      phoneme: json['phoneme'] as String,
+
       diccionaryLanguageId: json['diccionary_language_id'] as int,
       dictionary: (json['dictionary'] as List<dynamic>)
           .map((e) => ApiDictionaryTagDto.fromJson(e as Map<String, dynamic>))
@@ -250,7 +254,7 @@ class DictionaryWord {
   final int languageId; // normalizado del typo
   final List<DictionaryTag> tags;
   final List<Pronunciation> pronunciations;
-
+  final String phoneme;
   const DictionaryWord({
     required this.id,
     required this.value,
@@ -262,6 +266,7 @@ class DictionaryWord {
     required this.languageId,
     required this.tags,
     required this.pronunciations,
+    required this.phoneme,
   });
 
   /// Utilidad: toma la primera 'didactic' si existe; si no, la primera disponible.
@@ -318,6 +323,7 @@ class WordMapper {
   static DictionaryWord fromDto(ApiDictionaryWordDto dto) => DictionaryWord(
     id: dto.id,
     value: dto.value,
+    phoneme: dto.phoneme,
     translationRaw: dto.translationValue,
     translations: _splitTranslations(dto.translationValue),
     usageContext: dto.usageContext,
