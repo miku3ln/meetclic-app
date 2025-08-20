@@ -24,7 +24,8 @@ class DictionaryRepository {
     );
   }
 
-  Future<ApiResponseModel<Page<DictionaryWord>>> getDataDictionaryByLanguage({
+  Future<ApiResponseModel<PageData<DictionaryWord>>>
+  getDataDictionaryByLanguage({
     required int current,
     required int rowCount,
     required int entity_manager_id,

@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 
 import '../models/word_item.dart';
 import '../repositories/dictionary_repository.dart';
+import '../services/mock_dictionary_service.dart';
 
 class DictionaryController extends ChangeNotifier {
   DictionaryController(this._repo);
+
   final DictionaryRepository _repo;
 
   // ---------- estado público ----------
@@ -25,6 +27,7 @@ class DictionaryController extends ChangeNotifier {
   // ---------- paginación ----------
   int _page = 1;
   final int _pageSize = 10;
+  int total = -1;
 
   // ---------- scroll ----------
   static const double infiniteThreshold = 250.0;
@@ -82,12 +85,36 @@ class DictionaryController extends ChangeNotifier {
     notifyListeners();
   }
 
+  getDataManagerRows(PageData<DictionaryWord> dataResult) {
+    final List<WordItem> data = [];
+    final List<DictionaryWord> rows = dataResult.rows;
+    rows.forEach((row) {
+      print(row); // o row.campoX
+      final List<DictionaryTag> tagsDictionary = row.tags;
+      final List<String> classData = [];
+      tagsDictionary.forEach((rowTag) {
+        classData.add(rowTag.shortCode);
+      });
+      final WordItem setPush = WordItem(
+        classes: classData,
+        title: row.value,
+        subtitle: row.translationRaw,
+        description: row.description,
+        image:
+            "https://www.shutterstock.com/image-vector/brown-wooden-chair-backrest-soft-600nw-1329785732.jpg",
+      );
+      data.add(setPush);
+    });
+
+    return data;
+  }
+
   // ===== data =====
   Future<void> loadInitial() async {
     isInitialLoading = true;
     _resetPagination();
     notifyListeners();
-    int entityManagerId = language == "KI" ? 1 : 2;
+    int entityManagerId = getManagerId();
     final dataManager = await _repo.getDataDictionaryByLanguage(
       current: _page,
       rowCount: _pageSize,
@@ -95,20 +122,31 @@ class DictionaryController extends ChangeNotifier {
       searchPhrase: query,
       categoryIndex: selectedCategory,
     );
-    final dataResult = dataManager.data;
     List<WordItem> data = [];
-
+    final dataResult = dataManager.data;
+    if (dataManager.success) {
+      total = dataResult.total;
+      data = getDataManagerRows(dataResult);
+    }
     items.addAll(data);
-    hasMore = data.length == _pageSize;
+    hasMore = isAllowGetData();
     isInitialLoading = false;
     notifyListeners();
+  }
+
+  int getManagerId() {
+    return language == "KI" ? 1 : 2;
+  }
+
+  bool isAllowGetData() {
+    return !(items.length == total);
   }
 
   Future<void> reload() async {
     isRefreshing = true;
     _resetPagination();
     notifyListeners();
-    int entityManagerId = language == "EN" ? 1 : 2;
+    int entityManagerId = getManagerId();
 
     final dataManager = await _repo.getDataDictionaryByLanguage(
       current: 1,
@@ -117,10 +155,15 @@ class DictionaryController extends ChangeNotifier {
       searchPhrase: query,
       categoryIndex: selectedCategory,
     );
-    final dataResult = dataManager.data;
     List<WordItem> data = [];
+
+    final dataResult = dataManager.data;
+    if (dataManager.success) {
+      total = dataResult.total;
+      data = getDataManagerRows(dataResult);
+    }
     items.addAll(data);
-    hasMore = data.length == _pageSize;
+    hasMore = isAllowGetData();
     _page = 1;
     isRefreshing = false;
     lockScroll(false);
@@ -132,7 +175,7 @@ class DictionaryController extends ChangeNotifier {
 
     isLoadingMore = true;
     notifyListeners();
-    int entityManagerId = language == "EN" ? 1 : 2;
+    int entityManagerId = getManagerId();
 
     final nextPage = _page + 1;
     final dataManager = await _repo.getDataDictionaryByLanguage(
@@ -142,12 +185,16 @@ class DictionaryController extends ChangeNotifier {
       searchPhrase: query,
       categoryIndex: selectedCategory,
     );
-    final dataResult = dataManager.data;
 
     List<WordItem> data = [];
+    final dataResult = dataManager.data;
+    if (dataManager.success) {
+      total = dataResult.total;
+      data = getDataManagerRows(dataResult);
+    }
     _page = nextPage;
     items.addAll(data);
-    hasMore = data.length == _pageSize;
+    hasMore = isAllowGetData();
     isLoadingMore = false;
     notifyListeners();
   }

@@ -275,13 +275,13 @@ class DictionaryWord {
   }
 }
 
-class Page<T> {
+class PageData<T> {
   final int total;
   final List<T> rows;
   final int current;
   final int rowCount;
 
-  const Page({
+  const PageData({
     required this.total,
     required this.rows,
     required this.current,
@@ -336,12 +336,13 @@ class WordMapper {
 }
 
 class PageMapper {
-  static Page<DictionaryWord> fromApiPageWords(ApiPageWordsDto dto) => Page(
-    total: dto.total,
-    rows: dto.rows.map(WordMapper.fromDto).toList(),
-    current: dto.current,
-    rowCount: dto.rowCount,
-  );
+  static PageData<DictionaryWord> fromApiPageWords(ApiPageWordsDto dto) =>
+      PageData(
+        total: dto.total,
+        rows: dto.rows.map(WordMapper.fromDto).toList(),
+        current: dto.current,
+        rowCount: dto.rowCount,
+      );
 }
 // ============================================================================
 // lib/features/dictionary/presentation/view_models.dart
@@ -418,7 +419,7 @@ class WordPageVm {
     required this.items,
   });
 
-  factory WordPageVm.fromDomain(Page<DictionaryWord> page) => WordPageVm(
+  factory WordPageVm.fromDomain(PageData<DictionaryWord> page) => WordPageVm(
     total: page.total,
     current: page.current,
     rowCount: page.rowCount,
@@ -427,8 +428,8 @@ class WordPageVm {
 }
 
 // Page vacío para errores (data nunca es null)
-Page<DictionaryWord> _emptyPage(int current, int rowCount) =>
-    Page<DictionaryWord>(
+PageData<DictionaryWord> _emptyPage(int current, int rowCount) =>
+    PageData<DictionaryWord>(
       total: 0,
       rows: const [],
       current: current,
@@ -448,7 +449,7 @@ import '../presentation/view_models.dart';
 */
 class DictionaryAdapters {
   /// Convierte el JSON crudo (Map o String) del backend a Page<DictionaryWord>.
-  static Page<DictionaryWord> parseDomainPage(dynamic source) {
+  static PageData<DictionaryWord> parseDomainPage(dynamic source) {
     final Map<String, dynamic> map = source is String
         ? json.decode(source) as Map<String, dynamic>
         : source;
@@ -465,7 +466,8 @@ class DictionaryAdapters {
 
 class MockDictionaryService implements DictionaryService {
   @override
-  Future<ApiResponseModel<Page<DictionaryWord>>> getDataDictionaryByLanguage({
+  Future<ApiResponseModel<PageData<DictionaryWord>>>
+  getDataDictionaryByLanguage({
     required int current,
     required int rowCount,
     required int entity_manager_id,
@@ -498,7 +500,7 @@ class MockDictionaryService implements DictionaryService {
       );
 
       if (res.statusCode < 200 || res.statusCode >= 300) {
-        return ApiResponseModel<Page<DictionaryWord>>.error(
+        return ApiResponseModel<PageData<DictionaryWord>>.error(
           'HTTP ${res.statusCode}: ${res.reasonPhrase ?? 'Error'}',
           _emptyPage(current, rowCount),
         );
@@ -509,7 +511,7 @@ class MockDictionaryService implements DictionaryService {
 
       // Caso A: el backend ya envía el sobre { type, success, message, data }
       if (root.containsKey('data')) {
-        return ApiResponseModel<Page<DictionaryWord>>.fromJson(
+        return ApiResponseModel<PageData<DictionaryWord>>.fromJson(
           root,
           (dataJson) => DictionaryAdapters.parseDomainPage(dataJson),
         );
@@ -517,14 +519,14 @@ class MockDictionaryService implements DictionaryService {
 
       // Caso B: el backend devuelve directamente el page (sin sobre)
       final page = DictionaryAdapters.parseDomainPage(root);
-      return ApiResponseModel<Page<DictionaryWord>>(
+      return ApiResponseModel<PageData<DictionaryWord>>(
         type: (root['type'] as int?) ?? 1,
         success: (root['success'] as bool?) ?? true,
         message: (root['message'] as String?) ?? 'OK',
         data: page,
       );
     } catch (e) {
-      return ApiResponseModel<Page<DictionaryWord>>.error(
+      return ApiResponseModel<PageData<DictionaryWord>>.error(
         'Error de red o parsing: $e',
         _emptyPage(current, rowCount),
       );

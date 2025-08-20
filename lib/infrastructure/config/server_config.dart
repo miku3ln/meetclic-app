@@ -13,7 +13,7 @@ abstract class Config {
 class ServerConfig {
   // static const String baseUrl = 'http://192.168.137.1/meetclickmanager/api';
   //static const String baseUrl = 'http://192.168.0.101/meetclickmanager/api';
-  static Environment currentEnv = Environment.test;
+  static Environment currentEnv = Environment.local;
   static String get getSocketServer {
     return 'ws://${Config.socket}:${Config.port}/audio';
   }
@@ -27,7 +27,7 @@ class ServerConfig {
       case Environment.test:
         return 'http://192.168.137.1/meetclickmanager/api';
       case Environment.local:
-        return 'http://172.20.128.1/meetclickmanager/api';
+        return 'http://10.143.10.83/meetclickmanager/api'; //PC WORK RED
 
       // return 'http://192.168.0.102/meetclickmanager/api';
     }
