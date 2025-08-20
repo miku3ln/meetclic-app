@@ -86,6 +86,7 @@ class DictionaryController extends ChangeNotifier {
   }
 
   getDataManagerRows(PageData<DictionaryWord> dataResult) {
+    //TODO ROW DICTIONARY
     final List<WordItem> data = [];
     final List<DictionaryWord> rows = dataResult.rows;
     rows.forEach((row) {
