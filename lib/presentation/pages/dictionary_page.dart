@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:meetclic/domain/entities/menu_tab_up_item.dart';
 import 'package:meetclic/shared/themes/app_colors.dart';
 
+import '../pages/dictionary_page/categories_top.dart';
 import '../pages/dictionary_page/controllers/dictionary_controller.dart';
 import '../pages/dictionary_page/repositories/dictionary_repository.dart';
 import '../pages/dictionary_page/search_language_app_bar.dart';
@@ -31,7 +32,7 @@ class _DictionaryPageState extends State<DictionaryPage> {
   final TextEditingController _searchCtrl = TextEditingController();
 
   late final DictionaryController _vm;
-
+  late final CategoryController _controllerCategory;
   @override
   void initState() {
     super.initState();
@@ -40,6 +41,10 @@ class _DictionaryPageState extends State<DictionaryPage> {
 
     _vm.attachScrollHandlers(_scrollController);
     scheduleMicrotask(_vm.loadInitial); // carga inicial
+    _controllerCategory = CategoryController(
+      items: grammaticalClassCatalog,
+      initialSelectedId: GrammaticalClass.sustantivo,
+    );
   }
 
   @override
@@ -50,12 +55,12 @@ class _DictionaryPageState extends State<DictionaryPage> {
     super.dispose();
   }
 
-  String _safeLabel(MenuTabUpItem item) => item.toString();
+  String _safeLabel(MenuTabUpItem item) => item.name;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
+    final bool viewCategoriesTop = false;
     // Bouncing + AlwaysScrollable permite overscroll también en Android
     final ScrollPhysics basePhysics = _vm.scrollLocked
         ? const NeverScrollableScrollPhysics()
@@ -97,68 +102,31 @@ class _DictionaryPageState extends State<DictionaryPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 8),
-
-                        // -------------------- CARRUSEL DE CATEGORÍAS --------------------
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          physics: _vm.scrollLocked
-                              ? const NeverScrollableScrollPhysics()
-                              : const BouncingScrollPhysics(),
-                          child: Row(
-                            children: List.generate(widget.itemsStatus.length, (
-                              i,
-                            ) {
-                              final item = widget.itemsStatus[i];
-                              final label =
-                                  widget.labelBuilder?.call(item) ??
-                                  _safeLabel(item);
-                              final selected = _vm.selectedCategory == i;
-
-                              return Padding(
-                                padding: EdgeInsets.only(
-                                  right: i == widget.itemsStatus.length - 1
-                                      ? 0
-                                      : 8,
-                                ),
-                                child: ChoiceChip(
-                                  label: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(
-                                        Icons.category_outlined,
-                                        size: 16,
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(label),
-                                    ],
-                                  ),
-                                  selected: selected,
-                                  onSelected: (_) => _vm.setCategory(i),
-                                  selectedColor: AppColors.azulClic.withOpacity(
-                                    .12,
-                                  ),
-                                  labelStyle: TextStyle(
-                                    color: selected
-                                        ? AppColors.azulClic
-                                        : AppColors.grisOscuro,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  side: BorderSide(
-                                    color: selected
-                                        ? AppColors.azulClic
-                                        : AppColors.moradoSuave.withOpacity(.2),
-                                  ),
-                                  backgroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                              );
-                            }),
+                        if (viewCategoriesTop)
+                          Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: CategoryCarousel(
+                              controller: _controllerCategory,
+                              showNumberBadge: true,
+                              onChanged: (id) {
+                                // Aquí filtras tu lista o lanzas queries por clase gramatical
+                                debugPrint('Seleccionado id = $id');
+                                _vm.selectedCategory = id;
+                                _vm.setCategory(id);
+                              },
+                              // Ejemplo de leading con IconData si no quieres assets:
+                              leadingBuilder: (item, selected) {
+                                return Icon(
+                                  Icons.bookmark_outline,
+                                  size: 16,
+                                  color: selected
+                                      ? const Color(0xFF1565C0)
+                                      : const Color(0xFF607D8B),
+                                );
+                              },
+                            ),
                           ),
-                        ),
                         const SizedBox(height: 16),
-
                         // -------------------- HEADER LISTA --------------------
                         Row(
                           children: [

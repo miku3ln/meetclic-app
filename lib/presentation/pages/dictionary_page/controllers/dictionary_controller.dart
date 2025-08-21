@@ -20,7 +20,7 @@ class DictionaryController extends ChangeNotifier {
   bool scrollLocked = false;
 
   // ---------- criterios ----------
-  String language = 'KI';
+  String language = 'ES';
   int selectedCategory = 0;
   String query = '';
 
@@ -89,6 +89,7 @@ class DictionaryController extends ChangeNotifier {
     //TODO ROW DICTIONARY
     final List<WordItem> data = [];
     final List<DictionaryWord> rows = dataResult.rows;
+    late bool viewImage = false;
     rows.forEach((row) {
       print(row); // o row.campoX
       final List<DictionaryTag> tagsDictionary = row.tags;
@@ -96,15 +97,19 @@ class DictionaryController extends ChangeNotifier {
       tagsDictionary.forEach((rowTag) {
         classData.add(rowTag.shortCode);
       });
-      final WordItem setPush = WordItem(
+      late WordItem setPush = WordItem(
         classes: classData,
         phoneme: row.phoneme,
         title: row.value,
         subtitle: row.translationRaw,
         description: row.description,
-        image:
-            "https://www.shutterstock.com/image-vector/brown-wooden-chair-backrest-soft-600nw-1329785732.jpg",
+        image: "",
+        /* image: viewImage
+            ? "https://www.shutterstock.com/image-vector/brown-wooden-chair-backrest-soft-600nw-1329785732.jpg"
+            : "",*/
       );
+      viewImage = !viewImage;
+
       data.add(setPush);
     });
 

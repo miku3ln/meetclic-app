@@ -1,7 +1,7 @@
 // pages/dictionary_page/models/word_item.dart
 class WordItem {
   /// Imagen ilustrativa (URL o asset)
-  final String image;
+  final String? image;
 
   /// Palabra principal (Kichwa)
   final String title;
@@ -25,7 +25,7 @@ class WordItem {
   final String? audioUrl;
 
   const WordItem({
-    required this.image,
+    this.image,
     required this.title,
     required this.subtitle,
     required this.description,
@@ -37,7 +37,7 @@ class WordItem {
 
   /// Fábrica útil para migrar desde tu estructura anterior
   factory WordItem.basic({
-    required String image,
+    String? image,
     required String title,
     required String subtitle,
     required String description,
