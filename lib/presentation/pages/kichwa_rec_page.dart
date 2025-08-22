@@ -93,17 +93,20 @@ class AckStats {
   final int totalBytes;
   final int chunks;
   final DateTime receivedAt;
+  final String textConvert;
 
   AckStats({
     required this.totalBytes,
     required this.chunks,
     required this.receivedAt,
+    required this.textConvert,
   });
 
   factory AckStats.fromJson(Map<String, dynamic> json) {
     return AckStats(
       totalBytes: (json['totalBytes'] as num).toInt(),
       chunks: (json['chunks'] as num).toInt(),
+      textConvert: json['textConvert'],
       receivedAt: DateTime.parse(json['receivedAt'] as String),
     );
   }
@@ -123,6 +126,7 @@ class _StreamingPageState extends State<StreamingPage> {
   // - iOS Simulator:  ws://localhost:3000/audio
   // - Dispositivo real: ws://<TU_IP_LAN>:3000/audio
   static String wsUrl = ServerConfig.getSocketServer;
+  final TextEditingController _textCtrl = TextEditingController(); // 👈 NUEVO
 
   final controller = AudioStreamingController();
 
@@ -130,7 +134,7 @@ class _StreamingPageState extends State<StreamingPage> {
   int sentBytes = 0;
   int ackBytes = 0;
   int chunks = 0;
-
+  String text = '';
   Future<void> _toggle() async {
     if (!controller.isStreaming) {
       // Start
@@ -140,6 +144,7 @@ class _StreamingPageState extends State<StreamingPage> {
         onAck: (ack) => setState(() {
           ackBytes = ack.totalBytes;
           chunks = ack.chunks;
+          text = ack.textConvert;
         }),
         onStatus: (s) => setState(() => status = s),
       );
@@ -153,6 +158,7 @@ class _StreamingPageState extends State<StreamingPage> {
 
   @override
   void dispose() {
+    _textCtrl.dispose(); // 👈 importante
     controller.dispose();
     super.dispose();
   }
@@ -177,6 +183,8 @@ class _StreamingPageState extends State<StreamingPage> {
             Row(children: [Expanded(child: Text('Sent bytes: $sentBytes'))]),
             Row(children: [Expanded(child: Text('ACK bytes:  $ackBytes'))]),
             Row(children: [Expanded(child: Text('Chunks:     $chunks'))]),
+            Row(children: [Expanded(child: Text('Text:     $text'))]),
+
             const SizedBox(height: 8),
             LinearProgressIndicator(value: sentBytes == 0 ? null : progress),
             const Spacer(),
