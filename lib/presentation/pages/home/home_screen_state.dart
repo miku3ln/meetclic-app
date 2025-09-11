@@ -58,17 +58,16 @@ class HomeScreenState extends State<HomeScreen> {
     var pages = [
       _buildHomeContent(menuItems),
       BusinessMapPage(info: _pendingDeepLink, itemsStatus: menuItems),
-
       /*  FullScreenPage(
         title: AppLocalizations.of(context).translate('pages.shop'),
         itemsStatus: menuItems,
       ),*/
       //StreamingPage(),
-      ARCapturePage(
-        uri:
-            "assets/totems/examples/mikasa/gothic__elegance_texture_anime_girl.glb",
+      ARCapturePage(uri: "assets/totems/examples/HORNET.glb", isLocal: true),
+      /* PreviewCapturePage(
+        uri: "assets/totems/examples/HORNET.glb",
         isLocal: true,
-      ),
+      ),*/
       VehiclesScreenPage(
         title: AppLocalizations.of(context).translate('pages.aboutUs'),
         itemsStatus: menuItems,

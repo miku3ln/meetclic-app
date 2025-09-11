@@ -1,8 +1,7 @@
 // lib/ar/widgets/ar_hud.dart
 
 import 'package:flutter/material.dart';
-
-enum PinchMode { scale, distance }
+import 'package:meetclic/ar/preview/enums/enums-data.dart';
 
 class ARHud extends StatelessWidget {
   final PinchMode pinchMode;

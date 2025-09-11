@@ -1,108 +1,98 @@
-// lib/ar/capture/ar_capture_page.dart
-
+// lib/preview/capture/preview_capture_page.dart
 import 'dart:async';
 
-import 'package:ar_flutter_plugin/ar_flutter_plugin.dart';
-import 'package:ar_flutter_plugin/datatypes/config_planedetection.dart';
-import 'package:ar_flutter_plugin/managers/ar_anchor_manager.dart';
-import 'package:ar_flutter_plugin/managers/ar_location_manager.dart';
-import 'package:ar_flutter_plugin/managers/ar_object_manager.dart';
-import 'package:ar_flutter_plugin/managers/ar_session_manager.dart';
 import 'package:flutter/material.dart';
-import 'package:meetclic/ar/ar_scene_controller.dart';
+import 'package:meetclic/ar/preview/controllers/preview_scene_controller.dart';
 import 'package:meetclic/ar/preview/enums/enums-data.dart';
+import 'package:meetclic/ar/preview/widgets/glb_preview_view.dart';
 import 'package:meetclic/presentation/pages/ar_capture_page/models/ar_transform_state.dart';
 import 'package:meetclic/presentation/pages/ar_capture_page/widgets/ar_control_panel.dart';
 import 'package:meetclic/presentation/pages/ar_capture_page/widgets/ar_hud.dart';
 import 'package:meetclic/presentation/pages/ar_capture_page/widgets/ar_indicators.dart';
 
-class ARCapturePage extends StatefulWidget {
-  final String uri; // ej. 'assets/totems/examples/HORNET.glb'
-  final bool isLocal; // true: assets, false: URL
-
-  const ARCapturePage({super.key, required this.uri, this.isLocal = true});
+class PreviewCapturePage extends StatefulWidget {
+  final String uri;
+  final bool isLocal;
+  const PreviewCapturePage({super.key, required this.uri, this.isLocal = true});
 
   @override
-  State<ARCapturePage> createState() => _ARCapturePageState();
+  State<PreviewCapturePage> createState() => _PreviewCapturePageState();
 }
 
-class _ARCapturePageState extends State<ARCapturePage> {
-  final ARSceneController _c = ARSceneController();
+class _PreviewCapturePageState extends State<PreviewCapturePage> {
+  final _c = PreviewSceneController();
+  final _t = ARTransformState();
 
-  // Overlays de tracking
-  bool _showPlanes = true;
-  bool _showPoints = true;
-
-  // Transform state
-  final ARTransformState _t = ARTransformState();
-
-  // Estado UI
-  bool _hasPlaced = false;
   bool _panelVisible = false;
+  bool _hasPlaced = true; // en preview, cargamos de una
+  bool _showPlanes = true, _showPoints = true;
 
-  // Pinch
   PinchMode _pinchMode = PinchMode.scale;
-  double _pinchStartScale = 1.0;
-  double _pinchStartOz = 0.0;
+  double _pinchStartScale = 1, _pinchStartOz = 0;
 
-  // Render monitor (nuevo)
-  Timer? _renderTimer;
+  Timer? _pulse;
   bool _renderPulse = false;
   DateTime _lastBuildAt = DateTime.now();
 
   @override
   void initState() {
     super.initState();
-    // Refresco ligero para indicador de render (no forza frames; solo re-pinta la UI)
-    _renderTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+
+    // pulso para el indicador
+    _pulse = Timer.periodic(const Duration(seconds: 1), (_) {
       setState(() => _renderPulse = !_renderPulse);
+    });
+
+    // 👇 Cargar el modelo una vez montada la vista
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // El GlbPreviewView usa el uri directamente; no necesitamos placeAt(null,...)
+      setState(() {
+        _hasPlaced = true;
+        _t.initialScale = _t.sx;
+        _t.initialOz = _t.oz;
+      });
+
+      // No-op seguro (por si tu controller hace algo inicial)
+      await _c.init(
+        showPlanes: _showPlanes,
+        showFeaturePoints: _showPoints,
+        context: context,
+      );
+
+      // ❌ NO llamar a placeAt con null (rompe la tipificación).
+      // await _c.placeAt(null, uri: widget.uri, local: widget.isLocal);
     });
   }
 
   @override
   void dispose() {
-    _renderTimer?.cancel();
+    _pulse?.cancel();
     _c.dispose();
     super.dispose();
   }
 
-  Future<void> _onReset() async {
-    // 1) Reset en el controlador AR (nodo/transform de la escena)
-    await _c.reset();
-
-    // 2) Reset del estado local (ARTransformState)
-    setState(() {
-      _t.reset(); // deja escala=1, rot=0, offset=(0,0.05,0) y actualiza initialScale/initialOz
-    });
-
-    // 3) Re-aplicar por si el reset del controller difiere de nuestro estado
-    await _applyPanelToController();
-  }
-
   @override
   Widget build(BuildContext context) {
-    // Marca de tiempo de este build (se usa en indicador "Último build")
-    // No hace setState; un timer externo refresca el valor mostrado.
     _lastBuildAt = DateTime.now();
 
     return Scaffold(
       body: Stack(
         children: [
-          // ===== AR camera + tracking =====
           GestureDetector(
-            behavior: HitTestBehavior.deferToChild,
+            behavior: HitTestBehavior.opaque,
             onScaleStart: (_) {
               _pinchStartScale = _t.sx;
               _pinchStartOz = _t.oz;
             },
-            onScaleUpdate: _handlePinchUpdate,
-            child: ARView(
-              planeDetectionConfig: PlaneDetectionConfig.horizontal,
-              onARViewCreated: _onCreated,
+            onScaleUpdate: _handlePinch,
+            child: GlbPreviewView(
+              uri: widget.uri,
+              isLocal: widget.isLocal,
+              controller: _c,
             ),
           ),
 
-          // ===== HUD (arriba) =====
+          // HUD
           Positioned(
             left: 12,
             right: 12,
@@ -120,7 +110,7 @@ class _ARCapturePageState extends State<ARCapturePage> {
             ),
           ),
 
-          // ===== Indicadores (columna izquierda) =====
+          // Indicadores izquierda
           Positioned(
             top: 72,
             left: 8,
@@ -138,7 +128,7 @@ class _ARCapturePageState extends State<ARCapturePage> {
             ),
           ),
 
-          // ===== Panel de controles (abajo) =====
+          // Panel
           if (_panelVisible)
             Positioned(
               left: 12,
@@ -149,17 +139,9 @@ class _ARCapturePageState extends State<ARCapturePage> {
                 showPlanes: _showPlanes,
                 onTogglePoints: (v) async {
                   setState(() => _showPoints = v);
-                  await _c.reconfigureOverlays(
-                    showFeaturePoints: _showPoints,
-                    showPlanes: _showPlanes,
-                  );
                 },
                 onTogglePlanes: (v) async {
                   setState(() => _showPlanes = v);
-                  await _c.reconfigureOverlays(
-                    showFeaturePoints: _showPoints,
-                    showPlanes: _showPlanes,
-                  );
                 },
                 scaleLocked: _t.scaleLocked,
                 onToggleScaleLock: () =>
@@ -180,13 +162,12 @@ class _ARCapturePageState extends State<ARCapturePage> {
                 onRotX: _onRotX,
                 onRotY: _onRotY,
                 onRotZ: _onRotZ,
-                pinchModeSelector: _pinchModeSelector(),
+                pinchModeSelector: _pinchSelector(),
                 onReset: _onReset,
                 onClose: () => setState(() => _panelVisible = false),
               ),
             ),
 
-          // FAB para mostrar panel
           if (!_panelVisible)
             Positioned(
               right: 16,
@@ -202,95 +183,34 @@ class _ARCapturePageState extends State<ARCapturePage> {
     );
   }
 
-  // ---------- Creación de ARView ----------
-  Future<void> _onCreated(
-    ARSessionManager s,
-    ARObjectManager o,
-    ARAnchorManager a,
-    ARLocationManager l,
-  ) async {
-    await _c.init(
-      s,
-      o,
-      showPlanes: _showPlanes,
-      showFeaturePoints: _showPoints,
-    );
-
-    s.onPlaneOrPointTap = (hits) async {
-      if (hits.isEmpty) return;
-      await _c.placeAt(hits.first, uri: widget.uri, local: widget.isLocal);
-      await _applyPanelToController();
-      _t.initialScale = _t.sx;
-      _t.initialOz = _t.oz;
-      setState(() => _hasPlaced = true);
-    };
-  }
-
-  // ---------- Gestos: pinch ----------
-  Future<void> _handlePinchUpdate(ScaleUpdateDetails details) async {
-    if (!_hasPlaced) return;
-    if (details.pointerCount < 2) return;
-
+  // Gestos
+  Future<void> _handlePinch(ScaleUpdateDetails d) async {
+    if (!_hasPlaced || d.pointerCount < 2) return;
     if (_pinchMode == PinchMode.scale) {
-      final double newScale = (_pinchStartScale * details.scale).clamp(
-        0.01,
-        5.0,
-      );
+      final s = (_pinchStartScale * d.scale).clamp(0.01, 5.0);
       setState(() {
-        _t.sx = newScale;
-        if (_t.scaleLocked) _t.sy = _t.sz = newScale;
+        _t.sx = s;
+        if (_t.scaleLocked) _t.sy = _t.sz = s;
       });
       await _c.setUniformScale(_t.sx);
     } else {
-      const double sensitivity = 0.6; // m por unidad de pinch
-      final double dz = (details.scale - 1.0) * sensitivity;
-      final double newOz = (_pinchStartOz + dz).clamp(-3.0, 3.0);
+      const sensitivity = 0.6;
+      final newOz = (_pinchStartOz + (d.scale - 1.0) * sensitivity).clamp(
+        -3.0,
+        3.0,
+      );
       setState(() => _t.oz = newOz);
       await _c.setOffset(_t.ox, _t.oy, _t.oz);
     }
   }
 
-  // ---------- Selector de modo pinch ----------
-  Widget _pinchModeSelector() {
-    return Row(
-      children: [
-        Expanded(
-          child: ChoiceChip(
-            selected: _pinchMode == PinchMode.scale,
-            label: const Text('Scale'),
-            onSelected: (_) => setState(() => _pinchMode = PinchMode.scale),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: ChoiceChip(
-            selected: _pinchMode == PinchMode.distance,
-            label: const Text('Distance (Z)'),
-            onSelected: (_) => setState(() => _pinchMode = PinchMode.distance),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ---------- Aplicar transformaciones ----------
-  Future<void> _applyPanelToController() async {
-    if (_t.scaleLocked) {
-      await _c.setUniformScale(_t.sx);
-    } else {
-      await _c.setScaleXYZ(_t.sx, _t.sy, _t.sz);
-    }
-    await _c.setOffset(_t.ox, _t.oy, _t.oz);
-    await _c.setRotationEulerDeg(_t.rx, _t.ry, _t.rz);
-  }
-
-  // ---------- Handlers sliders ----------
+  // Sliders
   Future<void> _onScaleUniform(double v) async {
     setState(() {
       _t.sx = v;
       if (_t.scaleLocked) _t.sy = _t.sz = v;
     });
-    await _applyPanelToController();
+    await _c.setUniformScale(_t.sx);
   }
 
   Future<void> _onOffsetX(double v) async {
@@ -323,7 +243,31 @@ class _ARCapturePageState extends State<ARCapturePage> {
     await _c.setRotationEulerDeg(_t.rx, _t.ry, _t.rz);
   }
 
-  // ---------- Hint ----------
+  Future<void> _onReset() async {
+    await _c.reset();
+    setState(() => _t.reset());
+  }
+
+  Widget _pinchSelector() => Row(
+    children: [
+      Expanded(
+        child: ChoiceChip(
+          selected: _pinchMode == PinchMode.scale,
+          label: const Text('Scale'),
+          onSelected: (_) => setState(() => _pinchMode = PinchMode.scale),
+        ),
+      ),
+      const SizedBox(width: 8),
+      Expanded(
+        child: ChoiceChip(
+          selected: _pinchMode == PinchMode.distance,
+          label: const Text('Distance (Z)'),
+          onSelected: (_) => setState(() => _pinchMode = PinchMode.distance),
+        ),
+      ),
+    ],
+  );
+
   Widget _hint() => Center(
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -332,7 +276,7 @@ class _ARCapturePageState extends State<ARCapturePage> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: const Text(
-        'Toca un plano para colocar el modelo',
+        'Cargando modelo…',
         style: TextStyle(color: Colors.white),
       ),
     ),

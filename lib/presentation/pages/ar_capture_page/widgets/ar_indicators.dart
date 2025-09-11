@@ -1,8 +1,7 @@
 // lib/ar/widgets/ar_indicators.dart
 
 import 'package:flutter/material.dart';
-
-import 'ar_hud.dart';
+import 'package:meetclic/ar/preview/enums/enums-data.dart';
 
 class ARIndicators extends StatelessWidget {
   final bool showPlanes;

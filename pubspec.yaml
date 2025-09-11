@@ -57,6 +57,7 @@ dependencies:
   ar_flutter_plugin:
     path: ./ar_flutter_plugin
   vector_math: ^2.1.4
+  model_viewer_plus: ^1.7.0  # o la última estable
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -100,6 +101,7 @@ flutter:
     - assets/gamification/yapitas-premium.png
     - assets/gamification/reputation.png
     - assets/totems/
+    - assets/totems/examples/HORNET.glb
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
