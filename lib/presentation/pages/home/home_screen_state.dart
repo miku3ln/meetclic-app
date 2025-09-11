@@ -64,7 +64,11 @@ class HomeScreenState extends State<HomeScreen> {
         itemsStatus: menuItems,
       ),*/
       //StreamingPage(),
-      ARCapturePage(),
+      ARCapturePage(
+        uri:
+            "assets/totems/examples/mikasa/gothic__elegance_texture_anime_girl.glb",
+        isLocal: true,
+      ),
       VehiclesScreenPage(
         title: AppLocalizations.of(context).translate('pages.aboutUs'),
         itemsStatus: menuItems,
