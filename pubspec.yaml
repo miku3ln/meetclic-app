@@ -49,11 +49,14 @@ dependencies:
   app_links: ^3.4.2
   font_awesome_flutter: ^10.6.0
   easy_localization: ^3.0.3
-  geolocator: ^10.1.0
+  geolocator: ^9.0.0
   google_sign_in: ^6.2.1
   fl_chart: ^0.64.0
   record: ^6.0.0
   web_socket_channel: ^2.4.0
+  ar_flutter_plugin:
+    path: ./ar_flutter_plugin
+  vector_math: ^2.1.4
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -96,7 +99,7 @@ flutter:
     - assets/gamification/yapitas.png
     - assets/gamification/yapitas-premium.png
     - assets/gamification/reputation.png
-
+    - assets/totems/
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
