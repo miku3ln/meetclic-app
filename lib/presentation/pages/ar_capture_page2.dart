@@ -1,15 +1,4 @@
-// lib/ar/ar_capture_page.dart
-//
-// Pantalla AR con:
-// - Colocación del modelo al tocar un plano
-// - Panel de controles (escala/offset/rotación + toggles de overlays)
-// - Gesto de pinch (2 dedos) en dos modos: Scale y Distance(Z)
-// - HUD superior y tira de indicadores a la izquierda
-//
-// Requiere ar_flutter_plugin 0.7.x y un ARSceneController con:
-//   init, placeAt, reconfigureOverlays,
-//   setUniformScale, setScaleXYZ, setOffset, setRotationEulerDeg,
-//   reset, dispose
+import 'dart:async';
 
 import 'package:ar_flutter_plugin/ar_flutter_plugin.dart';
 import 'package:ar_flutter_plugin/datatypes/config_planedetection.dart';
@@ -19,9 +8,14 @@ import 'package:ar_flutter_plugin/managers/ar_object_manager.dart';
 import 'package:ar_flutter_plugin/managers/ar_session_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:meetclic/ar/ar_scene_controller.dart';
+import 'package:meetclic/ar/preview/enums/enums-data.dart';
+import 'package:meetclic/presentation/pages/ar_capture_page/models/ar_transform_state.dart';
+import 'package:meetclic/presentation/pages/ar_capture_page/widgets/ar_control_panel.dart';
+import 'package:meetclic/presentation/pages/ar_capture_page/widgets/ar_hud.dart';
+import 'package:meetclic/presentation/pages/ar_capture_page/widgets/ar_indicators.dart';
 
 class ARCapturePage extends StatefulWidget {
-  final String uri; // ej. 'assets/totems/examples/HORNET.glb'
+  final String uri; // p.ej. 'assets/totems/examples/HORNET.glb' o URL
   final bool isLocal; // true: assets, false: URL
 
   const ARCapturePage({super.key, required this.uri, this.isLocal = true});
@@ -30,76 +24,118 @@ class ARCapturePage extends StatefulWidget {
   State<ARCapturePage> createState() => _ARCapturePageState();
 }
 
-enum PinchMode { scale, distance }
-
 class _ARCapturePageState extends State<ARCapturePage> {
-  // Controlador de escena (maneja sesión, managers y nodo activo)
-  final _c = ARSceneController();
+  final ARSceneController _c = ARSceneController();
 
-  // Overlays de tracking
+  // Overlays
   bool _showPlanes = true;
   bool _showPoints = true;
 
-  // Transform del modelo
-  bool _scaleLocked = true;
-  double _sx = 1, _sy = 1, _sz = 1; // escala
-  double _rx = 0, _ry = 0, _rz = 0; // rotación en grados
-  double _ox = 0, _oy = 0.05, _oz = 0; // offset en metros
+  // Transform state
+  final ARTransformState _t = ARTransformState();
 
   // Estado UI
   bool _hasPlaced = false;
   bool _panelVisible = false;
 
-  // Pinch (2 dedos)
+  // Pinch
   PinchMode _pinchMode = PinchMode.scale;
   double _pinchStartScale = 1.0;
   double _pinchStartOz = 0.0;
 
-  // Valores iniciales (para HUD/indicadores)
-  double _initialScale = 1.0;
-  double _initialOz = 0.0;
+  // Detección de planos / modo manual
+  bool _planesAvailable = false;
+  bool _manualPlacement = true; // <--- por defecto manual activado
+
+  // Monitores
+  Timer? _renderTimer;
+  Timer? _probeTimer; // sondea planos con raycast al centro
+  bool _renderPulse = false;
+  DateTime _lastBuildAt = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    // Pulso visual de render
+    _renderTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      setState(() => _renderPulse = !_renderPulse);
+    });
+
+    // Sondéo periódico para detectar si hay algún plano
+    _probeTimer = Timer.periodic(const Duration(milliseconds: 900), (_) async {
+      final hit = await _c.raycastScreen(0.5, 0.5);
+      final hasPlane = hit != null;
+      if (hasPlane != _planesAvailable) {
+        setState(() => _planesAvailable = hasPlane);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _renderTimer?.cancel();
+    _probeTimer?.cancel();
+    _c.dispose();
+    super.dispose();
+  }
+
+  Future<void> _onReset() async {
+    await _c.reset();
+    setState(() {
+      _t.reset();
+      _hasPlaced = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    _lastBuildAt = DateTime.now();
+
     return Scaffold(
       body: Stack(
         children: [
           // ===== AR camera + tracking =====
-          // Solo escuchamos pinch (2 dedos). NO declaramos onTap aquí.
           GestureDetector(
-            behavior: HitTestBehavior
-                .deferToChild, // deja pasar taps/pans al ARView (PlatformView)
-            onScaleStart: (d) {
-              _pinchStartScale = _sx;
-              _pinchStartOz = _oz;
+            behavior: HitTestBehavior.deferToChild,
+            onScaleStart: (_) {
+              _pinchStartScale = _t.sx;
+              _pinchStartOz = _t.oz;
             },
-            onScaleUpdate: (details) async {
-              if (!_hasPlaced) return;
-              // Scale gesture solo cuando hay 2 dedos
-              if (details.pointerCount < 2) return;
+            onScaleUpdate: _handlePinchUpdate,
+            // Sólo manejamos tap-to-place cuando NO estamos en modo manual
+            onTapUp: _manualPlacement
+                ? null
+                : (d) async {
+                    // Usa la posición del tap (d.localPosition) -> normaliza a 0..1
+                    // Si tu plugin solo acepta normalizado, usamos Size del contexto.
+                    final box = context.findRenderObject() as RenderBox?;
+                    if (box == null) return;
+                    final size = box.size;
+                    final nx = (d.localPosition.dx / size.width).clamp(
+                      0.0,
+                      1.0,
+                    );
+                    final ny = (d.localPosition.dy / size.height).clamp(
+                      0.0,
+                      1.0,
+                    );
 
-              if (_pinchMode == PinchMode.scale) {
-                final newScale = (_pinchStartScale * details.scale).clamp(
-                  0.01,
-                  5.0,
-                );
-                setState(() {
-                  _sx = newScale;
-                  if (_scaleLocked) _sy = _sz = newScale;
-                });
-                await _c.setUniformScale(_sx);
-              } else {
-                // Distance(Z) = acercar/alejar moviendo en Z
-                const sensitivity = 0.6; // metros por unidad de pinch
-                final dz = (details.scale - 1.0) * sensitivity;
-                final newOz = (_pinchStartOz + dz).clamp(-3.0, 3.0);
-                setState(() => _oz = newOz);
-                await _c.setOffset(_ox, _oy, _oz);
-              }
-            },
+                    final hit = await _c.raycastScreen(nx, ny);
+                    if (hit != null) {
+                      await _c.placeAt(
+                        hit,
+                        uri: widget.uri,
+                        local: widget.isLocal,
+                      );
+                      await _applyPanelToController();
+                      _t.initialScale = _t.sx;
+                      _t.initialOz = _t.oz;
+                      setState(() => _hasPlaced = true);
+                    }
+                  },
             child: ARView(
               planeDetectionConfig: PlaneDetectionConfig.horizontal,
-              onARViewCreated: _onCreated, // 0.7.x: 4 params
+              onARViewCreated: _onCreated,
             ),
           ),
 
@@ -108,19 +144,112 @@ class _ARCapturePageState extends State<ARCapturePage> {
             left: 12,
             right: 12,
             top: 0,
-            child: SafeArea(child: (_hasPlaced) ? _hudBar() : _hint()),
+            child: SafeArea(
+              child: _hasPlaced
+                  ? ARHud(
+                      pinchMode: _pinchMode,
+                      currentScale: _t.sx,
+                      currentOz: _t.oz,
+                      initialScale: _t.initialScale,
+                      initialOz: _t.initialOz,
+                    )
+                  : _hint(),
+            ),
           ),
 
           // ===== Indicadores (columna izquierda) =====
           Positioned(
             top: 72,
             left: 8,
-            child: SafeArea(child: _leftIndicators()),
+            child: SafeArea(
+              child: ARIndicators(
+                showPlanes: _showPlanes,
+                showPoints: _showPoints,
+                pinchMode: _pinchMode,
+                scaleX: _t.sx,
+                oz: _t.oz,
+                initialOz: _t.initialOz,
+                renderPulse: _renderPulse,
+                sinceLastBuild: DateTime.now().difference(_lastBuildAt),
+              ),
+            ),
           ),
 
           // ===== Panel de controles (abajo) =====
           if (_panelVisible)
-            Positioned(left: 12, right: 12, bottom: 12, child: _panel(context)),
+            Positioned(
+              left: 12,
+              right: 12,
+              bottom: 12,
+              child: SafeArea(
+                top: false,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.60,
+                  ),
+                  child: Material(
+                    type: MaterialType.transparency,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior
+                          .opaque, // asegura capturar taps dentro
+                      onTap: () {}, // evita que “transfieran” al ARView debajo
+                      child: SingleChildScrollView(
+                        primary: false,
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: ARControlPanel(
+                          showPoints: _showPoints,
+                          showPlanes: _showPlanes,
+                          onTogglePoints: (v) async {
+                            setState(() => _showPoints = v);
+                            await _c.reconfigureOverlays(
+                              showFeaturePoints: _showPoints,
+                              showPlanes: _showPlanes,
+                            );
+                          },
+                          onTogglePlanes: (v) async {
+                            setState(() => _showPlanes = v);
+                            await _c.reconfigureOverlays(
+                              showFeaturePoints: _showPoints,
+                              showPlanes: _showPlanes,
+                            );
+                          },
+                          scaleLocked: _t.scaleLocked,
+                          onToggleScaleLock: () =>
+                              setState(() => _t.scaleLocked = !_t.scaleLocked),
+                          sx: _t.sx,
+                          sy: _t.sy,
+                          sz: _t.sz,
+                          onScaleUniform: _onScaleUniform,
+                          ox: _t.ox,
+                          oy: _t.oy,
+                          oz: _t.oz,
+                          onOffsetX: _onOffsetX,
+                          onOffsetY: _onOffsetY,
+                          onOffsetZ: _onOffsetZ,
+                          rx: _t.rx,
+                          ry: _t.ry,
+                          rz: _t.rz,
+                          onRotX: _onRotX,
+                          onRotY: _onRotY,
+                          onRotZ: _onRotZ,
+                          pinchModeSelector: _pinchModeSelector(),
+                          onReset: _onReset,
+                          onClose: () => setState(() => _panelVisible = false),
+
+                          // Colocación manual (tuyos)
+                          planesAvailable: _planesAvailable,
+                          manualPlacement: _manualPlacement,
+                          onManualPlacementChanged: (v) =>
+                              setState(() => _manualPlacement = v),
+                          onPlaceAtCenter: _placeAtCenter,
+                          onPlaceRandom: _placeAtRandom,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
 
           // FAB para mostrar panel
           if (!_panelVisible)
@@ -138,105 +267,176 @@ class _ARCapturePageState extends State<ARCapturePage> {
     );
   }
 
-  // ---------- HUD superior ----------
-  Widget _hudBar() {
-    final isScale = _pinchMode == PinchMode.scale;
-    final cur = isScale ? _sx : _oz;
-    final ini = isScale ? _initialScale : _initialOz;
-    final delta = cur - ini;
-
-    final label = isScale ? 'Scale' : 'Dist Z';
-    final unit = isScale ? '×' : ' m';
-
-    String fCur = isScale ? cur.toStringAsPrecision(3) : cur.toStringAsFixed(2);
-    String fIni = isScale ? ini.toStringAsPrecision(3) : ini.toStringAsFixed(2);
-    String fDelta =
-        '${delta >= 0 ? '+' : ''}${isScale ? delta.toStringAsPrecision(3) : delta.toStringAsFixed(2)}$unit';
-
-    return Center(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.black54,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: DefaultTextStyle(
-          style: const TextStyle(color: Colors.white),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.pinch, size: 16, color: Colors.white),
-                  const SizedBox(width: 6),
-                  Text(
-                    _pinchMode == PinchMode.scale
-                        ? 'Pinch: Scale'
-                        : 'Pinch: Distance',
-                  ),
-                ],
-              ),
-              const SizedBox(width: 12),
-              Text('$label: $fCur$unit'),
-              const SizedBox(width: 10),
-              Text('init: $fIni$unit'),
-              const SizedBox(width: 10),
-              Text('Δ: $fDelta'),
-            ],
-          ),
-        ),
-      ),
+  // ---------- Creación de ARView ----------
+  Future<void> _onCreated(
+    ARSessionManager s,
+    ARObjectManager o,
+    ARAnchorManager a,
+    ARLocationManager l,
+  ) async {
+    await _c.init(
+      s,
+      o,
+      anchors: a,
+      showPlanes: _showPlanes,
+      showFeaturePoints: _showPoints,
     );
+
+    // Si se usa modo tap-to-place (manual = false), también soportamos tap nativo del plugin:
+    s.onPlaneOrPointTap = (hits) async {
+      if (_manualPlacement) return; // deshabilitado en manual
+      if (hits.isEmpty) return;
+      await _c.placeAt(hits.first, uri: widget.uri, local: widget.isLocal);
+      await _applyPanelToController();
+      _t.initialScale = _t.sx;
+      _t.initialOz = _t.oz;
+      setState(() {
+        _hasPlaced = true;
+        _planesAvailable = true; // ya hubo hit
+      });
+    };
   }
 
-  // ---------- Indicadores izquierda ----------
-  Widget _leftIndicators() {
-    Widget chip(IconData icon, String text, {bool? on}) {
-      final color = on == null
-          ? Colors.white12
-          : (on ? Colors.green.withOpacity(.25) : Colors.red.withOpacity(.25));
-      return Container(
-        margin: const EdgeInsets.only(bottom: 6),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 14, color: Colors.white),
-            const SizedBox(width: 6),
-            Text(text, style: const TextStyle(color: Colors.white)),
-          ],
-        ),
-      );
-    }
+  // ---------- Acciones de colocación manual ----------
+  Future<void> _placeAtCenter() async {
+    if (!_planesAvailable) return;
+    final hit = await _c.raycastScreen(0.5, 0.5);
+    if (hit == null) return;
+    await _c.placeAt(hit, uri: widget.uri, local: widget.isLocal);
+    await _applyPanelToController();
+    _t.initialScale = _t.sx;
+    _t.initialOz = _t.oz;
+    setState(() => _hasPlaced = true);
+  }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Future<void> _placeAtRandom() async {
+    if (!_planesAvailable) return;
+
+    // Muestra rápida: probamos algunos puntos en pantalla y usamos el primer hit.
+    const samples = <Offset>[
+      Offset(0.25, 0.25),
+      Offset(0.75, 0.25),
+      Offset(0.25, 0.75),
+      Offset(0.75, 0.75),
+      Offset(0.5, 0.5),
+      Offset(0.15, 0.6),
+      Offset(0.85, 0.4),
+      Offset(0.5, 0.3),
+      Offset(0.4, 0.8),
+    ];
+
+    dynamic firstHit;
+    for (final s in samples) {
+      final hit = await _c.raycastScreen(s.dx, s.dy);
+      if (hit != null) {
+        firstHit = hit;
+        break;
+      }
+    }
+    if (firstHit == null) return;
+
+    await _c.placeAt(firstHit, uri: widget.uri, local: widget.isLocal);
+    await _applyPanelToController();
+    _t.initialScale = _t.sx;
+    _t.initialOz = _t.oz;
+    setState(() => _hasPlaced = true);
+  }
+
+  // ---------- Gestos: pinch ----------
+  Future<void> _handlePinchUpdate(ScaleUpdateDetails details) async {
+    if (!_hasPlaced) return;
+    if (details.pointerCount < 2) return;
+
+    if (_pinchMode == PinchMode.scale) {
+      final double newScale = (_pinchStartScale * details.scale).clamp(
+        0.01,
+        5.0,
+      );
+      setState(() {
+        _t.sx = newScale;
+        if (_t.scaleLocked) _t.sy = _t.sz = newScale;
+      });
+      await _c.setUniformScale(_t.sx);
+    } else {
+      const double sensitivity = 0.6; // m por unidad de pinch
+      final double dz = (details.scale - 1.0) * sensitivity;
+      final double newOz = (_pinchStartOz + dz).clamp(-3.0, 3.0);
+      setState(() => _t.oz = newOz);
+      await _c.setOffset(_t.ox, _t.oy, _t.oz);
+    }
+  }
+
+  // ---------- Selector de modo pinch ----------
+  Widget _pinchModeSelector() {
+    return Row(
       children: [
-        chip(
-          Icons.grid_on,
-          'Planes: ${_showPlanes ? "ON" : "OFF"}',
-          on: _showPlanes,
+        Expanded(
+          child: ChoiceChip(
+            selected: _pinchMode == PinchMode.scale,
+            label: const Text('Scale'),
+            onSelected: (_) => setState(() => _pinchMode = PinchMode.scale),
+          ),
         ),
-        chip(
-          Icons.blur_circular,
-          'Features: ${_showPoints ? "ON" : "OFF"}',
-          on: _showPoints,
-        ),
-        chip(
-          Icons.swap_calls,
-          'Mode: ${_pinchMode == PinchMode.scale ? "Scale" : "Distance"}',
-        ),
-        chip(Icons.straighten, 'S: ${_sx.toStringAsPrecision(3)}×'),
-        chip(
-          Icons.vertical_align_center,
-          'Z: ${_oz.toStringAsFixed(2)} m (Δ ${((_oz - _initialOz) >= 0 ? '+' : '')}${(_oz - _initialOz).toStringAsFixed(2)})',
+        const SizedBox(width: 8),
+        Expanded(
+          child: ChoiceChip(
+            selected: _pinchMode == PinchMode.distance,
+            label: const Text('Distance (Z)'),
+            onSelected: (_) => setState(() => _pinchMode = PinchMode.distance),
+          ),
         ),
       ],
     );
+  }
+
+  // ---------- Aplicar transformaciones ----------
+  Future<void> _applyPanelToController() async {
+    if (_t.scaleLocked) {
+      await _c.setUniformScale(_t.sx);
+    } else {
+      await _c.setScaleXYZ(_t.sx, _t.sy, _t.sz);
+    }
+    await _c.setOffset(_t.ox, _t.oy, _t.oz);
+    await _c.setRotationEulerDeg(_t.rx, _t.ry, _t.rz);
+  }
+
+  // ---------- Sliders ----------
+  Future<void> _onScaleUniform(double v) async {
+    setState(() {
+      _t.sx = v;
+      if (_t.scaleLocked) _t.sy = _t.sz = v;
+    });
+    await _applyPanelToController();
+  }
+
+  Future<void> _onOffsetX(double v) async {
+    setState(() => _t.ox = v);
+    await _c.setOffset(_t.ox, _t.oy, _t.oz);
+  }
+
+  Future<void> _onOffsetY(double v) async {
+    setState(() => _t.oy = v);
+    await _c.setOffset(_t.ox, _t.oy, _t.oz);
+  }
+
+  Future<void> _onOffsetZ(double v) async {
+    setState(() => _t.oz = v);
+    await _c.setOffset(_t.ox, _t.oy, _t.oz);
+  }
+
+  Future<void> _onRotX(double v) async {
+    setState(() => _t.rx = v);
+    await _c.setRotationEulerDeg(_t.rx, _t.ry, _t.rz);
+  }
+
+  Future<void> _onRotY(double v) async {
+    setState(() => _t.ry = v);
+    await _c.setRotationEulerDeg(_t.rx, _t.ry, _t.rz);
+  }
+
+  Future<void> _onRotZ(double v) async {
+    setState(() => _t.rz = v);
+    await _c.setRotationEulerDeg(_t.rx, _t.ry, _t.rz);
   }
 
   // ---------- Hint ----------
@@ -248,302 +448,10 @@ class _ARCapturePageState extends State<ARCapturePage> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: const Text(
-        'Toca un plano para colocar el modelo',
+        'Toca un plano para colocar el modelo\n(o usa “Colocar al centro/Aleatorio” en modo Manual).',
         style: TextStyle(color: Colors.white),
+        textAlign: TextAlign.center,
       ),
     ),
   );
-
-  // ---------- ARView creado ----------
-  Future<void> _onCreated(
-    ARSessionManager s,
-    ARObjectManager o,
-    ARAnchorManager a,
-    ARLocationManager l,
-  ) async {
-    await _c.init(
-      s,
-      o,
-      showPlanes: _showPlanes,
-      showFeaturePoints: _showPoints,
-    );
-
-    s.onPlaneOrPointTap = (hits) async {
-      if (hits.isEmpty) return;
-      await _c.placeAt(hits.first, uri: widget.uri, local: widget.isLocal);
-      await _applyPanelToController();
-      _initialScale = _sx;
-      _initialOz = _oz;
-      setState(() => _hasPlaced = true);
-    };
-  }
-
-  // ---------- Panel ----------
-  Widget _panel(BuildContext context) {
-    return Card(
-      color: Colors.black.withOpacity(0.58),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: _switch('Feature points', _showPoints, (v) async {
-                      setState(() => _showPoints = v);
-                      await _c.reconfigureOverlays(
-                        showFeaturePoints: _showPoints,
-                        showPlanes: _showPlanes,
-                      );
-                    }),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _switch('Planes', _showPlanes, (v) async {
-                      setState(() => _showPlanes = v);
-                      await _c.reconfigureOverlays(
-                        showFeaturePoints: _showPoints,
-                        showPlanes: _showPlanes,
-                      );
-                    }),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-
-              _sectionTitle('Pinch mode'),
-              Row(
-                children: [
-                  Expanded(
-                    child: ChoiceChip(
-                      selected: _pinchMode == PinchMode.scale,
-                      label: const Text('Scale'),
-                      onSelected: (_) =>
-                          setState(() => _pinchMode = PinchMode.scale),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ChoiceChip(
-                      selected: _pinchMode == PinchMode.distance,
-                      label: const Text('Distance (Z)'),
-                      onSelected: (_) =>
-                          setState(() => _pinchMode = PinchMode.distance),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-
-              _sectionTitle('Scale'),
-              Row(
-                children: [
-                  _lockButton(
-                    locked: _scaleLocked,
-                    onPressed: () =>
-                        setState(() => _scaleLocked = !_scaleLocked),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(child: _axisField('X', _sx)),
-                  const SizedBox(width: 8),
-                  Expanded(child: _axisField('Y', _sy)),
-                  const SizedBox(width: 8),
-                  Expanded(child: _axisField('Z', _sz)),
-                ],
-              ),
-              Slider(value: _sx, min: 0.01, max: 5, onChanged: _onScaleUniform),
-
-              _sectionTitle('Offset (m)'),
-              Row(
-                children: [
-                  _lockButton(locked: true, onPressed: () {}),
-                  const SizedBox(width: 8),
-                  Expanded(child: _axisField('X', _ox)),
-                  const SizedBox(width: 8),
-                  Expanded(child: _axisField('Y', _oy)),
-                  const SizedBox(width: 8),
-                  Expanded(child: _axisField('Z', _oz)),
-                ],
-              ),
-              Slider(value: _ox, min: -2, max: 2, onChanged: _onOffsetX),
-              Slider(value: _oy, min: -2, max: 2, onChanged: _onOffsetY),
-              Slider(value: _oz, min: -2, max: 2, onChanged: _onOffsetZ),
-
-              _sectionTitle('Rotation (°)'),
-              _sliderLabeled('X', _rx, -180, 180, _onRotX),
-              _sliderLabeled('Y', _ry, -180, 180, _onRotY),
-              _sliderLabeled('Z', _rz, -180, 180, _onRotZ),
-
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () async {
-                        await _c.reset();
-                        setState(() {
-                          _sx = _sy = _sz = 1;
-                          _rx = _ry = _rz = 0;
-                          _ox = 0;
-                          _oy = 0.05;
-                          _oz = 0;
-                          _scaleLocked = true;
-                        });
-                        _initialScale = _sx;
-                        _initialOz = _oz;
-                      },
-                      child: const Text('Reset'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => setState(() => _panelVisible = false),
-                      child: const Text('Close'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ---------- Helpers UI ----------
-  Widget _switch(String t, bool val, ValueChanged<bool> onChanged) => Row(
-    children: [
-      Expanded(
-        child: Text(t, style: const TextStyle(color: Colors.white)),
-      ),
-      Switch(value: val, onChanged: onChanged),
-    ],
-  );
-
-  Widget _sectionTitle(String t) => Align(
-    alignment: Alignment.centerLeft,
-    child: Padding(
-      padding: const EdgeInsets.only(bottom: 6, top: 6),
-      child: Text(
-        t,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    ),
-  );
-
-  Widget _lockButton({required bool locked, required VoidCallback onPressed}) {
-    return SizedBox(
-      width: 38,
-      height: 38,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          padding: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-        onPressed: onPressed,
-        child: Icon(locked ? Icons.lock : Icons.lock_open, size: 18),
-      ),
-    );
-  }
-
-  Widget _axisField(String axis, double value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white12,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          Text(axis, style: const TextStyle(color: Colors.white)),
-          const Spacer(),
-          Text(
-            value.toStringAsPrecision(3),
-            style: const TextStyle(color: Colors.white),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _sliderLabeled(
-    String label,
-    double value,
-    double min,
-    double max,
-    ValueChanged<double> onChanged,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '$label: ${value.toStringAsFixed(0)}°',
-          style: const TextStyle(color: Colors.white),
-        ),
-        Slider(value: value, min: min, max: max, onChanged: onChanged),
-      ],
-    );
-  }
-
-  // ---------- Aplicación de transformaciones ----------
-  Future<void> _applyPanelToController() async {
-    if (_scaleLocked) {
-      await _c.setUniformScale(_sx);
-    } else {
-      await _c.setScaleXYZ(_sx, _sy, _sz);
-    }
-    await _c.setOffset(_ox, _oy, _oz);
-    await _c.setRotationEulerDeg(_rx, _ry, _rz);
-  }
-
-  // ---------- Handlers sliders ----------
-  Future<void> _onScaleUniform(double v) async {
-    setState(() {
-      _sx = v;
-      if (_scaleLocked) _sy = _sz = v;
-    });
-    await _applyPanelToController();
-  }
-
-  Future<void> _onOffsetX(double v) async {
-    setState(() => _ox = v);
-    await _c.setOffset(_ox, _oy, _oz);
-  }
-
-  Future<void> _onOffsetY(double v) async {
-    setState(() => _oy = v);
-    await _c.setOffset(_ox, _oy, _oz);
-  }
-
-  Future<void> _onOffsetZ(double v) async {
-    setState(() => _oz = v);
-    await _c.setOffset(_ox, _oy, _oz);
-  }
-
-  Future<void> _onRotX(double v) async {
-    setState(() => _rx = v);
-    await _c.setRotationEulerDeg(_rx, _ry, _rz);
-  }
-
-  Future<void> _onRotY(double v) async {
-    setState(() => _ry = v);
-    await _c.setRotationEulerDeg(_rx, _ry, _rz);
-  }
-
-  Future<void> _onRotZ(double v) async {
-    setState(() => _rz = v);
-    await _c.setRotationEulerDeg(_rx, _ry, _rz);
-  }
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
 }

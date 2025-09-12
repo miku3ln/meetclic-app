@@ -135,6 +135,7 @@ class _PreviewCapturePageState extends State<PreviewCapturePage> {
               right: 12,
               bottom: 12,
               child: ARControlPanel(
+                manualPlacement: false,
                 showPoints: _showPoints,
                 showPlanes: _showPlanes,
                 onTogglePoints: (v) async {

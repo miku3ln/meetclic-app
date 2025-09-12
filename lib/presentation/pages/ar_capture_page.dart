@@ -9,6 +9,8 @@ import 'package:ar_flutter_plugin/managers/ar_location_manager.dart';
 import 'package:ar_flutter_plugin/managers/ar_object_manager.dart';
 import 'package:ar_flutter_plugin/managers/ar_session_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:meetclic/ar/ar_scene_controller.dart';
 import 'package:meetclic/ar/preview/enums/enums-data.dart';
 import 'package:meetclic/presentation/pages/ar_capture_page/models/ar_transform_state.dart';
@@ -40,20 +42,26 @@ class _ARCapturePageState extends State<ARCapturePage> {
   bool _hasPlaced = false;
   bool _panelVisible = false;
 
+  // Detección de planos / hint
+  bool _planesFound = false;
+
   // Pinch
   PinchMode _pinchMode = PinchMode.scale;
   double _pinchStartScale = 1.0;
   double _pinchStartOz = 0.0;
 
-  // Render monitor (nuevo)
+  // Render monitor
   Timer? _renderTimer;
   bool _renderPulse = false;
   DateTime _lastBuildAt = DateTime.now();
 
+  // Auto-colocación
+  bool _autoPlaceOnPlane = true; // coloca apenas haya plano
+  Timer? _autoPlaceTicker;
+
   @override
   void initState() {
     super.initState();
-    // Refresco ligero para indicador de render (no forza frames; solo re-pinta la UI)
     _renderTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       setState(() => _renderPulse = !_renderPulse);
     });
@@ -61,28 +69,24 @@ class _ARCapturePageState extends State<ARCapturePage> {
 
   @override
   void dispose() {
+    _stopAutoPlaceTicker();
     _renderTimer?.cancel();
     _c.dispose();
     super.dispose();
   }
 
   Future<void> _onReset() async {
-    // 1) Reset en el controlador AR (nodo/transform de la escena)
     await _c.reset();
-
-    // 2) Reset del estado local (ARTransformState)
     setState(() {
-      _t.reset(); // deja escala=1, rot=0, offset=(0,0.05,0) y actualiza initialScale/initialOz
+      _t.reset();
+      _hasPlaced = false;
+      // mantenemos _planesFound en true si ya hubo hits alguna vez
     });
-
-    // 3) Re-aplicar por si el reset del controller difiere de nuestro estado
-    await _applyPanelToController();
+    if (_autoPlaceOnPlane) _startAutoPlaceTicker();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Marca de tiempo de este build (se usa en indicador "Último build")
-    // No hace setState; un timer externo refresca el valor mostrado.
     _lastBuildAt = DateTime.now();
 
     return Scaffold(
@@ -145,6 +149,7 @@ class _ARCapturePageState extends State<ARCapturePage> {
               right: 12,
               bottom: 12,
               child: ARControlPanel(
+                // Overlays
                 showPoints: _showPoints,
                 showPlanes: _showPlanes,
                 onTogglePoints: (v) async {
@@ -161,6 +166,22 @@ class _ARCapturePageState extends State<ARCapturePage> {
                     showPlanes: _showPlanes,
                   );
                 },
+
+                // Colocación manual/auto
+                planesAvailable: _planesFound,
+                manualPlacement: !_autoPlaceOnPlane,
+                onManualPlacementChanged: (isManual) {
+                  setState(() => _autoPlaceOnPlane = !isManual);
+                  if (_autoPlaceOnPlane && !_hasPlaced) {
+                    _startAutoPlaceTicker();
+                  } else {
+                    _stopAutoPlaceTicker();
+                  }
+                },
+                onPlaceAtCenter: _placeAtScreenCenter,
+                onPlaceRandom: _placeAtScreenRandom,
+
+                // Escala
                 scaleLocked: _t.scaleLocked,
                 onToggleScaleLock: () =>
                     setState(() => _t.scaleLocked = !_t.scaleLocked),
@@ -168,19 +189,27 @@ class _ARCapturePageState extends State<ARCapturePage> {
                 sy: _t.sy,
                 sz: _t.sz,
                 onScaleUniform: _onScaleUniform,
+
+                // Offset
                 ox: _t.ox,
                 oy: _t.oy,
                 oz: _t.oz,
                 onOffsetX: _onOffsetX,
                 onOffsetY: _onOffsetY,
                 onOffsetZ: _onOffsetZ,
+
+                // Rotación
                 rx: _t.rx,
                 ry: _t.ry,
                 rz: _t.rz,
                 onRotX: _onRotX,
                 onRotY: _onRotY,
                 onRotZ: _onRotZ,
+
+                // Pinch selector
                 pinchModeSelector: _pinchModeSelector(),
+
+                // Reset / Close
                 onReset: _onReset,
                 onClose: () => setState(() => _panelVisible = false),
               ),
@@ -193,7 +222,7 @@ class _ARCapturePageState extends State<ARCapturePage> {
               bottom: 16,
               child: FloatingActionButton.extended(
                 onPressed: () => setState(() => _panelVisible = true),
-                label: const Text('Controls'),
+                label: Text(_autoPlaceOnPlane ? 'Controls • Auto' : 'Controls'),
                 icon: const Icon(Icons.tune),
               ),
             ),
@@ -212,18 +241,123 @@ class _ARCapturePageState extends State<ARCapturePage> {
     await _c.init(
       s,
       o,
+      anchors: a,
       showPlanes: _showPlanes,
       showFeaturePoints: _showPoints,
     );
 
+    // Tap manual (respaldo si el usuario lo prefiere)
     s.onPlaneOrPointTap = (hits) async {
+      if (_autoPlaceOnPlane) return; // si está en auto, ignoramos taps
       if (hits.isEmpty) return;
-      await _c.placeAt(hits.first, uri: widget.uri, local: widget.isLocal);
-      await _applyPanelToController();
+      _markPlanesFound();
+      await _placeWithHit(hits.first);
+    };
+
+    // Auto-colocar si está activo
+    if (_autoPlaceOnPlane && !_hasPlaced) {
+      _startAutoPlaceTicker();
+    }
+  }
+
+  // ---------- Auto-place ticker ----------
+  void _startAutoPlaceTicker() {
+    _stopAutoPlaceTicker();
+    _autoPlaceTicker = Timer.periodic(const Duration(milliseconds: 350), (
+      _,
+    ) async {
+      if (_hasPlaced || !_autoPlaceOnPlane) return;
+      final hit = await _c.raycastScreen(0.5, 0.5); // raycast al centro
+      if (hit != null) {
+        _markPlanesFound();
+        await _placeWithHit(hit);
+        _stopAutoPlaceTicker();
+      }
+    });
+  }
+
+  void _stopAutoPlaceTicker() {
+    _autoPlaceTicker?.cancel();
+    _autoPlaceTicker = null;
+  }
+
+  void _markPlanesFound() {
+    if (!_planesFound) {
+      setState(() => _planesFound = true);
+    }
+  }
+
+  // ---------- Verificación de archivo ----------
+  Future<bool> _fileExists(String path, {required bool local}) async {
+    if (local) {
+      try {
+        await rootBundle.load(path);
+        return true;
+      } catch (_) {
+        return false;
+      }
+    } else {
+      try {
+        final uri = Uri.tryParse(path);
+        if (uri == null) return false;
+        final resp = await http.head(uri);
+        return resp.statusCode >= 200 && resp.statusCode < 400;
+      } catch (_) {
+        return false;
+      }
+    }
+  }
+
+  // ---------- Colocar helpers ----------
+  Future<void> _placeWithHit(dynamic hit) async {
+    final exists = await _fileExists(widget.uri, local: widget.isLocal);
+    if (!exists) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'No se encontró el modelo: ${widget.uri}',
+              maxLines: 2,
+            ),
+          ),
+        );
+      }
+      return;
+    }
+
+    await _c.placeAt(hit, uri: widget.uri, local: widget.isLocal);
+    await _applyPanelToController();
+    setState(() {
       _t.initialScale = _t.sx;
       _t.initialOz = _t.oz;
-      setState(() => _hasPlaced = true);
-    };
+      _hasPlaced = true;
+    });
+  }
+
+  Future<void> _placeAtScreenCenter() async {
+    final hit = await _c.raycastScreen(0.5, 0.5);
+    if (hit != null) {
+      _markPlanesFound();
+      await _placeWithHit(hit);
+    }
+  }
+
+  Future<void> _placeAtScreenRandom() async {
+    const probes = [
+      Offset(0.5, 0.5),
+      Offset(0.4, 0.6),
+      Offset(0.6, 0.4),
+      Offset(0.3, 0.7),
+      Offset(0.7, 0.3),
+    ];
+    for (final p in probes) {
+      final hit = await _c.raycastScreen(p.dx, p.dy);
+      if (hit != null) {
+        _markPlanesFound();
+        await _placeWithHit(hit);
+        return;
+      }
+    }
   }
 
   // ---------- Gestos: pinch ----------
@@ -331,9 +465,9 @@ class _ARCapturePageState extends State<ARCapturePage> {
         color: Colors.black54,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Text(
-        'Toca un plano para colocar el modelo',
-        style: TextStyle(color: Colors.white),
+      child: Text(
+        _planesFound ? 'Planos encontrados' : 'Busca planos…',
+        style: const TextStyle(color: Colors.white),
       ),
     ),
   );

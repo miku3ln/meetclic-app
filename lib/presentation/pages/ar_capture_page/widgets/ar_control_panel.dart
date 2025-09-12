@@ -1,32 +1,44 @@
-// lib/ar/widgets/ar_control_panel.dart
-
+// lib/presentation/pages/ar_capture_page/widgets/ar_control_panel.dart
 import 'package:flutter/material.dart';
 
 class ARControlPanel extends StatelessWidget {
+  // Overlays
   final bool showPoints;
   final bool showPlanes;
   final ValueChanged<bool> onTogglePoints;
   final ValueChanged<bool> onTogglePlanes;
 
+  // Escala
   final bool scaleLocked;
   final VoidCallback onToggleScaleLock;
-
   final double sx, sy, sz;
   final ValueChanged<double> onScaleUniform;
 
+  // Offset
   final double ox, oy, oz;
   final ValueChanged<double> onOffsetX;
   final ValueChanged<double> onOffsetY;
   final ValueChanged<double> onOffsetZ;
 
+  // Rotación
   final double rx, ry, rz;
   final ValueChanged<double> onRotX;
   final ValueChanged<double> onRotY;
   final ValueChanged<double> onRotZ;
 
-  final Widget pinchModeSelector; // inyectamos el selector de modo pinch
-  final VoidCallback onReset;
+  // Pinch selector
+  final Widget pinchModeSelector;
+
+  // Reset / Close
+  final Future<void> Function() onReset;
   final VoidCallback onClose;
+
+  // ---- Colocación manual/auto ----
+  final bool? planesAvailable; // habilita el toggle si ya hay al menos 1 plano
+  final bool? manualPlacement; // estado del toggle
+  final ValueChanged<bool>? onManualPlacementChanged;
+  final Future<void> Function()? onPlaceAtCenter; // Colocar al centro
+  final Future<void> Function()? onPlaceRandom; // Colocar en plano aleatorio
 
   const ARControlPanel({
     super.key,
@@ -55,103 +67,170 @@ class ARControlPanel extends StatelessWidget {
     required this.pinchModeSelector,
     required this.onReset,
     required this.onClose,
+    // nuevos
+    this.planesAvailable,
+    this.manualPlacement,
+    this.onManualPlacementChanged,
+    this.onPlaceAtCenter,
+    this.onPlaceRandom,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: Colors.black.withOpacity(0.58),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: _switch(
-                      'Feature points',
-                      showPoints,
-                      onTogglePoints,
+    final bool hasPlanes = planesAvailable ?? false;
+    final bool isManual = manualPlacement ?? false;
+
+    // Altura fija para garantizar scroll cuando el contenido es largo.
+    final double panelHeight = MediaQuery.of(context).size.height * 0.46;
+
+    return SizedBox(
+      height: panelHeight,
+      child: Card(
+        color: Colors.black.withOpacity(0.58),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                // Overlays
+                Row(
+                  children: [
+                    Expanded(
+                      child: _switch(
+                        'Feature points',
+                        showPoints,
+                        onTogglePoints,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _switch('Planes', showPlanes, onTogglePlanes),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                // ---- Colocación ----
+                _sectionTitle('Colocación'),
+                Tooltip(
+                  message: hasPlanes
+                      ? 'Activa para colocar con botones (sin taps en pantalla).'
+                      : 'Esperando detección de planos…',
+                  child: Opacity(
+                    opacity: hasPlanes ? 1.0 : 0.5,
+                    child: Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Manual',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        Switch(
+                          value: isManual,
+                          onChanged: hasPlanes
+                              ? onManualPlacementChanged
+                              : null,
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _switch('Planes', showPlanes, onTogglePlanes),
+                ),
+                if (isManual) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: onPlaceAtCenter,
+                          icon: const Icon(Icons.filter_center_focus),
+                          label: const Text('Colocar al centro'),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: onPlaceRandom,
+                          icon: const Icon(Icons.auto_awesome),
+                          label: const Text('Aleatorio'),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
-              ),
-              const SizedBox(height: 8),
 
-              _sectionTitle('Pinch mode'),
-              pinchModeSelector,
-              const SizedBox(height: 8),
+                const SizedBox(height: 8),
 
-              _sectionTitle('Scale'),
-              Row(
-                children: [
-                  _lockButton(
-                    locked: scaleLocked,
-                    onPressed: onToggleScaleLock,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(child: _axisField('X', sx)),
-                  const SizedBox(width: 8),
-                  Expanded(child: _axisField('Y', sy)),
-                  const SizedBox(width: 8),
-                  Expanded(child: _axisField('Z', sz)),
-                ],
-              ),
-              Slider(value: sx, min: 0.01, max: 5, onChanged: onScaleUniform),
+                _sectionTitle('Pinch mode'),
+                pinchModeSelector,
+                const SizedBox(height: 8),
 
-              _sectionTitle('Offset (m)'),
-              Row(
-                children: [
-                  _lockButton(locked: true, onPressed: () {}),
-                  const SizedBox(width: 8),
-                  Expanded(child: _axisField('X', ox)),
-                  const SizedBox(width: 8),
-                  Expanded(child: _axisField('Y', oy)),
-                  const SizedBox(width: 8),
-                  Expanded(child: _axisField('Z', oz)),
-                ],
-              ),
-              Slider(value: ox, min: -2, max: 2, onChanged: onOffsetX),
-              Slider(value: oy, min: -2, max: 2, onChanged: onOffsetY),
-              Slider(value: oz, min: -2, max: 2, onChanged: onOffsetZ),
-
-              _sectionTitle('Rotation (°)'),
-              _sliderLabeled('X', rx, -180, 180, onRotX),
-              _sliderLabeled('Y', ry, -180, 180, onRotY),
-              _sliderLabeled('Z', rz, -180, 180, onRotZ),
-
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: onReset,
-                      child: const Text('Reset'),
+                _sectionTitle('Scale'),
+                Row(
+                  children: [
+                    _lockButton(
+                      locked: scaleLocked,
+                      onPressed: onToggleScaleLock,
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: onClose,
-                      child: const Text('Close'),
+                    const SizedBox(width: 8),
+                    Expanded(child: _axisField('X', sx)),
+                    const SizedBox(width: 8),
+                    Expanded(child: _axisField('Y', sy)),
+                    const SizedBox(width: 8),
+                    Expanded(child: _axisField('Z', sz)),
+                  ],
+                ),
+                Slider(value: sx, min: 0.01, max: 5, onChanged: onScaleUniform),
+
+                _sectionTitle('Offset (m)'),
+                Row(
+                  children: [
+                    _lockButton(locked: true, onPressed: () {}),
+                    const SizedBox(width: 8),
+                    Expanded(child: _axisField('X', ox)),
+                    const SizedBox(width: 8),
+                    Expanded(child: _axisField('Y', oy)),
+                    const SizedBox(width: 8),
+                    Expanded(child: _axisField('Z', oz)),
+                  ],
+                ),
+                Slider(value: ox, min: -2, max: 2, onChanged: onOffsetX),
+                Slider(value: oy, min: -2, max: 2, onChanged: onOffsetY),
+                Slider(value: oz, min: -2, max: 2, onChanged: onOffsetZ),
+
+                _sectionTitle('Rotation (°)'),
+                _sliderLabeled('X', rx, -180, 180, onRotX),
+                _sliderLabeled('Y', ry, -180, 180, onRotY),
+                _sliderLabeled('Z', rz, -180, 180, onRotZ),
+
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: onReset,
+                        child: const Text('Reset'),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: onClose,
+                        child: const Text('Close'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  // --- UI helpers ---
+  // ----- helpers UI -----
   Widget _switch(String t, bool val, ValueChanged<bool> onChanged) => Row(
     children: [
       Expanded(
