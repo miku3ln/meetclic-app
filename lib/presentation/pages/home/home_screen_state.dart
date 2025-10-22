@@ -6,7 +6,7 @@ import 'package:meetclic/aplication/services/access_manager_service.dart';
 import 'package:meetclic/domain/entities/menu_tab_up_item.dart';
 import 'package:meetclic/infrastructure/deep_links/deep_link_handler.dart';
 import 'package:meetclic/presentation/controllers/menu_tab_up_controller.dart';
-import 'package:meetclic/presentation/pages/ar_capture_page.dart';
+import 'package:meetclic/presentation/pages/ar_examples/a03_tap_place_glb_assets.dart';
 import 'package:meetclic/presentation/pages/business_map_page.dart';
 import 'package:meetclic/presentation/pages/dictionary_page.dart';
 import 'package:meetclic/presentation/pages/home/home_infinity.dart';
@@ -63,7 +63,11 @@ class HomeScreenState extends State<HomeScreen> {
         itemsStatus: menuItems,
       ),*/
       //StreamingPage(),
-      ARCapturePage(uri: "assets/totems/examples/HORNET.glb", isLocal: true),
+      //ONE AR ARCapturePage(uri: "assets/totems/examples/HORNET.glb", isLocal: true),
+      //HelloArPage(),
+      // A01HelloArFeaturePoints(),
+      //A02PlanesWorldOrigin(),
+      A03TapPlaceGlbAssets(),
       /* PreviewCapturePage(
         uri: "assets/totems/examples/HORNET.glb",
         isLocal: true,
