@@ -32,7 +32,6 @@ import 'dart:io' show Platform;
 import 'dart:typed_data';
 
 import 'package:ar_flutter_plugin/ar_flutter_plugin.dart';
-import 'package:ar_flutter_plugin/datatypes/node_types.dart';
 import 'package:ar_flutter_plugin/managers/ar_anchor_manager.dart';
 import 'package:ar_flutter_plugin/managers/ar_location_manager.dart';
 import 'package:ar_flutter_plugin/managers/ar_object_manager.dart';
@@ -44,14 +43,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:vector_math/vector_math_64.dart' show Vector3;
 
-class A031TapPlaceGlbAssets extends StatefulWidget {
-  const A031TapPlaceGlbAssets({super.key});
+class A03TapPlaceGlbAssets extends StatefulWidget {
+  const A03TapPlaceGlbAssets({super.key});
 
   @override
-  State<A031TapPlaceGlbAssets> createState() => _A03TapPlaceGlbAssetsState();
+  State<A03TapPlaceGlbAssets> createState() => _A03TapPlaceGlbAssetsState();
 }
 
-class _A03TapPlaceGlbAssetsState extends State<A031TapPlaceGlbAssets> {
+class _A03TapPlaceGlbAssetsState extends State<A03TapPlaceGlbAssets> {
   // Managers
   ARSessionManager? _arSessionManager;
   ARObjectManager? _arObjectManager;
@@ -248,8 +247,47 @@ class _A03TapPlaceGlbAssetsState extends State<A031TapPlaceGlbAssets> {
         _setError('No hubo impacto de hit-test. Toca un plano detectado.');
         return;
       }
-      await _placeModelAtHit(hits.first);
+      // await _placeModelAtHit(hits.first);
+      await _placeTextMarkerAtHit(hits.first, 'Hola AR 👋');
     };
+  }
+
+  String? _floatingLabel; // overlay de texto
+
+  Future<void> _placeTextMarkerAtHit(ARHitTestResult hit, String text) async {
+    // Limpieza si ya hay algo
+    if (_placedNode != null || _placedAnchor != null) {
+      await _removePlacedModel();
+    }
+
+    // 1) Crear anchor desde el hit
+    final anchor = ARPlaneAnchor(transformation: hit.worldTransform);
+    bool? didAddAnchor = false;
+    try {
+      didAddAnchor = await _arAnchorManager!.addAnchor(anchor);
+    } catch (e) {
+      _setError('Fallo addAnchor(): $e');
+      return;
+    }
+    if (didAddAnchor != true) {
+      _setError('addAnchor() devolvió false (no se creó el anchor).');
+      return;
+    }
+
+    // 2) No agregamos ningún Node → solo visualizamos overlay
+    setState(() {
+      _placedAnchor = anchor;
+      _placedNode = null;
+      _floatingLabel = text;
+      _statusText = 'Anchor creado sin GLB (solo texto).';
+      _lastError = null;
+    });
+
+    // Ocultar el texto flotante después de unos segundos
+    Future.delayed(const Duration(seconds: 3), () {
+      if (!mounted) return;
+      setState(() => _floatingLabel = null);
+    });
   }
 
   // Verifica que el asset GLB esté en el bundle
@@ -425,59 +463,7 @@ class _A03TapPlaceGlbAssetsState extends State<A031TapPlaceGlbAssets> {
   }
 
   // Colocar (o recolocar) el modelo
-  Future<void> _placeModelAtHit(ARHitTestResult hit) async {
-    // 0) Verifica asset
-    final ok = await _verifyAssetAvailable(_assetGlbPath);
-    if (!ok) return;
-
-    // 1) Reemplazo si ya existe algo
-    if (_placedNode != null || _placedAnchor != null) {
-      await _removePlacedModel();
-    }
-
-    // 2) Anchor desde transform del hit
-    final anchor = ARPlaneAnchor(transformation: hit.worldTransform);
-    bool? didAddAnchor = false;
-    try {
-      didAddAnchor = await _arAnchorManager!.addAnchor(anchor);
-    } catch (e) {
-      _setError('Fallo addAnchor(): $e');
-      return;
-    }
-    if (didAddAnchor != true) {
-      _setError('addAnchor() devolvió false');
-      return;
-    }
-
-    // 3) Nodo GLB local
-    final node = ARNode(
-      type: NodeType.localGLTF2,
-      uri: _assetGlbPath,
-      scale: _defaultScale,
-    );
-
-    bool? didAddNode = false;
-    try {
-      didAddNode = await _arObjectManager!.addNode(node, planeAnchor: anchor);
-    } catch (e) {
-      _setError('Fallo addNode(): $e');
-      await _arAnchorManager!.removeAnchor(anchor);
-      return;
-    }
-    if (didAddNode != true) {
-      _setError('addNode() devolvió false');
-      await _arAnchorManager!.removeAnchor(anchor);
-      return;
-    }
-
-    if (!mounted) return;
-    _lastError = null;
-    setState(() {
-      _placedAnchor = anchor;
-      _placedNode = node;
-      _statusText = 'Modelo colocado ✔';
-    });
-  }
+  Future<void> _placeModelAtHit(ARHitTestResult hit) async {}
 
   // Eliminar modelo/ancla
   Future<void> _removePlacedModel() async {

@@ -52,3 +52,19 @@ android {
 flutter {
     source = "../.."
 }
+//ARCORE
+dependencies {
+    // Provides ARCore Session and related resources.
+   // implementation 'com.google.ar:core:1.15.0'
+    // Provides ArFragment, and other UX resources.
+   // implementation 'com.google.ar.sceneform.ux:sceneform-ux:1.15.0'
+    // Alternatively, use ArSceneView without the UX dependency.
+    //implementation 'com.google.ar.sceneform:core:1.15.0'
+    // ARCore Session y recursos relacionados
+    implementation("com.google.ar:core:1.15.0")
+    // ArFragment y recursos de UX
+    implementation("com.google.ar.sceneform.ux:sceneform-ux:1.15.0")
+
+    // Alternativa: ArSceneView sin el paquete UX
+    implementation("com.google.ar.sceneform:core:1.15.0")
+}
