@@ -106,6 +106,7 @@ flutter:
     - assets/totems/examples/HORNET.glb
     - assets/totems/examples/mikasa/gothic__elegance_texture_anime_girl.glb
     - assets/totems/examples/
+    - assets/totems/muelle-catalina/
     - images/realidad-aumentada/examples/one/images/earth_map.jpg
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
