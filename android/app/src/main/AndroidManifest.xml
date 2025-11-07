@@ -7,6 +7,11 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- AR PERMISSION-->
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Android 13+ (lectura de fotos si vas a listar/leer) -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
+
     <uses-feature
         android:name="android.hardware.camera.ar"
         android:required="false" />

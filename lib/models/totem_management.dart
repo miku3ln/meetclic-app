@@ -38,9 +38,9 @@ final List<ItemAR> itemsSources = [
     position: ItemPosition(lat: 0.20477, lng: -78.20639),
     sources: ItemSources(
       glb:
-          "https://meetclic.com/public/simi-rura/muelle-catalina//taita-imbabura-toon-1.glb",
+          "https://meetclic.com/public/simi-rura/muelle-catalina/taita-imbabura-toon-1.glb",
       img:
-          "https://meetclic.com/public/simi-rura/muelle-catalina//images/taita-imbabura.png",
+          "https://meetclic.com/public/simi-rura/muelle-catalina/images/taita-imbabura.png",
     ),
   ),
   ItemAR(
@@ -62,8 +62,7 @@ final List<ItemAR> itemsSources = [
     description: "Entre neblinas y lagunas, hilos de agua fría que renuevan.",
     position: ItemPosition(lat: 0.20401, lng: -78.20723),
     sources: ItemSources(
-      glb:
-          "https://meetclic.com/public/simi-rura/muelle-catalina/taita-imbabura-otro.glb",
+      glb: "https://meetclic.com/public/simi-rura/muelle-catalina/mojanda.glb",
       img:
           "https://meetclic.com/public/simi-rura/muelle-catalina/images/mojanda.png",
     ),
@@ -101,7 +100,7 @@ final List<ItemAR> itemsSources = [
     description: "Testigo de promesas, desde sus ramas el mundo sueña.",
     position: ItemPosition(lat: 0.20316, lng: -78.20790),
     sources: ItemSources(
-      glb: "https://meetclic.com/public/simi-rura/muelle-catalina/other.glb",
+      glb: "https://meetclic.com/public/simi-rura/muelle-catalina/lechero.glb",
       img:
           "https://meetclic.com/public/simi-rura/muelle-catalina/images/lechero.png",
     ),
@@ -127,7 +126,7 @@ final List<ItemAR> itemsSources = [
     position: ItemPosition(lat: 0.20284, lng: -78.20802),
     sources: ItemSources(
       glb: "https://meetclic.com/public/simi-rura/pacha/ayahuma.glb",
-      img: "https://meetclic.com/public/simi-rura/pacha/images/ayahuma.png",
+      img: "https://meetclic.com/public/simi-rura/pacha/images/ayahuma.jpeg",
     ),
   ),
   ItemAR(
@@ -138,7 +137,7 @@ final List<ItemAR> itemsSources = [
     position: ItemPosition(lat: 0.20284, lng: -78.20802),
     sources: ItemSources(
       glb: "https://meetclic.com/public/simi-rura/pacha/corazon.glb",
-      img: "https://meetclic.com/public/simi-rura/pacha/images/corazon.png",
+      img: "https://meetclic.com/public/simi-rura/pacha/images/corazon.jpeg",
     ),
   ),
 ];

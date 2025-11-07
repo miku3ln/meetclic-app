@@ -7,7 +7,6 @@ import 'package:meetclic/domain/entities/menu_tab_up_item.dart';
 import 'package:meetclic/infrastructure/deep_links/deep_link_handler.dart';
 import 'package:meetclic/models/totem_management.dart';
 import 'package:meetclic/presentation/controllers/menu_tab_up_controller.dart';
-import 'package:meetclic/presentation/pages/ar_examples/ar_drop_down_viewer_page.dart';
 import 'package:meetclic/presentation/pages/business_map_page.dart';
 import 'package:meetclic/presentation/pages/dictionary_page.dart';
 import 'package:meetclic/presentation/pages/home/home_infinity.dart';
@@ -21,6 +20,7 @@ import 'package:meetclic/shared/models/app_config.dart';
 import 'package:meetclic/shared/utils/deep_link_type.dart';
 
 import '../../../../shared/providers_session.dart';
+import '../ar_examples/ar_not_hit_drop_down_page.dart';
 import 'home_page.dart';
 
 class HomeScreenState extends State<HomeScreen> {
@@ -70,7 +70,8 @@ class HomeScreenState extends State<HomeScreen> {
       // A01HelloArFeaturePoints(),
       //A02PlanesWorldOrigin(),
       //LoadArByData(isLocal: true),
-      ARDropdownViewerPage(),
+      //ARDropdownViewerPage(), ok
+      ARNoHitDropdownPage(),
       /* PreviewCapturePage(
         uri: "assets/totems/examples/HORNET.glb",
         isLocal: true,
