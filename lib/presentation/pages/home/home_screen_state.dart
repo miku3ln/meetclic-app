@@ -5,8 +5,9 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:meetclic/aplication/services/access_manager_service.dart';
 import 'package:meetclic/domain/entities/menu_tab_up_item.dart';
 import 'package:meetclic/infrastructure/deep_links/deep_link_handler.dart';
+import 'package:meetclic/models/totem_management.dart';
 import 'package:meetclic/presentation/controllers/menu_tab_up_controller.dart';
-import 'package:meetclic/presentation/pages/ar_examples/load_ar_by_data.dart';
+import 'package:meetclic/presentation/pages/ar_examples/ar_drop_down_viewer_page.dart';
 import 'package:meetclic/presentation/pages/business_map_page.dart';
 import 'package:meetclic/presentation/pages/dictionary_page.dart';
 import 'package:meetclic/presentation/pages/home/home_infinity.dart';
@@ -55,6 +56,7 @@ class HomeScreenState extends State<HomeScreen> {
       session: session,
       setFlagCallback: setState,
     );
+    final item = itemsSources[0];
     var pages = [
       _buildHomeContent(menuItems),
       BusinessMapPage(info: _pendingDeepLink, itemsStatus: menuItems),
@@ -67,7 +69,8 @@ class HomeScreenState extends State<HomeScreen> {
       //HelloArPage(),
       // A01HelloArFeaturePoints(),
       //A02PlanesWorldOrigin(),
-      LoadArByData(isLocal: true),
+      //LoadArByData(isLocal: true),
+      ARDropdownViewerPage(),
       /* PreviewCapturePage(
         uri: "assets/totems/examples/HORNET.glb",
         isLocal: true,
