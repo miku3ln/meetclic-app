@@ -26,10 +26,9 @@ import '../../../models/totem_management.dart'; // ItemAR, ItemSources, itemsSou
 
 enum ARLoadStatus { idle, loading, success, error }
 
-class ARConfig2 {
+class ARConfig {
   static const double distanceMeters = 1.2;
   static const double uniformScale = 0.80;
-
   // Euler por defecto (si no hay pose de cámara)
   static const List<double> fallbackEulerDeg = [0, 0, 0];
 }
@@ -38,7 +37,7 @@ class ARConfig2 {
  * Presets de vista / orientación
  * ========================================================================== */
 
-enum ARViewPreset2 {
+enum ARViewPreset {
   faceCamera, // mirar a la cámara (por defecto)
   front, // frontal
   back, // 180° yaw
@@ -74,23 +73,23 @@ class OrientationHelper {
   }
 
   /// Devuelve euler predefinidos por preset.
-  static v.Vector3 presetEuler(ARViewPreset2 preset) {
+  static v.Vector3 presetEuler(ARViewPreset preset) {
     switch (preset) {
-      case ARViewPreset2.front:
+      case ARViewPreset.front:
         return v.Vector3(0, 0, 0);
-      case ARViewPreset2.back:
+      case ARViewPreset.back:
         return v.Vector3(0, _deg2rad(180), 0);
-      case ARViewPreset2.left:
+      case ARViewPreset.left:
         return v.Vector3(0, _deg2rad(-90), 0);
-      case ARViewPreset2.right:
+      case ARViewPreset.right:
         return v.Vector3(0, _deg2rad(90), 0);
-      case ARViewPreset2.up:
+      case ARViewPreset.up:
         return v.Vector3(_deg2rad(-90), 0, 0);
-      case ARViewPreset2.down:
+      case ARViewPreset.down:
         return v.Vector3(_deg2rad(90), 0, 0);
-      case ARViewPreset2.isometric:
+      case ARViewPreset.isometric:
         return v.Vector3(_deg2rad(-30), _deg2rad(45), 0);
-      case ARViewPreset2.faceCamera:
+      case ARViewPreset.faceCamera:
         return v.Vector3.zero(); // se recalcula con pose
     }
   }
@@ -117,7 +116,7 @@ class NodeFactory {
     required String url,
     required v.Vector3 position,
     required v.Vector3 eulerAngles,
-    double uniformScale = ARConfig2.uniformScale,
+    double uniformScale = ARConfig.uniformScale,
   }) {
     return ARNode(
       type: NodeType.webGLB,
@@ -130,96 +129,18 @@ class NodeFactory {
 }
 
 /* =============================================================================
- * ARService2: gestiona sesión, objeto actual, colocación y orientación
+ * ARService: gestiona sesión, objeto actual, colocación y orientación
  * ========================================================================== */
 
-class ARService2 {
+class ARService {
   ARSessionManager? _session;
   ARObjectManager? _objects;
 
   ARNode? _current;
 
   ARSessionManager? get session => _session;
-
   ARObjectManager? get objects => _objects;
-
   ARNode? get currentNode => _current;
-
-  // --- HELPER: compone y empuja la matriz actual al transformNotifier ---
-  /// Suma un delta de yaw (en grados) y aplica en caliente sin recrear.
-  Future<void> nudgeYawDegrees(double deltaDeg) async {
-    if (_current == null) return;
-
-    final eul = _current!.eulerAngles ?? v.Vector3.zero();
-    final dy = OrientationHelper.deg2rad(deltaDeg);
-
-    _current!.eulerAngles = v.Vector3(eul.x, eul.y + dy, eul.z);
-
-    // Empuja la matriz actual al nativo (sin recrear)
-    _pushCurrentTransform();
-  }
-
-  void _pushCurrentTransform() {
-    final node = _current;
-    if (node == null) return;
-
-    final pos = node.position ?? v.Vector3.zero();
-    final eul = node.eulerAngles ?? v.Vector3.zero();
-    final sc = node.scale ?? v.Vector3.all(ARConfig2.uniformScale);
-
-    // Quaternion desde euler (pitch=x, yaw=y, roll=z)
-    final q = v.Quaternion.euler(eul.x, eul.y, eul.z);
-
-    // Matrix4.compose(translation, rotation, scale)
-    final m = v.Matrix4.compose(pos, q, sc);
-
-    // 🔥 Esto dispara el listener que el plugin registró en addNode(...)
-    node.transformNotifier.value = m;
-  }
-
-  /// Cambia la escala en caliente con un PORCENTAJE sobre la escala base.
-  /// 100 = tamaño base (ARConfig2.uniformScale), 150 = 1.5x, 75 = 0.75x, etc.
-  Future<void> setUniformScalePercent(
-    double percent, {
-    double minPercent = 50, // 50% del base
-    double maxPercent = 200, // 200% del base
-  }) async {
-    if (_current == null) return;
-
-    final p = percent.clamp(minPercent, maxPercent).toDouble();
-    final base = ARConfig2.uniformScale; // escala base de tu app
-    final target = base * (p / 100.0); // escala absoluta final
-
-    _current!.scale = v.Vector3.all(target); // set en caliente
-    _pushCurrentTransform(); // notifica al nativo
-  }
-
-  /// (Opcional) Cambiar por factor absoluto (1.0 = tal cual, 0.8 = -20%, 1.2 = +20%)
-  Future<void> setUniformScaleFactor(
-    double factor, {
-    double min = 0.15,
-    double max = 3.0,
-  }) async {
-    if (_current == null) return;
-    final f = factor.clamp(min, max).toDouble();
-    _current!.scale = v.Vector3.all(f);
-    _pushCurrentTransform();
-  }
-
-  double getCurrentUniformScale() {
-    final sc = _current?.scale ?? v.Vector3.all(ARConfig2.uniformScale);
-    return (sc.x + sc.y + sc.z) / 3.0;
-  }
-
-  Future<void> setUniformScale(
-    double target, {
-    double minS = 0.15,
-    double maxS = 3.0,
-  }) async {
-    if (_current == null) return;
-    final clamped = target.clamp(minS, maxS).toDouble();
-    await _recreateWith(scale: v.Vector3.all(clamped));
-  }
 
   /// Inicializa sesión y gestor de objetos (sin planos ni guías).
   Future<void> init({
@@ -234,12 +155,9 @@ class ARService2 {
       showPlanes: false,
       customPlaneTexturePath: null,
       showWorldOrigin: false,
-      handleTaps: false,
-      // sin taps de planos
-      handlePans: false,
-      // 🔥 gestos nativos
-      handleRotation: false,
-      // 🔥 gestos nativos
+      handleTaps: false, // sin taps de planos
+      handlePans: true, // 🔥 gestos nativos
+      handleRotation: true, // 🔥 gestos nativos
       showAnimatedGuide: false,
     );
     await _objects!.onInitialize();
@@ -252,7 +170,7 @@ class ARService2 {
     if (_objects == null) return;
 
     _objects!.onPanEnd = (String nodeName, v.Matrix4 transform) async {
-      //await _arRecreateNodeFromTransform(transform);
+      await _arRecreateNodeFromTransform(transform);
     };
 
     _objects!.onRotationEnd = (String nodeName, v.Matrix4 transform) async {
@@ -314,9 +232,9 @@ class ARService2 {
   /// Opcionalmente aplica un preset inicial distinto a faceCamera.
   Future<bool> placeGlbInFront({
     required String url,
-    double distanceMeters = ARConfig2.distanceMeters,
-    double uniformScale = ARConfig2.uniformScale,
-    ARViewPreset2? initialPreset,
+    double distanceMeters = ARConfig.distanceMeters,
+    double uniformScale = ARConfig.uniformScale,
+    ARViewPreset? initialPreset,
   }) async {
     if (_session == null || _objects == null) {
       throw StateError('AR no inicializado todavía.');
@@ -333,7 +251,7 @@ class ARService2 {
     var euler = pose.euler;
 
     // Si piden un preset inicial distinto a faceCamera, úsalo (absoluto)
-    if (initialPreset != null && initialPreset != ARViewPreset2.faceCamera) {
+    if (initialPreset != null && initialPreset != ARViewPreset.faceCamera) {
       euler = OrientationHelper.presetEuler(initialPreset);
     }
 
@@ -369,7 +287,7 @@ class ARService2 {
       uri: uri,
       position: position ?? node.position ?? v.Vector3.zero(),
       eulerAngles: euler ?? node.eulerAngles ?? v.Vector3.zero(),
-      scale: scale ?? node.scale ?? v.Vector3.all(ARConfig2.uniformScale),
+      scale: scale ?? node.scale ?? v.Vector3.all(ARConfig.uniformScale),
     );
 
     try {
@@ -429,13 +347,13 @@ class ARService2 {
   /// Aplica un preset de orientación (front/back/left/right/up/down/isometric/faceCamera).
   /// `absolute=true` aplica euler absolutos; `false` suma deltas.
   Future<void> applyViewPreset(
-    ARViewPreset2 preset, {
+    ARViewPreset preset, {
     bool absolute = true,
   }) async {
     if (_current == null) return;
 
-    if (preset == ARViewPreset2.faceCamera) {
-      final pose = await _computePoseAhead(ARConfig2.distanceMeters);
+    if (preset == ARViewPreset.faceCamera) {
+      final pose = await _computePoseAhead(ARConfig.distanceMeters);
       if (absolute) {
         await _recreateWith(euler: pose.euler);
       } else {
@@ -483,7 +401,7 @@ class ARService2 {
   /// Re-centra el modelo al frente (recalcula posición/rotación frente a cámara).
   Future<void> recenterInFront() async {
     if (_current == null) return;
-    final pose = await _computePoseAhead(ARConfig2.distanceMeters);
+    final pose = await _computePoseAhead(ARConfig.distanceMeters);
     await _recreateWith(position: pose.position, euler: pose.euler);
   }
 }
@@ -549,78 +467,8 @@ class ARNoHitDropdownPage extends StatefulWidget {
 }
 
 class _ARNoHitDropdownPageState extends State<ARNoHitDropdownPage> {
-  // === Rotación por swipe (yaw) con throttle ===
-  static const Duration _kYawThrottle = Duration(milliseconds: 80);
-  double _pendingYawDeg = 0.0; // acumulador de grados
-  bool _yawTickScheduled = false;
-
-  // sensibilidad: grados por píxel horizontal
-  static const double _yawDegPerPixel = 0.25;
-
-  void _applyYawThrottled(double deltaYawDeg) {
-    _pendingYawDeg += deltaYawDeg;
-    if (_yawTickScheduled) return;
-
-    _yawTickScheduled = true;
-    Future.delayed(_kYawThrottle, () async {
-      final val = _pendingYawDeg;
-      _pendingYawDeg = 0.0;
-      _yawTickScheduled = false;
-
-      if (val.abs() > 0.0001 && _ar.currentNode != null) {
-        await _ar.nudgeYawDegrees(val); // aplica en caliente
-      }
-    });
-  }
-
-  Future<void> _flushYaw() async {
-    final val = _pendingYawDeg;
-    _pendingYawDeg = 0.0;
-    _yawTickScheduled = false;
-
-    if (val.abs() > 0.0001 && _ar.currentNode != null) {
-      await _ar.nudgeYawDegrees(val);
-    }
-  }
-
   bool _isCapturing = false; // bloquea botón + muestra loading
-  bool _hideUiDuringCapture = false; // oculta chip “Listo” e InfoCardAR2
-  // Pinch-to-zoom
-  double _pinchStartScale =
-      ARConfig2.uniformScale; // escala de partida del nodo
-  bool _isPinching = false;
-  // === Pinch-to-zoom (con throttle) ===
-  static const Duration _kPinchThrottle = Duration(milliseconds: 80);
-
-  bool _pinchTickScheduled = false;
-  double? _pendingPercent;
-
-  void _applyScalePercentThrottled(double percent) {
-    _pendingPercent = percent;
-    if (_pinchTickScheduled) return;
-
-    _pinchTickScheduled = true;
-    Future.delayed(_kPinchThrottle, () async {
-      final val = _pendingPercent;
-      _pendingPercent = null;
-      _pinchTickScheduled = false;
-
-      if (val != null && _ar.currentNode != null) {
-        await _ar.setUniformScalePercent(val); // usa el método EN CALIENTE
-      }
-    });
-  }
-
-  Future<void> _flushPinchPercent() async {
-    final val = _pendingPercent;
-    _pendingPercent = null;
-    _pinchTickScheduled = false;
-
-    if (val != null && _ar.currentNode != null) {
-      await _ar.setUniformScalePercent(val);
-    }
-  }
-
+  bool _hideUiDuringCapture = false; // oculta chip “Listo” e InfoCardAR
   Future<void> _handleCapture() async {
     if (_isCapturing) return;
     if (_ar.currentNode == null) return;
@@ -687,7 +535,7 @@ class _ARNoHitDropdownPageState extends State<ARNoHitDropdownPage> {
   }
 
   // Servicio AR (sesión, objetos, colocación)
-  final ARService2 _ar = ARService2();
+  final ARService _ar = ARService();
 
   // Dropdown
   late ItemAR _selected;
@@ -762,9 +610,9 @@ class _ARNoHitDropdownPageState extends State<ARNoHitDropdownPage> {
     try {
       final ok = await _ar.placeGlbInFront(
         url: _selected.sources.glb,
-        distanceMeters: ARConfig2.distanceMeters,
-        uniformScale: ARConfig2.uniformScale,
-        initialPreset: ARViewPreset2.front,
+        distanceMeters: ARConfig.distanceMeters,
+        uniformScale: ARConfig.uniformScale,
+        initialPreset: ARViewPreset.front,
       );
       if (ok) {
         _setStatus(ARLoadStatus.success);
@@ -964,28 +812,28 @@ class _ARNoHitDropdownPageState extends State<ARNoHitDropdownPage> {
             onSelected: (k) async {
               switch (k) {
                 case 'front':
-                  await _ar.applyViewPreset(ARViewPreset2.front);
+                  await _ar.applyViewPreset(ARViewPreset.front);
                   break;
                 case 'back':
-                  await _ar.applyViewPreset(ARViewPreset2.back);
+                  await _ar.applyViewPreset(ARViewPreset.back);
                   break;
                 case 'left':
-                  await _ar.applyViewPreset(ARViewPreset2.left);
+                  await _ar.applyViewPreset(ARViewPreset.left);
                   break;
                 case 'right':
-                  await _ar.applyViewPreset(ARViewPreset2.right);
+                  await _ar.applyViewPreset(ARViewPreset.right);
                   break;
                 case 'up':
-                  await _ar.applyViewPreset(ARViewPreset2.up);
+                  await _ar.applyViewPreset(ARViewPreset.up);
                   break;
                 case 'down':
-                  await _ar.applyViewPreset(ARViewPreset2.down);
+                  await _ar.applyViewPreset(ARViewPreset.down);
                   break;
                 case 'iso':
-                  await _ar.applyViewPreset(ARViewPreset2.isometric);
+                  await _ar.applyViewPreset(ARViewPreset.isometric);
                   break;
                 case 'face':
-                  await _ar.applyViewPreset(ARViewPreset2.faceCamera);
+                  await _ar.applyViewPreset(ARViewPreset.faceCamera);
                   break;
               }
               setState(() {});
@@ -1009,40 +857,9 @@ class _ARNoHitDropdownPageState extends State<ARNoHitDropdownPage> {
         child: Stack(
           children: [
             // Vista AR
-            // Vista AR con pinch-to-zoom controlado (throttle)
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onScaleStart: (_) {
-                if (_ar.currentNode == null) return;
-                _isPinching = true;
-                _pinchStartScale = _ar
-                    .getCurrentUniformScale(); // escala actual
-                _pendingPercent = null;
-                _pinchTickScheduled = false;
-              },
-              onScaleUpdate: (details) {
-                if (!_isPinching || _ar.currentNode == null) return;
-
-                // escala objetivo absoluta (uniforme)
-                final targetUniform =
-                    _pinchStartScale * details.scale; // 1.0 = sin cambio
-
-                // convertir a PORCENTAJE respecto al base (ARConfig2.uniformScale)
-                final base = ARConfig2.uniformScale;
-                final percent = (targetUniform / base) * 100.0;
-
-                // throttle para no saturar el canal
-                _applyScalePercentThrottled(percent);
-              },
-              onScaleEnd: (_) async {
-                if (!_isPinching) return;
-                _isPinching = false;
-                await _flushPinchPercent(); // aplica el último valor pendiente
-              },
-              child: ARView(
-                onARViewCreated: _onARViewCreated,
-                planeDetectionConfig: PlaneDetectionConfig.none,
-              ),
+            ARView(
+              onARViewCreated: _onARViewCreated,
+              planeDetectionConfig: PlaneDetectionConfig.none,
             ),
 
             // Dropdown flotante arriba
@@ -1131,7 +948,7 @@ class _ARNoHitDropdownPageState extends State<ARNoHitDropdownPage> {
               left: 12,
               right: 12,
               bottom: 12,
-              child: InfoCardAR2(
+              child: InfoCardAR(
                 item: _selected,
                 lastError: _lastError,
                 onCapturePressed: hasModel
@@ -1230,13 +1047,13 @@ class _CenterReticle extends StatelessWidget {
   }
 }
 
-class InfoCardAR2 extends StatelessWidget {
+class InfoCardAR extends StatelessWidget {
   final ItemAR item;
   final String? lastError;
   final VoidCallback? onCapturePressed;
   final bool isCapturing;
 
-  const InfoCardAR2({
+  const InfoCardAR({
     super.key,
     required this.item,
     this.lastError,
