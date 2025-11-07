@@ -42,74 +42,90 @@ class ItemAR {
   });
 }
 
-/// ------------------ Constantes/Helpers ------------------
-const String kBaseDir = 'assets/totems/muelle-catalina/';
-const String kImgDir = 'assets/totems/muelle-catalina/images/';
-
-String _basenameNoExt(String path) {
-  final name = path.split('/').last;
-  final dot = name.lastIndexOf('.');
-  return dot >= 0 ? name.substring(0, dot) : name;
-}
-
-String _titleFromId(String id) => id
-    .replaceAll(RegExp(r'[_\-]+'), ' ')
-    .trim()
-    .split(' ')
-    .map((w) => w.isEmpty ? w : (w[0].toUpperCase() + w.substring(1)))
-    .join(' ');
-
-/// Si quieres sobrescribir metadatos por id (sin extensión), ponlos aquí.
-final Map<String, ItemAR> _metaOverrides = {
-  // 'taita-imbabura-toon-1': ItemAR(
-  //   id: 'taita-imbabura-toon-1',
-  //   title: 'Taita Imbabura – El Abuelo que todo lo ve',
-  //   subtitle: 'Ñawi Hatun Yaya',
-  //   description: 'Sabio y protector, guardián del viento.',
-  //   position: ItemPosition(lat: 0.20477, lng: -78.20639),
-  //   sources: ItemSources(glb: '', img: ''), // glb/img se ignoran
-  // ),
-};
-
-Future<List<ItemAR>> _buildItemsFromManifest() async {
-  final manifestStr = await rootBundle.loadString('AssetManifest.json');
-  final Map<String, dynamic> map = json.decode(manifestStr);
-
-  final glbs =
-      map.keys
-          .where(
-            (k) => k.startsWith(kBaseDir) && k.toLowerCase().endsWith('.glb'),
-          )
-          .toList()
-        ..sort();
-
-  final items = <ItemAR>[];
-  for (final glbPath in glbs) {
-    final id = _basenameNoExt(glbPath);
-    final guessImg = '$kImgDir$id.png';
-    final hasImg = map.keys.contains(guessImg);
-    final ov = _metaOverrides[id];
-
-    items.add(
-      ItemAR(
-        id: id,
-        title: ov?.title ?? _titleFromId(id),
-        subtitle: ov?.subtitle ?? '',
-        description: ov?.description ?? '',
-        position: ov?.position ?? const ItemPosition(lat: 0, lng: 0),
-        sources: ItemSources(
-          glb: glbPath, // ruta EXACTA como en manifest
-          img: hasImg ? guessImg : guessImg,
-        ),
-      ),
-    );
-  }
-  return items;
-}
+/// ------------------ DATA (paths reales) ------------------
+final List<ItemAR> itemsSources = [
+  ItemAR(
+    id: "taita",
+    title: "Taita Imbabura – El Abuelo que todo lo ve",
+    subtitle: "Ñawi Hatun Yaya",
+    description: "Sabio y protector, guardián del viento.",
+    position: ItemPosition(lat: 0.20477, lng: -78.20639),
+    sources: ItemSources(
+      glb: "assets/totems/muelle-catalina/taita-imbabura-toon-1.glb",
+      img: "assets/totems/muelle-catalina/images/taita-imbabura.png",
+    ),
+  ),
+  ItemAR(
+    id: "cerro-cusin",
+    title: "Cusin – El guardián del paso fértil",
+    subtitle: "Allpa ñampi rikchar",
+    description: "Alegre y trabajador, cuida las chacras.",
+    position: ItemPosition(lat: 0.20435, lng: -78.20688),
+    sources: ItemSources(
+      glb: "assets/totems/muelle-catalina/cusin.glb",
+      img: "assets/totems/muelle-catalina/images/elcusin.png",
+    ),
+  ),
+  ItemAR(
+    id: "mojanda",
+    title: "Mojanda – El susurro del páramo",
+    subtitle: "Sachayaku mama",
+    description: "Entre neblinas y lagunas, hilos de agua fría que renuevan.",
+    position: ItemPosition(lat: 0.20401, lng: -78.20723),
+    sources: ItemSources(
+      glb: "assets/totems/muelle-catalina/taita-imbabura-otro.glb",
+      img: "assets/totems/muelle-catalina/images/mojanda.png",
+    ),
+  ),
+  ItemAR(
+    id: "mama-cotacachi",
+    title: "Mama Cotacachi – Madre de la Pachamama",
+    subtitle: "Allpa mama- Warmi Rasu",
+    description: "Dulce y poderosa, cuida los ciclos de la vida.",
+    position: ItemPosition(lat: 0.20369, lng: -78.20759),
+    sources: ItemSources(
+      glb: "assets/totems/muelle-catalina/mama-cotacachi.glb",
+      img: "assets/totems/muelle-catalina/images/warmi-razu.png",
+    ),
+  ),
+  ItemAR(
+    id: "coraza",
+    title: "El Coraza – Espíritu de la celebración",
+    subtitle: "Kawsay Taki",
+    description: "Orgullo y dignidad; su danza es memoria viva de lucha.",
+    position: ItemPosition(lat: 0.20349, lng: -78.20779),
+    sources: ItemSources(
+      glb: "assets/totems/muelle-catalina/coraza-one.glb",
+      img: "assets/totems/muelle-catalina/images/elcoraza.png",
+    ),
+  ),
+  ItemAR(
+    id: "lechero",
+    title: "El Lechero – Árbol del Encuentro y los Deseos",
+    subtitle: "Kawsay ranti",
+    description: "Testigo de promesas, desde sus ramas el mundo sueña.",
+    position: ItemPosition(lat: 0.20316, lng: -78.20790),
+    sources: ItemSources(
+      glb: "assets/totems/muelle-catalina/other.glb",
+      img: "assets/totems/muelle-catalina/images/lechero.png",
+    ),
+  ),
+  ItemAR(
+    id: "lago-san-pablo",
+    title: "Yaku Mama – La Laguna Viva",
+    subtitle: "Yaku Mama – Kawsaycocha",
+    description: "Aquí termina el camino y comienza la conexión profunda.",
+    position: ItemPosition(lat: 0.20284, lng: -78.20802),
+    sources: ItemSources(
+      glb: "assets/totems/muelle-catalina/lago-san-pablo.glb",
+      img: "assets/totems/muelle-catalina/images/yaku-mama.png",
+    ),
+  ),
+];
 
 /// ------------------ WIDGET ------------------
 class LoadArByData extends StatefulWidget {
-  final bool isLocal; // pásalo en true para local
+  final bool isLocal;
   const LoadArByData({super.key, required this.isLocal});
 
   @override
@@ -120,12 +136,15 @@ class _LoadArByDataState extends State<LoadArByData> {
   ARSessionManager? _sessionManager;
   ARObjectManager? _objectManager;
 
-  List<ItemAR> _items = [];
   ItemAR? _selected;
   ARNode? _currentNode;
 
-  bool _loading = true;
+  // Retícula ON hasta que se coloque el modelo
   bool _showReticle = true;
+
+  // Descubrimiento de GLBs via AssetManifest
+  List<String> _availableGlbs = [];
+  String? _selectedGlbFromManifest; // si se selecciona, tiene prioridad
 
   static const double kPlaceDistanceMeters = 1.6;
   final vmath.Vector3 _defaultScale = vmath.Vector3.all(0.8);
@@ -133,16 +152,29 @@ class _LoadArByDataState extends State<LoadArByData> {
   @override
   void initState() {
     super.initState();
-    _init();
+    _selected = itemsSources.first;
+    _loadGlbsFromManifest();
   }
 
-  Future<void> _init() async {
-    final items = await _buildItemsFromManifest();
-    setState(() {
-      _items = items;
-      _selected = items.isNotEmpty ? items.first : null;
-      _loading = false;
-    });
+  Future<void> _loadGlbsFromManifest() async {
+    try {
+      final manifest = await rootBundle.loadString('AssetManifest.json');
+      final Map<String, dynamic> map = json.decode(manifest);
+      final base = 'assets/totems/muelle-catalina/';
+      final glbs =
+          map.keys
+              .where(
+                (k) => k.startsWith(base) && k.toLowerCase().endsWith('.glb'),
+              )
+              .toList()
+            ..sort();
+      setState(() {
+        _availableGlbs = glbs;
+      });
+    } catch (e) {
+      debugPrint('No se pudo leer AssetManifest.json: $e');
+      // No bloquea la app; solo no habrá dropdown de diagnóstico
+    }
   }
 
   @override
@@ -153,13 +185,6 @@ class _LoadArByDataState extends State<LoadArByData> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return const Scaffold(
-        backgroundColor: Colors.black,
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
@@ -180,7 +205,7 @@ class _LoadArByDataState extends State<LoadArByData> {
   Widget _buildARView() {
     return ARView(
       onARViewCreated: _onARViewCreated,
-      planeDetectionConfig: PlaneDetectionConfig.none, // sin hit-test
+      planeDetectionConfig: PlaneDetectionConfig.none, // sin hit-test ni mano
     );
   }
 
@@ -196,13 +221,14 @@ class _LoadArByDataState extends State<LoadArByData> {
         ),
         child: Row(
           children: [
+            // Dropdown principal (items AR)
             Expanded(
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<ItemAR>(
                   isExpanded: true,
                   dropdownColor: const Color(0xFF1E1E1E),
                   value: _selected,
-                  items: _items.map((e) {
+                  items: itemsSources.map((e) {
                     return DropdownMenuItem(
                       value: e,
                       child: Text(
@@ -213,13 +239,50 @@ class _LoadArByDataState extends State<LoadArByData> {
                     );
                   }).toList(),
                   onChanged: (val) async {
-                    setState(() => _selected = val);
+                    setState(() {
+                      _selected = val;
+                      _selectedGlbFromManifest =
+                          null; // vuelve a usar el del item
+                    });
                     await _resetPlacement();
                     _showSnack("Seleccionado: ${val?.id}");
                   },
                 ),
               ),
             ),
+            const SizedBox(width: 8),
+            // Dropdown diagnóstico (GLBs desde manifest)
+            if (_availableGlbs.isNotEmpty)
+              Expanded(
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    isExpanded: true,
+                    dropdownColor: const Color(0xFF1E1E1E),
+                    hint: const Text(
+                      'GLB (diagnóstico)',
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                    value: _selectedGlbFromManifest,
+                    items: _availableGlbs
+                        .map(
+                          (p) => DropdownMenuItem(
+                            value: p,
+                            child: Text(
+                              p.split('/').last,
+                              style: const TextStyle(color: Colors.white),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (val) async {
+                      setState(() => _selectedGlbFromManifest = val);
+                      await _resetPlacement();
+                      _showSnack("GLB: ${val?.split('/').last}");
+                    },
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -309,6 +372,7 @@ class _LoadArByDataState extends State<LoadArByData> {
     );
   }
 
+  /// Retícula (sin mano)
   Widget _buildReticleOverlay() {
     if (!_showReticle) return const SizedBox.shrink();
     return IgnorePointer(
@@ -364,6 +428,9 @@ class _LoadArByDataState extends State<LoadArByData> {
         handlePans: true,
         handleRotation: true,
       );
+
+      // Captura errores nativos del motor AR
+
       await _objectManager?.onInitialize();
 
       _objectManager?.onNodeTap = (nodes) {
@@ -379,18 +446,18 @@ class _LoadArByDataState extends State<LoadArByData> {
     }
   }
 
-  /// ------------------ Nodes ------------------
-  String _assetUriForNode(String pubspecPath) {
-    // Usa EXACTAMENTE la ruta del manifest/pubspec
-    return pubspecPath;
-  }
-
+  /// Construye el nodo. Si hay GLB seleccionado en el dropdown de diagnóstico,
+  /// se usa ese; caso contrario, el del item seleccionado.
   ARNode _buildNode() {
-    final glbPath = _selected!.sources.glb;
-    final uriForNode = _assetUriForNode(glbPath); // coherente
+    final isLocal = widget.isLocal;
+    final glbPath = _selectedGlbFromManifest ?? _selected!.sources.glb;
+
+    final uriForNode = isLocal
+        ? glbPath.replaceFirst('assets/', '') // NodeType.localGLB sin 'assets/'
+        : glbPath;
 
     return ARNode(
-      type: NodeType.localGLB, // SOLO local
+      type: isLocal ? NodeType.localGLB : NodeType.webGLB,
       uri: uriForNode,
       scale: _defaultScale,
       position: vmath.Vector3.zero(),
@@ -398,21 +465,34 @@ class _LoadArByDataState extends State<LoadArByData> {
     );
   }
 
+  /// Reintenta addNode por si el tracking aún no está estable
+  Future<bool> _tryAddNodeWithRetry(ARNode node, {int maxRetries = 3}) async {
+    for (int i = 0; i < maxRetries; i++) {
+      final ok = await _objectManager!.addNode(node);
+      if (ok == true) return true;
+      await Future.delayed(Duration(milliseconds: 350 * (i + 1)));
+    }
+    return false;
+  }
+
   /// ------------------ Colocar modelo ------------------
   Future<void> _placeAtReticle() async {
-    if (_sessionManager == null || _objectManager == null || _selected == null)
-      return;
+    if (_sessionManager == null || _objectManager == null) return;
+    if (_selected == null) return;
 
     await _removeCurrentNode();
 
-    final glbPath = _selected!.sources.glb;
+    final isLocal = widget.isLocal;
+    final glbPath = _selectedGlbFromManifest ?? _selected!.sources.glb;
     final node = _buildNode();
 
     try {
-      // Verifica asset con la MISMA ruta que usa el nodo
-      await rootBundle.load(_assetUriForNode(glbPath));
+      // Verificar que el asset exista (para local)
+      if (isLocal) {
+        await rootBundle.load(glbPath);
+      }
 
-      // Posición delante de la cámara
+      // Posición delante de cámara
       final cameraPose = await _sessionManager!.getCameraPose();
       vmath.Vector3 placePosition;
       if (cameraPose != null) {
@@ -434,22 +514,14 @@ class _LoadArByDataState extends State<LoadArByData> {
       }
       node.position = placePosition;
 
-      // Reintento simple
-      bool added = false;
-      for (int i = 0; i < 3 && !added; i++) {
-        final ok = await _objectManager?.addNode(node); // ok es bool?
-        if (ok == true) {
-          added = true;
-          break;
-        }
-        await Future.delayed(Duration(milliseconds: 350 * (i + 1)));
-      }
+      // Reintento de addNode
+      final added = await _tryAddNodeWithRetry(node);
       if (!added) {
         throw Exception("addNode() devolvió false tras reintentos.");
       }
 
       _currentNode = node;
-      if (mounted) setState(() => _showReticle = false);
+      if (mounted) setState(() => _showReticle = false); // ocultar retícula
       _alert("Colocado", "Modelo agregado desde:\n$glbPath");
     } catch (e, st) {
       debugPrint("❌ Error cargando modelo: $e\n$st");
@@ -457,8 +529,8 @@ class _LoadArByDataState extends State<LoadArByData> {
         "No se pudo cargar el modelo",
         "GLB: $glbPath\n\nError: $e\n\nPosibles causas:\n"
             "• Ruta mal declarada o archivo no incluido en pubspec.yaml.\n"
-            "• GLB con extensiones no soportadas (Draco/KTX2/etc).\n"
-            "• Dispositivo sin ARCore/ARKit.\n"
+            "• El GLB no está en formato binario válido o usa extensiones no soportadas (Draco/KTX2/etc).\n"
+            "• El dispositivo no soporta ARCore/ARKit.\n"
             "• Falta permiso de cámara.",
       );
     }

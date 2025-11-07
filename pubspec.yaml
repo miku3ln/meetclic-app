@@ -57,7 +57,7 @@ dependencies:
   ar_flutter_plugin:
     path: ./ar_flutter_plugin
   vector_math: ^2.1.4
-  model_viewer_plus: ^1.7.0  # o la última estable
+  model_viewer_plus: ^1.9.3 # o la última estable
 
 
 dev_dependencies:
@@ -106,8 +106,25 @@ flutter:
     - assets/totems/examples/HORNET.glb
     - assets/totems/examples/mikasa/gothic__elegance_texture_anime_girl.glb
     - assets/totems/examples/
-    - assets/totems/muelle-catalina/
-    - images/realidad-aumentada/examples/one/images/earth_map.jpg
+    - assets/totems/muelle-catalina/images/elcoraza.png
+    - assets/totems/muelle-catalina/images/elcusin.png
+    - assets/totems/muelle-catalina/images/lechero.png
+    - assets/totems/muelle-catalina/images/mojanda.png
+    - assets/totems/muelle-catalina/images/taita-imbabura.png
+    - assets/totems/muelle-catalina/images/warmi-razu.png
+    - assets/totems/muelle-catalina/images/yaku-mama.png
+    - assets/totems/muelle-catalina/images/taita-imbabura.png
+    - assets/totems/muelle-catalina/coraza-one.glb
+    - assets/totems/muelle-catalina/cusin.glb
+    - assets/totems/muelle-catalina/lago-san-pablo.glb
+    - assets/totems/muelle-catalina/mama-cotacachi.glb
+    - assets/totems/muelle-catalina/other.glb
+    - assets/totems/muelle-catalina/taita-imbabura.glb
+    - assets/totems/muelle-catalina/taita-imbabura-otro.glb
+    - assets/totems/muelle-catalina/taita-imbabura-toon-1.glb
+
+
+
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
