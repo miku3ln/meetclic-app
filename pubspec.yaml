@@ -62,6 +62,8 @@ dependencies:
   crypto: ^3.0.3
   permission_handler: ^11.3.1
   image_gallery_saver_plus: 4.0.1
+  flutter_cache_manager: ^3.3.1   # o la última disponible
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
