@@ -78,7 +78,10 @@ class _ARManagementViewState extends State<ARManagementView> {
 
   // ===== Descarga / Progreso =====
   double _progress = 0.0; // 0..1
+  bool _progressKnown = false; // true si t>0 en onProgress
   String? _lastLoadedPath; // file://, data:, https:
+  // Reuso explícito por modelo (clave = URL original del modelo)
+  final Map<String, String> _resolvedPathsByUrl = {};
 
   @override
   void initState() {
@@ -88,9 +91,8 @@ class _ARManagementViewState extends State<ARManagementView> {
 
   @override
   void dispose() {
-    DownloadHelper.revokeIfNeeded(
-      _lastLoadedPath,
-    ); // no-op (por si cambias luego)
+    // hoy no-op (por si luego usas blob: en web), igual mantenemos el patrón
+    DownloadHelper.revokeIfNeeded(_lastLoadedPath);
     _ar.dispose();
     super.dispose();
   }
@@ -122,15 +124,65 @@ class _ARManagementViewState extends State<ARManagementView> {
     setState(() => _showReticle = true);
   }
 
-  // ===== Colocación con descarga/caché local =====
+  // ===== Colocación con descarga/caché local (y reuso) =====
   Future<void> _onReticleTap() async {
     if (_status == ARLoadStatus.loading) return;
+
     _setStatus(ARLoadStatus.loading);
+    _progress = 0;
+    _progressKnown = false;
     UiHelpers.showSnack(context, 'Colocando: ${_selected.id}');
 
-    setState(() => _progress = 0);
-
     try {
+      final sourceUrl = _selected.sources.glb;
+
+      // A) Si YA tenemos un nodo y YA existe una ruta resuelta para este URL, y además coincide con la del nodo:
+      //    => no recargues/parses; solo recentra.
+      if (_ar.currentNode != null &&
+          _resolvedPathsByUrl.containsKey(sourceUrl) &&
+          _ar.currentNode!.uri == _resolvedPathsByUrl[sourceUrl]) {
+        await _ar.recenterInFront();
+        setState(() {
+          _showReticle = false;
+          _progress = 1.0;
+          _progressKnown = true;
+        });
+        _setStatus(ARLoadStatus.success);
+        UiHelpers.showSnack(context, 'Usando caché (escena)');
+        return;
+      }
+
+      // B) Reuso inmediato en memoria: si ya resolvimos antes este URL, intenta colocar directo.
+      if (_resolvedPathsByUrl.containsKey(sourceUrl)) {
+        final cachedPath = _resolvedPathsByUrl[sourceUrl]!;
+        final scheme = Uri.parse(cachedPath).scheme.toLowerCase();
+        final isLocal = (scheme == 'file');
+
+        final ok = await _ar.placeGlbInFront(
+          url: cachedPath,
+          isLocal: isLocal,
+          distanceMeters: ARConfig.distanceMeters,
+          uniformScale: ARConfig.uniformScale,
+          initialPreset: ARViewPreset.front,
+        );
+
+        if (ok) {
+          setState(() {
+            _showReticle = false;
+            _progress = 1.0;
+            _progressKnown = true;
+          });
+          _setStatus(ARLoadStatus.success);
+          UiHelpers.showSnack(context, 'Usando caché (memoria)');
+          _lastLoadedPath = cachedPath;
+          return;
+        } else {
+          // Si falló la colocación con esa ruta resuelta, purga el mapping y sigue flujo normal.
+          _resolvedPathsByUrl.remove(sourceUrl);
+        }
+      }
+
+      // C) Flujo normal: resolver ruta (descargar/caché) y luego colocar.
       String loadPath = _selected.sources.glb;
       bool isLocal = _selected.sources.isLocal;
 
@@ -139,7 +191,10 @@ class _ARManagementViewState extends State<ARManagementView> {
           _selected.sources.glb,
           onProgress: (r, t) {
             if (!mounted) return;
-            setState(() => _progress = t > 0 ? (r / t) : 0.0);
+            setState(() {
+              _progressKnown = t > 0;
+              _progress = t > 0 ? (r / t) : 0.0;
+            });
           },
         );
 
@@ -150,15 +205,14 @@ class _ARManagementViewState extends State<ARManagementView> {
         }
 
         loadPath = res.data!;
-
-        // Solo es local si es file:// (IO). En Web devolvemos data: o https:
         final scheme = Uri.parse(loadPath).scheme.toLowerCase();
         isLocal = (scheme == 'file');
 
-        // Guarda para posible limpieza/revoke (no-op actual)
         _lastLoadedPath = loadPath;
+        // 👆 OJO: aquí AÚN no ponemos en _resolvedPathsByUrl. Esperamos a que placeGlbInFront sea OK.
       }
 
+      // D) Colocar
       final ok = await _ar.placeGlbInFront(
         url: loadPath,
         isLocal: isLocal,
@@ -168,10 +222,14 @@ class _ARManagementViewState extends State<ARManagementView> {
       );
 
       if (ok) {
+        // ✅ SOLO ahora confirmamos el mapping para reuso posterior
+        _resolvedPathsByUrl[sourceUrl] = loadPath;
+
         _setStatus(ARLoadStatus.success);
         setState(() {
           _showReticle = false;
           _progress = 1.0;
+          _progressKnown = true;
         });
       } else {
         _setStatus(ARLoadStatus.error, err: 'No se pudo añadir el nodo');
@@ -186,9 +244,13 @@ class _ARManagementViewState extends State<ARManagementView> {
     setState(() => _selected = val);
     _setStatus(ARLoadStatus.idle, err: null);
     await _ar.removeCurrentNodeIfAny();
-    setState(() => _showReticle = true);
+    setState(() {
+      _showReticle = true;
+      _progress = 0;
+      _progressKnown = false;
+    });
 
-    // Limpia la última URL (no-op hoy, patrón útil si cambias a blob: más tarde)
+    // Limpia la última URL (no-op hoy, útil si algún día usas blob:)
     DownloadHelper.revokeIfNeeded(_lastLoadedPath);
     _lastLoadedPath = null;
 
@@ -411,7 +473,7 @@ class _ARManagementViewState extends State<ARManagementView> {
               child: Chip(
                 label: Text(
                   _status == ARLoadStatus.loading
-                      ? (_progress > 0
+                      ? (_progressKnown
                             ? 'Cargando… ${(_progress * 100).clamp(0, 100).toStringAsFixed(0)}%'
                             : 'Cargando…')
                       : _status == ARLoadStatus.success
@@ -431,7 +493,7 @@ class _ARManagementViewState extends State<ARManagementView> {
               ),
             ),
 
-            // Overlay de carga (con % cuando hay content-length)
+            // Overlay de carga (con % cuando hay content-length, texto claro cuando no)
             if (_status == ARLoadStatus.loading)
               Positioned.fill(
                 child: IgnorePointer(
@@ -440,10 +502,8 @@ class _ARManagementViewState extends State<ARManagementView> {
                     color: Colors.black54,
                     alignment: Alignment.center,
                     child: _LoadingOverlay(
-                      progress: _progress, // 0..1 (0 => indeterminado)
-                      message: _progress > 0
-                          ? 'Descargando modelo…'
-                          : 'Preparando…',
+                      progress: _progress, // 0..1
+                      progressKnown: _progressKnown,
                     ),
                   ),
                 ),
@@ -502,18 +562,18 @@ class _ARManagementViewState extends State<ARManagementView> {
 // ====== Widgets internos ======
 
 class _LoadingOverlay extends StatelessWidget {
-  final double progress; // 0..1 (0 => indeterminado)
-  final String message;
+  final double progress; // 0..1
+  final bool progressKnown; // true si hay Content-Length
 
   const _LoadingOverlay({
     super.key,
     required this.progress,
-    this.message = 'Cargando…',
+    required this.progressKnown,
   });
 
   @override
   Widget build(BuildContext context) {
-    final hasTotal = progress > 0 && progress.isFinite;
+    final hasTotal = progressKnown && progress > 0 && progress.isFinite;
     final pct = (progress * 100).clamp(0, 100).toStringAsFixed(0);
 
     return ConstrainedBox(
@@ -529,7 +589,7 @@ class _LoadingOverlay extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                message,
+                hasTotal ? 'Descargando modelo…' : 'Preparando…',
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 16,
@@ -542,7 +602,7 @@ class _LoadingOverlay extends StatelessWidget {
                   : const LinearProgressIndicator(),
               const SizedBox(height: 8),
               Text(
-                hasTotal ? '$pct%' : 'Preparando…',
+                hasTotal ? '$pct%' : 'Sin tamaño del servidor',
                 style: const TextStyle(color: Colors.white70),
               ),
               const SizedBox(height: 4),

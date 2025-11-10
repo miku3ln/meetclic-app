@@ -6,16 +6,32 @@ import 'app_cache_manager.dart';
 import 'download_models.dart';
 
 class DownloadHelper {
-  /// Descarga un recurso a caché con progreso (IO).
-  /// Retorna un path LOCAL (válido para NodeFactory.localFileGlb).
+  // 🔸 Memo en memoria: URL → resultado exitoso (path local)
+  static final Map<String, DownloadResult> _memo = {};
+
   static Future<DownloadResult> fetchToCacheVerbose(
     String url, {
     Map<String, String>? headers,
     ProgressCb? onProgress,
-    Duration connectTimeout = const Duration(seconds: 15),
-    Duration receiveTimeout = const Duration(seconds: 60),
+    Duration connectTimeout = const Duration(seconds: 15), // no-op aquí
+    Duration receiveTimeout = const Duration(seconds: 60), // no-op aquí
     int maxRetries = 1,
+    bool forceRefresh = false,
   }) async {
+    // 0) Respuesta inmediata desde memo
+    if (!forceRefresh && _memo.containsKey(url)) {
+      final cached = _memo[url]!;
+      final p = await _validateFilePath(cached.data);
+      if (p != null) {
+        // emite 100% para que el UI muestre “listo”
+        onProgress?.call(1, 1);
+        return cached;
+      } else {
+        _memo.remove(url); // limpiamos si el archivo ya no existe
+      }
+    }
+
+    // 1) CacheManager (FS, con ETag)
     for (int attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         final stream = AppCacheManager().getFileStream(
@@ -39,13 +55,15 @@ class DownloadHelper {
 
         if (file != null && await file!.exists()) {
           final total = lastT > 0 ? lastT : await file!.length();
-          return DownloadResult(
+          final result = DownloadResult(
             success: true,
             data: file!.path,
             bytesReceived: total,
             totalBytes: total,
-            extra: const {'isBlob': false},
+            extra: const {'isDataUri': false, 'source': 'fs'},
           );
+          _memo[url] = result; // 🔸 guardamos para reuso instantáneo
+          return result;
         }
         return const DownloadResult(
           success: false,
@@ -61,8 +79,16 @@ class DownloadHelper {
     return const DownloadResult(success: false, message: 'Descarga cancelada.');
   }
 
-  /// IO: no hay blob URLs; no hace nada.
+  static Future<String?> _validateFilePath(String? path) async {
+    if (path == null) return null;
+    try {
+      final f = File(path);
+      if (await f.exists() && (await f.length()) > 0) return path;
+    } catch (_) {}
+    return null;
+  }
+
   static void revokeIfNeeded(String? url) {
-    /* noop */
+    /* noop en IO */
   }
 }
