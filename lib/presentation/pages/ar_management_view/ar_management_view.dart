@@ -1,3 +1,5 @@
+// lib/features/ar_management_view/ar_management_view.dart
+
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
@@ -76,10 +78,10 @@ class _ARManagementViewState extends State<ARManagementView> {
   bool _showReticle = true;
   final GlobalKey _captureKey = GlobalKey();
 
-  // ===== Descarga / Progreso =====
+  // ===== Descarga / Progreso / Reuso =====
   double _progress = 0.0; // 0..1
-  bool _progressKnown = false; // true si t>0 en onProgress
-  String? _lastLoadedPath; // file://, data:, https:
+  bool _progressKnown = false; // t>0
+  String? _lastLoadedPath; // opcional (hoy no-op para web)
   // Reuso explícito por modelo (clave = URL original del modelo)
   final Map<String, String> _resolvedPathsByUrl = {};
 
@@ -91,7 +93,7 @@ class _ARManagementViewState extends State<ARManagementView> {
 
   @override
   void dispose() {
-    // hoy no-op (por si luego usas blob: en web), igual mantenemos el patrón
+    // Hoy no-op (por si luego usas blob: en web), mantenemos el patrón.
     DownloadHelper.revokeIfNeeded(_lastLoadedPath);
     _ar.dispose();
     super.dispose();
@@ -134,63 +136,47 @@ class _ARManagementViewState extends State<ARManagementView> {
     UiHelpers.showSnack(context, 'Colocando: ${_selected.id}');
 
     try {
-      final sourceUrl = _selected.sources.glb;
+      final src = _selected.sources; // 👈 estado embebido aquí
 
-      // A) Si YA tenemos un nodo y YA existe una ruta resuelta para este URL, y además coincide con la del nodo:
-      //    => no recargues/parses; solo recentra.
-      if (_ar.currentNode != null &&
-          _resolvedPathsByUrl.containsKey(sourceUrl) &&
-          _ar.currentNode!.uri == _resolvedPathsByUrl[sourceUrl]) {
-        await _ar.recenterInFront();
-        setState(() {
-          _showReticle = false;
-          _progress = 1.0;
-          _progressKnown = true;
-        });
-        _setStatus(ARLoadStatus.success);
-        UiHelpers.showSnack(context, 'Usando caché (escena)');
-        return;
-      }
-
-      // B) Reuso inmediato en memoria: si ya resolvimos antes este URL, intenta colocar directo.
-      if (_resolvedPathsByUrl.containsKey(sourceUrl)) {
-        final cachedPath = _resolvedPathsByUrl[sourceUrl]!;
-        final scheme = Uri.parse(cachedPath).scheme.toLowerCase();
-        final isLocal = (scheme == 'file');
-
+      // A) Fast path: ya cargado al menos una vez y con resolvedPath → activar pool (instantáneo)
+      if (src.loadedOnce && src.resolvedPath != null) {
+        final resolved = src.resolvedPath!;
         final ok = await _ar.placeGlbInFront(
-          url: cachedPath,
-          isLocal: isLocal,
+          url: resolved,
+          isLocal: Uri.parse(resolved).scheme.toLowerCase() == 'file',
           distanceMeters: ARConfig.distanceMeters,
           uniformScale: ARConfig.uniformScale,
           initialPreset: ARViewPreset.front,
         );
-
         if (ok) {
           setState(() {
             _showReticle = false;
-            _progress = 1.0;
-            _progressKnown = true;
+            _progress = 1.0; // 100%
+            _progressKnown = true; // reuso
           });
           _setStatus(ARLoadStatus.success);
-          UiHelpers.showSnack(context, 'Usando caché (memoria)');
-          _lastLoadedPath = cachedPath;
+          UiHelpers.showSnack(context, 'Usando caché (memoria/pool)');
+          _lastLoadedPath = resolved;
           return;
         } else {
-          // Si falló la colocación con esa ruta resuelta, purga el mapping y sigue flujo normal.
-          _resolvedPathsByUrl.remove(sourceUrl);
+          // si falló reactivar, invalida y cae a flujo normal
+          src.resolvedPath = null;
+          src.loadedOnce = false;
         }
       }
 
-      // C) Flujo normal: resolver ruta (descargar/caché) y luego colocar.
-      String loadPath = _selected.sources.glb;
-      bool isLocal = _selected.sources.isLocal;
+      // B) Flujo normal (primera vez o cache inválida)
+      String loadPath = src.glb;
+      bool isLocal = src.isLocal;
 
       if (!isLocal) {
         final res = await DownloadHelper.fetchToCacheVerbose(
-          _selected.sources.glb,
+          src.glb,
           onProgress: (r, t) {
             if (!mounted) return;
+            // guarda progreso temporal en el modelo
+            src.setProgress(r, t > 0 ? t : null);
+
             setState(() {
               _progressKnown = t > 0;
               _progress = t > 0 ? (r / t) : 0.0;
@@ -208,11 +194,15 @@ class _ARManagementViewState extends State<ARManagementView> {
         final scheme = Uri.parse(loadPath).scheme.toLowerCase();
         isLocal = (scheme == 'file');
 
+        // opcional: copia métricas finales
+        src.bytes = res.bytesReceived;
+        src.total = res.totalBytes;
+
         _lastLoadedPath = loadPath;
-        // 👆 OJO: aquí AÚN no ponemos en _resolvedPathsByUrl. Esperamos a que placeGlbInFront sea OK.
+        // aún no marcamos loadedOnce/resolvedPath
       }
 
-      // D) Colocar
+      // C) Colocar y “sellar” en el modelo
       final ok = await _ar.placeGlbInFront(
         url: loadPath,
         isLocal: isLocal,
@@ -222,8 +212,9 @@ class _ARManagementViewState extends State<ARManagementView> {
       );
 
       if (ok) {
-        // ✅ SOLO ahora confirmamos el mapping para reuso posterior
-        _resolvedPathsByUrl[sourceUrl] = loadPath;
+        src.sealAfterFirstLoad(
+          loadPath,
+        ); // 👈 loadedOnce=true, guarda resolvedPath y limpia bytes/total
 
         _setStatus(ARLoadStatus.success);
         setState(() {
@@ -243,15 +234,18 @@ class _ARManagementViewState extends State<ARManagementView> {
   Future<void> _onSelectChanged(ItemAR val) async {
     setState(() => _selected = val);
     _setStatus(ARLoadStatus.idle, err: null);
+
+    // Ya NO removemos del mundo (queda en pool para reuso rápido)
     await _ar.removeCurrentNodeIfAny();
+
     setState(() {
       _showReticle = true;
-      _progress = 0;
+      _progress = 0.0;
       _progressKnown = false;
     });
 
-    // Limpia la última URL (no-op hoy, útil si algún día usas blob:)
-    DownloadHelper.revokeIfNeeded(_lastLoadedPath);
+    // No elimines _metaByUrl aquí. Queremos que “loadedOnce/resolvedPath” persista.
+    DownloadHelper.revokeIfNeeded(_lastLoadedPath); // hoy no-op
     _lastLoadedPath = null;
 
     UiHelpers.showSnack(
@@ -466,7 +460,7 @@ class _ARManagementViewState extends State<ARManagementView> {
               ),
             ),
 
-            // Chip de estado (muestra % si está disponible)
+            // Chip de estado (solo números durante carga)
             Positioned(
               right: 12,
               top: 12 + 56,
@@ -474,8 +468,8 @@ class _ARManagementViewState extends State<ARManagementView> {
                 label: Text(
                   _status == ARLoadStatus.loading
                       ? (_progressKnown
-                            ? 'Cargando… ${(_progress * 100).clamp(0, 100).toStringAsFixed(0)}%'
-                            : 'Cargando…')
+                            ? '${(_progress * 100).clamp(0, 100).toStringAsFixed(0)}%'
+                            : '0%') // sin Content-Length → 0%
                       : _status == ARLoadStatus.success
                       ? 'Listo'
                       : _status == ARLoadStatus.error
@@ -493,7 +487,7 @@ class _ARManagementViewState extends State<ARManagementView> {
               ),
             ),
 
-            // Overlay de carga (con % cuando hay content-length, texto claro cuando no)
+            // Overlay de carga (solo número grande)
             if (_status == ARLoadStatus.loading)
               Positioned.fill(
                 child: IgnorePointer(
@@ -503,7 +497,8 @@ class _ARManagementViewState extends State<ARManagementView> {
                     alignment: Alignment.center,
                     child: _LoadingOverlay(
                       progress: _progress, // 0..1
-                      progressKnown: _progressKnown,
+                      progressKnown:
+                          _progressKnown, // true si hay Content-Length
                     ),
                   ),
                 ),
@@ -573,45 +568,22 @@ class _LoadingOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasTotal = progressKnown && progress > 0 && progress.isFinite;
-    final pct = (progress * 100).clamp(0, 100).toStringAsFixed(0);
+    // Si no hay tamaño del servidor: 0%. Si hay, usamos progress*100.
+    final pctText = progressKnown
+        ? '${(progress * 100).clamp(0, 100).toStringAsFixed(0)}%'
+        : '0%';
 
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 360),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.75),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                hasTotal ? 'Descargando modelo…' : 'Preparando…',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 12),
-              hasTotal
-                  ? LinearProgressIndicator(value: progress)
-                  : const LinearProgressIndicator(),
-              const SizedBox(height: 8),
-              Text(
-                hasTotal ? '$pct%' : 'Sin tamaño del servidor',
-                style: const TextStyle(color: Colors.white70),
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                'No cierres esta pantalla',
-                style: TextStyle(color: Colors.white38, fontSize: 12),
-              ),
-            ],
-          ),
+    return Container(
+      color: Colors.transparent,
+      alignment: Alignment.center,
+      child: Text(
+        pctText,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 56,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 1.2,
         ),
       ),
     );

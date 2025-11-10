@@ -1,27 +1,14 @@
-// Se usa solo vía import condicional desde download_helper.dart.
-// No usa 'dart:html'. Para Flutter Web crea data:URIs cuando el tamaño lo permite,
-// o retorna la URL original (http/https) si no es viable calcular/usar porcentaje.
-
 import 'package:dio/dio.dart';
 
 import 'download_models.dart';
 
 class DownloadHelper {
-  // Límite recomendado para crear data:URI (evitar URLs enormes en Web).
-  // Ajusta a tu gusto. 8–12 MB suele ser razonable.
   static const int _defaultDataUriMaxBytes = 8 * 1024 * 1024; // 8 MB
 
-  /// Descarga con progreso y devuelve:
-  /// - data:URI (cuando el archivo es pequeño y se pudo descargar con %)
-  /// - o la URL original (http/https) cuando no es viable (entonces % no aplica)
-  ///
-  /// Comportamiento del %:
-  /// - Si el server entrega Content-Length y el tamaño <= _defaultDataUriMaxBytes:
-  ///     -> hacemos GET con onReceiveProgress => `onProgress(r,t)` con t>0 (muestra %)
-  ///     -> devolvemos `data:` URI en `data` (isLocal=false)
-  /// - Si NO hay Content-Length o el tamaño excede el umbral:
-  ///     -> devolvemos la URL `url` tal cual, sin descargar (onProgress no se usa)
-  ///     -> tu UI debe mostrar loader indeterminado (como ya lo haces)
+  // Memos en memoria
+  static final Map<String, _MemoEntry> _dataMemo = {};
+  static final Map<String, int> _lenMemo = {};
+
   static Future<DownloadResult> fetchToCacheVerbose(
     String url, {
     Map<String, String>? headers,
@@ -30,56 +17,63 @@ class DownloadHelper {
     Duration receiveTimeout = const Duration(seconds: 60),
     int maxRetries = 1,
     int dataUriMaxBytes = _defaultDataUriMaxBytes,
+    bool forceRefresh = false,
   }) async {
     final dio = Dio(
       BaseOptions(
-        connectTimeout: connectTimeout, // Duration? en Dio v5
-        receiveTimeout: receiveTimeout, // Duration? en Dio v5
+        connectTimeout: connectTimeout, // Dio v5: Duration?
+        receiveTimeout: receiveTimeout, // Dio v5: Duration?
         responseType: ResponseType.bytes,
         headers: headers,
         followRedirects: true,
         receiveDataWhenStatusError: true,
+        // Evita que un 206 se considere error
+        validateStatus: (code) => code != null && code >= 200 && code < 400,
       ),
     );
 
-    // 1) Intentar HEAD para conocer Content-Length
+    // 1) Determinar tamaño total (HEAD -> Content-Length) o (Range -> Content-Range)
     int? contentLength;
-    try {
-      final head = await dio.head(url);
-      final lenStr = head.headers.value('content-length');
-      if (lenStr != null) contentLength = int.tryParse(lenStr);
-    } catch (_) {
-      // Algunos CDNs no permiten HEAD; seguimos sin tamaño conocido.
+    if (!forceRefresh && _lenMemo.containsKey(url)) {
+      contentLength = _lenMemo[url];
+    } else {
+      contentLength = await _probeContentLength(dio, url);
+      if (contentLength != null) _lenMemo[url] = contentLength!;
     }
 
-    // 2) Decidir estrategia
-    final canDownloadWithPercent =
+    final canDataUri =
         (contentLength != null &&
         contentLength > 0 &&
         contentLength <= dataUriMaxBytes);
 
-    if (!canDownloadWithPercent) {
-      // No haremos descarga previa; dejamos que el visor cargue directo.
-      // => No habrá % (usa tu loader indeterminado)
+    // 2) Reusar data:URI memorizado
+    if (!forceRefresh && canDataUri && _dataMemo.containsKey(url)) {
+      final m = _dataMemo[url]!;
+      onProgress?.call(m.contentLength, m.contentLength); // 100%
       return DownloadResult(
         success: true,
-        data: url, // http/https
-        // bytes* y total* se omiten (desconocidos)
-        extra: const {'isDataUri': false},
+        data: m.dataUri,
+        bytesReceived: m.contentLength,
+        totalBytes: m.contentLength,
+        extra: const {'isDataUri': true, 'source': 'mem'},
       );
     }
 
-    // 3) Descarga con % y construcción de data:URI (tamaño acotado)
+    // 3) Si es grande o no conocemos tamaño → que lo cargue directo el viewer (https)
+    if (!canDataUri) {
+      return DownloadResult(
+        success: true,
+        data: url,
+        extra: const {'isDataUri': false, 'source': 'https'},
+      );
+    }
+
+    // 4) Descargar con % y construir data:URI
     for (int attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         final res = await dio.get<List<int>>(
           url,
-          onReceiveProgress: (r, t) {
-            if (onProgress != null) {
-              // t debería ser == contentLength y > 0
-              onProgress(r, t);
-            }
-          },
+          onReceiveProgress: (r, t) => onProgress?.call(r, t),
           options: Options(responseType: ResponseType.bytes),
         );
 
@@ -87,23 +81,22 @@ class DownloadHelper {
         final data = res.data;
 
         if (status == 200 && data != null) {
-          // data:URI sin usar dart:html
-          // OJO: puede ser grande si subes el umbral; mantén el límite razonable.
           final dataUri = Uri.dataFromBytes(
             data,
             mimeType: 'model/gltf-binary',
-            // encoding null para binario; no seteamos base64 explícito (se infiere)
           ).toString();
+
+          final len = contentLength ?? data.length;
+          _dataMemo[url] = _MemoEntry(dataUri: dataUri, contentLength: len);
 
           return DownloadResult(
             success: true,
-            data: dataUri, // <-- úsala como URL en Web
+            data: dataUri,
             bytesReceived: data.length,
-            totalBytes: contentLength ?? data.length,
-            extra: const {'isDataUri': true},
+            totalBytes: len,
+            extra: const {'isDataUri': true, 'source': 'mem/new'},
           );
         }
-
         return DownloadResult(success: false, message: 'HTTP $status');
       } catch (e) {
         if (attempt == maxRetries) {
@@ -116,8 +109,62 @@ class DownloadHelper {
     return const DownloadResult(success: false, message: 'Descarga cancelada.');
   }
 
-  // En esta implementación no generamos blob:URL, así que no hay nada que revocar.
+  /// Intenta obtener el tamaño total del archivo:
+  /// - HEAD -> Content-Length
+  /// - si falla, GET Range bytes=0-0 -> Content-Range: bytes 0-0/<TOTAL>
+  static Future<int?> _probeContentLength(Dio dio, String url) async {
+    // 1) HEAD
+    try {
+      final head = await dio.head(url);
+      final lenStr = head.headers.value('content-length');
+      if (lenStr != null) {
+        final val = int.tryParse(lenStr);
+        if (val != null && val > 0) return val;
+      }
+    } catch (_) {
+      // HEAD puede estar bloqueado por el CDN
+    }
+
+    // 2) GET Range 0-0 (requiere que el servidor soporte Accept-Ranges)
+    try {
+      final res = await dio.get<List<int>>(
+        url,
+        options: Options(
+          responseType: ResponseType.bytes,
+          headers: {'range': 'bytes=0-0'},
+        ),
+      );
+      // Buscamos Content-Range: "bytes 0-0/12345"
+      final cr = res.headers.value('content-range');
+      if (cr != null) {
+        final slash = cr.lastIndexOf('/');
+        if (slash != -1 && slash + 1 < cr.length) {
+          final totalStr = cr.substring(slash + 1).trim();
+          final total = int.tryParse(totalStr);
+          if (total != null && total > 0) return total;
+        }
+      }
+      // Si por alguna razón devolvió 200 sin Content-Range, probamos Content-Length del GET
+      final lenStr = res.headers.value('content-length');
+      if (lenStr != null) {
+        final val = int.tryParse(lenStr);
+        if (val != null && val > 0) return val;
+      }
+    } catch (_) {
+      // El servidor no soporta rango o CORS bloquea leer headers
+    }
+
+    // No hay manera fiable de obtener tamaño
+    return null;
+  }
+
   static void revokeIfNeeded(String? url) {
     /* noop */
   }
+}
+
+class _MemoEntry {
+  final String dataUri;
+  final int contentLength;
+  const _MemoEntry({required this.dataUri, required this.contentLength});
 }

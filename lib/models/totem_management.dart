@@ -1,4 +1,5 @@
 /// ------------------ MODELOS ------------------
+/// ------------------ MODELOS ------------------
 class ItemPosition {
   final double lat;
   final double lng;
@@ -11,11 +12,29 @@ class ItemSources {
   final String img;
   final bool isLocal;
 
-  const ItemSources({
-    required this.glb,
-    required this.img,
-    this.isLocal = false,
-  });
+  // ====== Estado de caché embebido (mutable) ======
+  bool loadedOnce = false; // ¿ya se cargó al menos 1 vez en esta sesión?
+  String? resolvedPath; // file:/data:/https: que funcionó
+  int? bytes; // progreso temporal (recibidos)
+  int? total; // total si el servidor lo expone
+
+  ItemSources({required this.glb, required this.img, this.isLocal = false});
+
+  // helpers opcionales
+  void setProgress(int received, int? t) {
+    bytes = received;
+    total = (t != null && t > 0) ? t : null;
+  }
+
+  void sealAfterFirstLoad(String resolved) {
+    loadedOnce = true;
+    resolvedPath = resolved;
+    // limpiar contadores para no confundir UI en reusos
+    bytes = null;
+    total = null;
+  }
+
+  bool get hasTotal => total != null && total! > 0;
 }
 
 class ItemAR {
@@ -69,6 +88,7 @@ final List<ItemAR> itemsSources = [
     subtitle: "Sachayaku mama",
     description: "Entre neblinas y lagunas, hilos de agua fría que renuevan.",
     position: ItemPosition(lat: 0.20401, lng: -78.20723),
+
     sources: ItemSources(
       glb: "https://meetclic.com/public/simi-rura/muelle-catalina/mojanda.glb",
       img:
