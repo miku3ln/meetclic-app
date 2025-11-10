@@ -1,22 +1,27 @@
-// Se usa SOLO vía el import condicional del federador download_helper.dart.
-// No usa 'dart:html'. Para Flutter Web crea data:URI cuando el tamaño lo permite,
-// o retorna la URL original si no se puede calcular/usar porcentaje de forma segura.
+// Se usa solo vía import condicional desde download_helper.dart.
+// No usa 'dart:html'. Para Flutter Web crea data:URIs cuando el tamaño lo permite,
+// o retorna la URL original (http/https) si no es viable calcular/usar porcentaje.
 
 import 'package:dio/dio.dart';
 
 import 'download_models.dart';
 
 class DownloadHelper {
-  // Límite para convertir a data:URI (evita URLs gigantes en Web).
-  static const int _defaultDataUriMaxBytes = 8 * 1024 * 1024; // 8 MB aprox.
+  // Límite recomendado para crear data:URI (evitar URLs enormes en Web).
+  // Ajusta a tu gusto. 8–12 MB suele ser razonable.
+  static const int _defaultDataUriMaxBytes = 8 * 1024 * 1024; // 8 MB
 
   /// Descarga con progreso y devuelve:
-  /// - data:URI (si el archivo es pequeño y el servidor entrega Content-Length)
-  /// - la URL original (http/https) si NO hay Content-Length o si excede el umbral
+  /// - data:URI (cuando el archivo es pequeño y se pudo descargar con %)
+  /// - o la URL original (http/https) cuando no es viable (entonces % no aplica)
   ///
-  /// Progreso:
-  /// - Si hay Content-Length y se descarga: onProgress(received, total) con total>0 → puedes mostrar %
-  /// - Si NO hay Content-Length o no descargamos: total==0 o no se llama → usa loader indeterminado
+  /// Comportamiento del %:
+  /// - Si el server entrega Content-Length y el tamaño <= _defaultDataUriMaxBytes:
+  ///     -> hacemos GET con onReceiveProgress => `onProgress(r,t)` con t>0 (muestra %)
+  ///     -> devolvemos `data:` URI en `data` (isLocal=false)
+  /// - Si NO hay Content-Length o el tamaño excede el umbral:
+  ///     -> devolvemos la URL `url` tal cual, sin descargar (onProgress no se usa)
+  ///     -> tu UI debe mostrar loader indeterminado (como ya lo haces)
   static Future<DownloadResult> fetchToCacheVerbose(
     String url, {
     Map<String, String>? headers,
@@ -28,8 +33,8 @@ class DownloadHelper {
   }) async {
     final dio = Dio(
       BaseOptions(
-        connectTimeout: connectTimeout, // Dio v5: Duration?
-        receiveTimeout: receiveTimeout, // Dio v5: Duration?
+        connectTimeout: connectTimeout, // Duration? en Dio v5
+        receiveTimeout: receiveTimeout, // Duration? en Dio v5
         responseType: ResponseType.bytes,
         headers: headers,
         followRedirects: true,
@@ -37,39 +42,43 @@ class DownloadHelper {
       ),
     );
 
-    // 1) Intentar HEAD para conocer Content-Length (si el CDN lo permite)
+    // 1) Intentar HEAD para conocer Content-Length
     int? contentLength;
     try {
       final head = await dio.head(url);
       final lenStr = head.headers.value('content-length');
       if (lenStr != null) contentLength = int.tryParse(lenStr);
     } catch (_) {
-      // Algunos servidores/CDNs bloquean HEAD. Seguimos sin tamaño conocido.
+      // Algunos CDNs no permiten HEAD; seguimos sin tamaño conocido.
     }
 
-    // 2) ¿Podemos descargar mostrando % y convertir a data:URI?
+    // 2) Decidir estrategia
     final canDownloadWithPercent =
         (contentLength != null &&
         contentLength > 0 &&
         contentLength <= dataUriMaxBytes);
 
     if (!canDownloadWithPercent) {
-      // No descargamos previamente: se cargará directo desde http/https.
-      // → Tu UI queda en modo indeterminado (como ya lo tienes).
+      // No haremos descarga previa; dejamos que el visor cargue directo.
+      // => No habrá % (usa tu loader indeterminado)
       return DownloadResult(
         success: true,
         data: url, // http/https
+        // bytes* y total* se omiten (desconocidos)
         extra: const {'isDataUri': false},
       );
     }
 
-    // 3) Descarga con % (t == contentLength) y construye un data:URI
+    // 3) Descarga con % y construcción de data:URI (tamaño acotado)
     for (int attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         final res = await dio.get<List<int>>(
           url,
           onReceiveProgress: (r, t) {
-            if (onProgress != null) onProgress(r, t);
+            if (onProgress != null) {
+              // t debería ser == contentLength y > 0
+              onProgress(r, t);
+            }
           },
           options: Options(responseType: ResponseType.bytes),
         );
@@ -78,14 +87,17 @@ class DownloadHelper {
         final data = res.data;
 
         if (status == 200 && data != null) {
+          // data:URI sin usar dart:html
+          // OJO: puede ser grande si subes el umbral; mantén el límite razonable.
           final dataUri = Uri.dataFromBytes(
             data,
             mimeType: 'model/gltf-binary',
+            // encoding null para binario; no seteamos base64 explícito (se infiere)
           ).toString();
 
           return DownloadResult(
             success: true,
-            data: dataUri, // úsalo como URL
+            data: dataUri, // <-- úsala como URL en Web
             bytesReceived: data.length,
             totalBytes: contentLength ?? data.length,
             extra: const {'isDataUri': true},
@@ -104,7 +116,7 @@ class DownloadHelper {
     return const DownloadResult(success: false, message: 'Descarga cancelada.');
   }
 
-  // No generamos blob:, así que no hay nada que revocar.
+  // En esta implementación no generamos blob:URL, así que no hay nada que revocar.
   static void revokeIfNeeded(String? url) {
     /* noop */
   }

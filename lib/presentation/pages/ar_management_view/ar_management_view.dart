@@ -1,5 +1,3 @@
-// lib/features/ar_management_view/ar_management_view.dart
-
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
@@ -78,6 +76,10 @@ class _ARManagementViewState extends State<ARManagementView> {
   bool _showReticle = true;
   final GlobalKey _captureKey = GlobalKey();
 
+  // ===== Descarga / Progreso =====
+  double _progress = 0.0; // 0..1
+  String? _lastLoadedPath; // file://, data:, https:
+
   @override
   void initState() {
     super.initState();
@@ -86,6 +88,9 @@ class _ARManagementViewState extends State<ARManagementView> {
 
   @override
   void dispose() {
+    DownloadHelper.revokeIfNeeded(
+      _lastLoadedPath,
+    ); // no-op (por si cambias luego)
     _ar.dispose();
     super.dispose();
   }
@@ -123,29 +128,40 @@ class _ARManagementViewState extends State<ARManagementView> {
     _setStatus(ARLoadStatus.loading);
     UiHelpers.showSnack(context, 'Colocando: ${_selected.id}');
 
+    setState(() => _progress = 0);
+
     try {
       String loadPath = _selected.sources.glb;
-      bool isLocal = _selected.sources.isLocal; // o !glb.startsWith('http')
+      bool isLocal = _selected.sources.isLocal;
 
       if (!isLocal) {
         final res = await DownloadHelper.fetchToCacheVerbose(
           _selected.sources.glb,
           onProgress: (r, t) {
-            /* opcional: progreso */
+            if (!mounted) return;
+            setState(() => _progress = t > 0 ? (r / t) : 0.0);
           },
         );
+
         if (!res.success || res.data == null) {
           _setStatus(ARLoadStatus.error, err: res.message);
           UiHelpers.showSnack(context, '❌ ${res.message}');
           return;
         }
+
         loadPath = res.data!;
-        isLocal = true; // ahora sí: es archivo local en cache
+
+        // Solo es local si es file:// (IO). En Web devolvemos data: o https:
+        final scheme = Uri.parse(loadPath).scheme.toLowerCase();
+        isLocal = (scheme == 'file');
+
+        // Guarda para posible limpieza/revoke (no-op actual)
+        _lastLoadedPath = loadPath;
       }
 
       final ok = await _ar.placeGlbInFront(
         url: loadPath,
-        isLocal: isLocal, // 👈 importante
+        isLocal: isLocal,
         distanceMeters: ARConfig.distanceMeters,
         uniformScale: ARConfig.uniformScale,
         initialPreset: ARViewPreset.front,
@@ -153,7 +169,10 @@ class _ARManagementViewState extends State<ARManagementView> {
 
       if (ok) {
         _setStatus(ARLoadStatus.success);
-        setState(() => _showReticle = false);
+        setState(() {
+          _showReticle = false;
+          _progress = 1.0;
+        });
       } else {
         _setStatus(ARLoadStatus.error, err: 'No se pudo añadir el nodo');
       }
@@ -169,6 +188,10 @@ class _ARManagementViewState extends State<ARManagementView> {
     await _ar.removeCurrentNodeIfAny();
     setState(() => _showReticle = true);
 
+    // Limpia la última URL (no-op hoy, patrón útil si cambias a blob: más tarde)
+    DownloadHelper.revokeIfNeeded(_lastLoadedPath);
+    _lastLoadedPath = null;
+
     UiHelpers.showSnack(
       context,
       'Seleccionado: ${_selected.id}. Toca la retícula para colocar.',
@@ -181,11 +204,10 @@ class _ARManagementViewState extends State<ARManagementView> {
 
     setState(() {
       _isCapturing = true;
-      _hideUiDuringCapture = true; // 👈 oculta InfoCardAR
+      _hideUiDuringCapture = true;
     });
 
     try {
-      // Esperar a que desaparezcan overlays
       await WidgetsBinding.instance.endOfFrame;
       await WidgetsBinding.instance.endOfFrame;
 
@@ -195,7 +217,6 @@ class _ARManagementViewState extends State<ARManagementView> {
       final boundary = ctx.findRenderObject() as RenderRepaintBoundary?;
       if (boundary == null) throw Exception('Boundary no encontrado.');
 
-      // Asegurar frame pintado
       // ignore: invalid_use_of_protected_member
       if (boundary.debugNeedsPaint) {
         await WidgetsBinding.instance.endOfFrame;
@@ -228,7 +249,7 @@ class _ARManagementViewState extends State<ARManagementView> {
       if (mounted) {
         setState(() {
           _isCapturing = false;
-          _hideUiDuringCapture = false; // 👈 vuelve a mostrar InfoCardAR
+          _hideUiDuringCapture = false;
         });
       }
     }
@@ -312,10 +333,7 @@ class _ARManagementViewState extends State<ARManagementView> {
               },
               onScaleUpdate: (details) {
                 if (!_isPinching || _ar.currentNode == null) return;
-                // escala absoluta objetivo (factor)
-                final targetUniform =
-                    _pinchStartScale * details.scale; // 1.0 = sin cambio
-                // convertir a porcentaje respecto a la base
+                final targetUniform = _pinchStartScale * details.scale;
                 final percent = (targetUniform / ARConfig.uniformScale) * 100.0;
                 _applyScalePercentThrottled(percent);
               },
@@ -386,14 +404,16 @@ class _ARManagementViewState extends State<ARManagementView> {
               ),
             ),
 
-            // Chip de estado
+            // Chip de estado (muestra % si está disponible)
             Positioned(
               right: 12,
               top: 12 + 56,
               child: Chip(
                 label: Text(
                   _status == ARLoadStatus.loading
-                      ? 'Cargando…'
+                      ? (_progress > 0
+                            ? 'Cargando… ${(_progress * 100).clamp(0, 100).toStringAsFixed(0)}%'
+                            : 'Cargando…')
                       : _status == ARLoadStatus.success
                       ? 'Listo'
                       : _status == ARLoadStatus.error
@@ -411,11 +431,22 @@ class _ARManagementViewState extends State<ARManagementView> {
               ),
             ),
 
-            // Overlay de carga
+            // Overlay de carga (con % cuando hay content-length)
             if (_status == ARLoadStatus.loading)
-              Container(
-                color: Colors.black54,
-                child: const Center(child: _LoadingOverlay()),
+              Positioned.fill(
+                child: IgnorePointer(
+                  ignoring: false,
+                  child: Container(
+                    color: Colors.black54,
+                    alignment: Alignment.center,
+                    child: _LoadingOverlay(
+                      progress: _progress, // 0..1 (0 => indeterminado)
+                      message: _progress > 0
+                          ? 'Descargando modelo…'
+                          : 'Preparando…',
+                    ),
+                  ),
+                ),
               ),
 
             // Retícula centrada para colocar
@@ -431,7 +462,6 @@ class _ARManagementViewState extends State<ARManagementView> {
                   item: _selected,
                   lastError: _lastError,
                   onCapturePressed: hasModel ? _captureAndSavePng : null,
-                  // Si quieres las flechas:
                   onYawLeft: hasModel
                       ? () async => {_ar.nudgeXawDegrees(-8)}
                       : null,
@@ -469,27 +499,61 @@ class _ARManagementViewState extends State<ARManagementView> {
   }
 }
 
-// ====== Widgets internos simples ======
+// ====== Widgets internos ======
 
 class _LoadingOverlay extends StatelessWidget {
-  const _LoadingOverlay();
+  final double progress; // 0..1 (0 => indeterminado)
+  final String message;
+
+  const _LoadingOverlay({
+    super.key,
+    required this.progress,
+    this.message = 'Cargando…',
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: const [
-        CircularProgressIndicator(),
-        SizedBox(height: 12),
-        Text(
-          'Cargando…',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
+    final hasTotal = progress > 0 && progress.isFinite;
+    final pct = (progress * 100).clamp(0, 100).toStringAsFixed(0);
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 360),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.75),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                message,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              hasTotal
+                  ? LinearProgressIndicator(value: progress)
+                  : const LinearProgressIndicator(),
+              const SizedBox(height: 8),
+              Text(
+                hasTotal ? '$pct%' : 'Preparando…',
+                style: const TextStyle(color: Colors.white70),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'No cierres esta pantalla',
+                style: TextStyle(color: Colors.white38, fontSize: 12),
+              ),
+            ],
           ),
         ),
-      ],
+      ),
     );
   }
 }
