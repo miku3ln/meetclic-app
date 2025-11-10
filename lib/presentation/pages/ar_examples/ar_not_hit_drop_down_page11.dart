@@ -101,8 +101,8 @@ class OrientationHelper {
  * NodeFactory: construcción segura de nodos
  * ========================================================================== */
 
-class NodeFactory {
-  NodeFactory._();
+class NodeFactory3 {
+  NodeFactory3._();
 
   static bool isValidGlbUrl(String url) {
     if (url.isEmpty) return false;
@@ -239,7 +239,7 @@ class ARService {
     if (_session == null || _objects == null) {
       throw StateError('AR no inicializado todavía.');
     }
-    if (!NodeFactory.isValidGlbUrl(url)) {
+    if (!NodeFactory3.isValidGlbUrl(url)) {
       throw ArgumentError('URL inválida o no .glb: $url');
     }
 
@@ -255,7 +255,7 @@ class ARService {
       euler = OrientationHelper.presetEuler(initialPreset);
     }
 
-    final node = NodeFactory.webGlb(
+    final node = NodeFactory3.webGlb(
       url: url,
       position: pose.position,
       eulerAngles: euler,

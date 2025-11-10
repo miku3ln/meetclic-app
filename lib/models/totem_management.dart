@@ -2,13 +2,20 @@
 class ItemPosition {
   final double lat;
   final double lng;
+
   const ItemPosition({required this.lat, required this.lng});
 }
 
 class ItemSources {
   final String glb;
   final String img;
-  const ItemSources({required this.glb, required this.img});
+  final bool isLocal;
+
+  const ItemSources({
+    required this.glb,
+    required this.img,
+    this.isLocal = false,
+  });
 }
 
 class ItemAR {
@@ -18,6 +25,7 @@ class ItemAR {
   final String description;
   final ItemPosition position;
   final ItemSources sources;
+
   const ItemAR({
     required this.id,
     required this.title,

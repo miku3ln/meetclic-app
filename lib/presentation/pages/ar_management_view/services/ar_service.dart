@@ -1,12 +1,14 @@
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:ar_flutter_plugin/managers/ar_object_manager.dart';
 import 'package:ar_flutter_plugin/managers/ar_session_manager.dart';
 import 'package:ar_flutter_plugin/models/ar_node.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:meetclic/presentation/pages/ar_management_view/services/node_factory.dart';
 import 'package:vector_math/vector_math_64.dart' as v;
 
 import 'ar_config.dart';
-import 'node_factory.dart';
 
 class ARService {
   Future<void> _recreateWith({
@@ -161,9 +163,37 @@ class ARService {
       euler = OrientationHelper.presetEuler(initialPreset);
     }
 
+    // 🔍 Diagnóstico previo si es local (asegúrate que el archivo exista y pese >0)
+    if (isLocal) {
+      try {
+        final f = File(url);
+        if (!await f.exists()) {
+          debugPrint('[AR] local path no existe: $url');
+          return false;
+        }
+        final len = await f.length();
+        if (len == 0) {
+          debugPrint('[AR] local path tamaño 0: $url');
+          return false;
+        }
+        if (!url.toLowerCase().endsWith('.glb')) {
+          debugPrint('[AR] advertencia: extensión no .glb -> $url');
+        }
+      } catch (e) {
+        debugPrint('[AR] error inspeccionando archivo local: $e');
+        return false;
+      }
+    } else {
+      // Para remotos, valida que sea http(s)
+      if (!NodeFactory.isValidGlbUrl(url)) {
+        debugPrint('[AR] URL web inválida: $url');
+        return false;
+      }
+    }
+
     final node = isLocal
-        ? NodeFactory.localGlb(
-            path: url,
+        ? NodeFactory.localFileGlb(
+            filePath: url,
             position: pose.position,
             eulerAngles: euler,
             uniformScale: uniformScale,
@@ -175,12 +205,18 @@ class ARService {
             uniformScale: uniformScale,
           );
 
-    final added = await _objects!.addNode(node);
-    if (added == true) {
-      _current = node;
-      return true;
+    try {
+      final added = await _objects!.addNode(node);
+      if (added == true) {
+        _current = node;
+        return true;
+      }
+      debugPrint('[AR] addNode devolvió false');
+      return false;
+    } catch (e, st) {
+      debugPrint('[AR] addNode lanzó excepción: $e\n$st');
+      return false;
     }
-    return false;
   }
 
   // === Hot updates ===
@@ -208,6 +244,16 @@ class ARService {
 
     _current!.eulerAngles = v.Vector3(eul.x, eul.y + dy, eul.z);
     _pushCurrentTransform();
+  }
+
+  Future<void> nudgeXawDegrees(double deltaDeg) async {
+    if (_current == null) return;
+
+    final eul = _current!.eulerAngles ?? v.Vector3.zero();
+    final dx = deltaDeg * math.pi / 180.0; // grados -> radianes
+
+    _current!.eulerAngles = v.Vector3(eul.x + dx, eul.y, eul.z);
+    _pushCurrentTransform(); // aplica en caliente sin recrear el nodo
   }
 
   Future<void> recenterInFront() async {

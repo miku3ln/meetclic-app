@@ -1,5 +1,6 @@
 // lib/features/ar_management_view/ar_management_view.dart
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -123,20 +124,28 @@ class _ARManagementViewState extends State<ARManagementView> {
     UiHelpers.showSnack(context, 'Colocando: ${_selected.id}');
 
     try {
-      final isLocal = false;
-      // 1) Descarga y cachea el GLB (si no existe)
-      final localPath;
-      if (isLocal) {
-        localPath = await downloadAndCacheGlb(_selected.sources.glb);
-      } else {
-        localPath = _selected.sources.glb;
+      String loadPath = _selected.sources.glb;
+      bool isLocal = _selected.sources.isLocal; // o !glb.startsWith('http')
+
+      if (!isLocal) {
+        final res = await DownloadHelper.fetchToCacheVerbose(
+          _selected.sources.glb,
+          onProgress: (r, t) {
+            /* opcional: progreso */
+          },
+        );
+        if (!res.success || res.data == null) {
+          _setStatus(ARLoadStatus.error, err: res.message);
+          UiHelpers.showSnack(context, '❌ ${res.message}');
+          return;
+        }
+        loadPath = res.data!;
+        isLocal = true; // ahora sí: es archivo local en cache
       }
 
-      // 2) Coloca el modelo desde disco (rápido) frente a la cámara
       final ok = await _ar.placeGlbInFront(
-        url: localPath,
-        isLocal: isLocal,
-        // 👈 importante
+        url: loadPath,
+        isLocal: isLocal, // 👈 importante
         distanceMeters: ARConfig.distanceMeters,
         uniformScale: ARConfig.uniformScale,
         initialPreset: ARViewPreset.front,
@@ -423,8 +432,12 @@ class _ARManagementViewState extends State<ARManagementView> {
                   lastError: _lastError,
                   onCapturePressed: hasModel ? _captureAndSavePng : null,
                   // Si quieres las flechas:
-                  // onYawLeft: hasModel ? () async => _ar.nudgeYawDegrees(-8) : null,
-                  // onYawRight: hasModel ? () async => _ar.nudgeYawDegrees(8) : null,
+                  onYawLeft: hasModel
+                      ? () async => {_ar.nudgeXawDegrees(-8)}
+                      : null,
+                  onYawRight: hasModel
+                      ? () async => {_ar.nudgeXawDegrees(8)}
+                      : null,
                 ),
               ),
 
