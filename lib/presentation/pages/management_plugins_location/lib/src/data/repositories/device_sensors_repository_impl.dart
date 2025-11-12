@@ -1,4 +1,5 @@
 import '../../domain/entities/device_location.dart';
+import '../../domain/entities/location_stream_config.dart';
 import '../../domain/repositories/device_sensors_repository.dart';
 import '../services/device_sensors_service.dart';
 
@@ -49,4 +50,9 @@ final class DeviceSensorsRepositoryImpl implements DeviceSensorsRepository {
   @override
   ({double x, double y, double z})? get lastUserAccelerometer =>
       _service.lastUserAccelerometer;
+
+  @override
+  Stream<DeviceLocation> watchLocationStream({
+    LocationStreamConfig config = const LocationStreamConfig(),
+  }) => _service.watchLocationStream(config: config);
 }

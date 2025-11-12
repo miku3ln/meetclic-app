@@ -1,4 +1,5 @@
 import '../entities/device_location.dart';
+import '../entities/location_stream_config.dart';
 
 abstract interface class DeviceSensorsRepository {
   // Ubicación
@@ -23,6 +24,12 @@ abstract interface class DeviceSensorsRepository {
   /// Últimas muestras cacheadas (pueden ser null la primera vez)
   ({double x, double y, double z})? get lastAccelerometer;
   ({double x, double y, double z})? get lastUserAccelerometer;
+
+  // --- NUEVO: stream de ubicación en vivo ---
+  /// Devuelve un stream con DeviceLocation. Requiere servicio + permiso.
+  Stream<DeviceLocation> watchLocationStream({
+    LocationStreamConfig config = const LocationStreamConfig(),
+  });
 }
 
 /// Precisión abstracta para desacoplar de librerías externas
